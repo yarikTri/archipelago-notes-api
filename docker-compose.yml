@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: db
+    image: postgres:14
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - 5436:5432
+    volumes:
+      - ./cmd/api/init/db/postgresql/schema/:/docker-entrypoint-initdb.d # isn't used if pgdata exists
+      # ${DB_PATH}:/var/lib/postgresql/data
+    command: ["postgres"] # "-c", "logging_collector=on", "-c", "log_statement=all"]
