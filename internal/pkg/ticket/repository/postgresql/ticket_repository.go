@@ -19,16 +19,16 @@ func NewPostgreSQL(db *gorm.DB, t ticket.Tables) *PostgreSQL {
 	}
 }
 
-func (p *PostgreSQL) GetByID(ticketID uint32) (*models.Ticket, error) {
-	return nil, nil
+func (p *PostgreSQL) GetByID(ticketID uint32) (models.Ticket, error) {
+	return models.Ticket{}, nil
 }
 
 func (p *PostgreSQL) List() ([]models.Ticket, error) {
 	return nil, nil
 }
 
-func (p *PostgreSQL) Create(ticket models.Ticket) (*models.Ticket, error) {
-	return nil, nil
+func (p *PostgreSQL) Create(ticket models.Ticket) (models.Ticket, error) {
+	return models.Ticket{}, nil
 }
 
 func (p *PostgreSQL) DeleteByID(ticketID uint32) error {

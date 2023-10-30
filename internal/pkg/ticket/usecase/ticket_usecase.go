@@ -16,7 +16,7 @@ func NewUsecase(tr ticket.Repository) *Usecase {
 	}
 }
 
-func (u *Usecase) GetByID(ticketID uint32) (*models.Ticket, error) {
+func (u *Usecase) GetByID(ticketID uint32) (models.Ticket, error) {
 	return u.repo.GetByID(ticketID)
 }
 
@@ -24,7 +24,7 @@ func (u *Usecase) List() ([]models.Ticket, error) {
 	return u.repo.List()
 }
 
-func (u *Usecase) Create(ticket models.Ticket) (*models.Ticket, error) {
+func (u *Usecase) Create(ticket models.Ticket) (models.Ticket, error) {
 	return u.repo.Create(ticket)
 }
 

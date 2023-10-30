@@ -16,18 +16,6 @@ func NewUsecase(sr station.Repository) *Usecase {
 	}
 }
 
-func (u *Usecase) GetByID(stationID uint32) (*models.Station, error) {
-	return u.repo.GetByID(stationID)
-}
-
-func (u *Usecase) List() ([]models.Station, error) {
-	return u.repo.List()
-}
-
-func (u *Usecase) Create(station models.Station) (*models.Station, error) {
-	return u.repo.Create(station)
-}
-
-func (u *Usecase) DeleteByID(stationID uint32) error {
-	return u.DeleteByID(stationID)
+func (u *Usecase) ListByRoute(routeID uint32) ([]models.Station, error) {
+	return u.repo.ListByRoute(routeID)
 }

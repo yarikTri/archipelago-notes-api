@@ -8,31 +8,24 @@ import (
 	ticketDelivery "github.com/yarikTri/web-transport-cards/internal/pkg/ticket/delivery/http"
 )
 
+const TEMPLATE_ROUTE = "static/template/*"
+
 func InitRoutes(
 	routeH *routeDelivery.Handler,
 	stationH *stationDelivery.Handler,
-	ticketH *ticketDelivery.Handler) *gin.Engine {
-
+	ticketH *ticketDelivery.Handler,
+) *gin.Engine {
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob(TEMPLATE_ROUTE)
 
-	r.GET("/", ticketH.Index)
+	r.Static("/static", "./static")
+	r.Static("/css", "./static")
+	r.Static("/image", "./static")
 
-	r.GET("/routes/get", routeH.GetByID)
-	r.GET("/routes/list", routeH.List)
-	r.GET("/routes/create", routeH.Create)
-	r.GET("/routes/delete", routeH.DeleteByID)
-	r.GET("/stations/get", stationH.GetByID)
-	r.GET("/stations/list", stationH.List)
-	r.GET("/stations/create", stationH.Create)
-	r.GET("/stations/delete", stationH.DeleteByID)
-	r.GET("/tickets/get", ticketH.GetByID)
-	r.GET("/tickets/list", ticketH.List)
-	r.GET("/tickets/create", ticketH.Create)
-	r.GET("/tickets/delete", ticketH.DeleteByID)
+	r.GET("/", routeH.List)
 
-	r.Static("/images", "./resources/images")
-	r.Static("/docs", "./resources/docs")
+	r.GET("/search", routeH.Search)
+	r.GET("/routes/:id", routeH.GetByID)
 
 	return r
 }

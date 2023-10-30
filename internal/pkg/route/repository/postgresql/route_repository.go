@@ -19,16 +19,16 @@ func NewPostgreSQL(db *gorm.DB, t route.Tables) *PostgreSQL {
 	}
 }
 
-func (p *PostgreSQL) GetByID(routeID uint32) (*models.Route, error) {
-	return nil, nil
+func (p *PostgreSQL) GetByID(routeID uint32) (models.Route, error) {
+	return models.Route{}, nil
 }
 
 func (p *PostgreSQL) List() ([]models.Route, error) {
 	return nil, nil
 }
 
-func (p *PostgreSQL) Create(route models.Route) (*models.Route, error) {
-	return nil, nil
+func (p *PostgreSQL) Create(route models.Route) (models.Route, error) {
+	return models.Route{}, nil
 }
 
 func (p *PostgreSQL) DeleteByID(routeID uint32) error {
