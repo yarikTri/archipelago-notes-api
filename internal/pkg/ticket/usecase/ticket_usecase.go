@@ -16,7 +16,7 @@ func NewUsecase(tr ticket.Repository) *Usecase {
 	}
 }
 
-func (u *Usecase) GetByID(ticketID uint32) (models.Ticket, error) {
+func (u *Usecase) GetByID(ticketID int) (models.Ticket, error) {
 	return u.repo.GetByID(ticketID)
 }
 
@@ -28,6 +28,6 @@ func (u *Usecase) Create(ticket models.Ticket) (models.Ticket, error) {
 	return u.repo.Create(ticket)
 }
 
-func (u *Usecase) DeleteByID(ticketID uint32) error {
+func (u *Usecase) DeleteByID(ticketID int) error {
 	return u.repo.DeleteByID(ticketID)
 }

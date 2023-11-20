@@ -1,29 +1,48 @@
 package models
 
+import "gorm.io/gorm"
+
 type Route struct {
-	ID          uint32
-	Name        string
-	State       string
-	Description string
-	ImagePath   string
+	gorm.Model
+	Name string
+	// Tickets         []*Ticket `gorm:"many2many:route_ticket;"`
+	Active          bool
+	Capacity        uint32
+	StartStation    string
+	EndStation      string
+	StartTime       string
+	EndTime         string
+	IntervalMinutes uint32
+	Description     string
+	ImagePath       *string
 }
 
-func (r *Route) ToTransfer(stations []Station) RouteTransfer {
+func (r *Route) ToTransfer() RouteTransfer {
 	return RouteTransfer{
-		ID:          r.ID,
-		Name:        r.Name,
-		State:       r.State,
-		Stations:    stations,
-		Description: r.Description,
-		ImagePath:   r.ImagePath,
+		ID:              r.ID,
+		Name:            r.Name,
+		Active:          r.Active,
+		Capacity:        r.Capacity,
+		StartStation:    r.StartStation,
+		EndStation:      r.EndStation,
+		IntervalMinutes: r.IntervalMinutes,
+		StartTime:       r.StartTime,
+		EndTime:         r.EndTime,
+		Description:     r.Description,
+		ImagePath:       r.ImagePath,
 	}
 }
 
 type RouteTransfer struct {
-	ID          uint32
-	Name        string
-	State       string
-	Stations    []Station
-	Description string
-	ImagePath   string
+	ID              uint
+	Name            string
+	Active          bool
+	Capacity        uint32
+	StartStation    string
+	EndStation      string
+	StartTime       string
+	EndTime         string
+	IntervalMinutes uint32
+	Description     string
+	ImagePath       *string
 }

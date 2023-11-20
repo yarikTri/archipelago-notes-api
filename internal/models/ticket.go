@@ -1,10 +1,13 @@
 package models
 
-import "time"
+import "gorm.io/gorm"
 
 type Ticket struct {
-	ID        uint32
-	RouteID   uint32
-	State     string
-	StartedAt time.Time
+	gorm.Model
+	Routes     []Route `gorm:"many2many:ticket_routes;"`
+	State      string
+	FormDate   string
+	FinishDate string
+	UserID     int
+	User       User
 }

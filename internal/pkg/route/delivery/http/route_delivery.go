@@ -27,12 +27,12 @@ func NewHandler(ru route.Usecase, su station.Usecase, l logger.Logger) *Handler 
 
 func (h *Handler) GetByID(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
-	_route, _ := h.routeServices.GetByID(uint32(id))
+	_route, _ := h.routeServices.GetByID(int(id))
 
-	stations, _ := h.stationServices.ListByRoute(_route.ID)
+	// stations, _ := h.stationServices.ListByRoute(_route.ID)
 
 	c.HTML(http.StatusOK, "route.tmpl", gin.H{
-		"routes": []models.RouteTransfer{_route.ToTransfer(stations)},
+		"routes": []models.RouteTransfer{_route.ToTransfer()},
 	})
 }
 
@@ -41,9 +41,9 @@ func (h *Handler) List(c *gin.Context) {
 
 	routesTransfers := make([]models.RouteTransfer, 0)
 	for _, route := range routes {
-		stations, _ := h.stationServices.ListByRoute(route.ID)
+		// stations, _ := h.stationServices.ListByRoute(route.ID)
 
-		routesTransfers = append(routesTransfers, route.ToTransfer(stations))
+		routesTransfers = append(routesTransfers, route.ToTransfer())
 	}
 
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -57,9 +57,9 @@ func (h *Handler) Search(c *gin.Context) {
 
 	routesTransfers := make([]models.RouteTransfer, 0)
 	for _, route := range routes {
-		stations, _ := h.stationServices.ListByRoute(route.ID)
+		// stations, _ := h.stationServices.ListByRoute(route.ID)
 
-		routesTransfers = append(routesTransfers, route.ToTransfer(stations))
+		routesTransfers = append(routesTransfers, route.ToTransfer())
 	}
 
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -69,5 +69,10 @@ func (h *Handler) Search(c *gin.Context) {
 }
 
 func (h *Handler) DeleteByID(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"route": "delete"})
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	h.routeServices.DeleteByID(int(id))
+
+	c.Request.URL.Path = "/"
+	c.Redirect(http.StatusFound, c.Request.URL.Path)
 }

@@ -21,19 +21,19 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	reqIdGetterMock := func(context.Context) (uint32, error) { return 1, nil }
+	reqIdGetterMock := func(context.Context) (uint32, error) { return 0, nil }
 	flogger, err := flog.NewFLogger(reqIdGetterMock)
 	if err != nil {
 		log.Fatalf("logger can not be defined: %v\n", err)
 	}
 
-	db, tables, err := postgresql.InitPostgresDB()
+	db, _, err := postgresql.InitPostgresDB()
 	if err != nil {
 		flogger.Errorf("error while connecting to database: %v", err)
 		return
 	}
 
-	router, err := app.Init(db, tables, flogger)
+	router, err := app.Init(db, flogger)
 
 	var srv server.Server
 	if err := srv.Init(os.Getenv(config.ApiListenParamName), router); err != nil {

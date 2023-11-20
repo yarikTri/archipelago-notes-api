@@ -1,36 +1,68 @@
 package postgresql
 
 import (
+	"fmt"
+
 	"github.com/yarikTri/web-transport-cards/internal/models"
-	"github.com/yarikTri/web-transport-cards/internal/pkg/route"
 	"gorm.io/gorm"
 )
 
 // PostgreSQL implements route.Repository
 type PostgreSQL struct {
-	db     *gorm.DB
-	tables route.Tables
+	db *gorm.DB
 }
 
-func NewPostgreSQL(db *gorm.DB, t route.Tables) *PostgreSQL {
+func NewPostgreSQL(db *gorm.DB) *PostgreSQL {
 	return &PostgreSQL{
-		db:     db,
-		tables: t,
+		db: db,
 	}
 }
 
-func (p *PostgreSQL) GetByID(routeID uint32) (models.Route, error) {
-	return models.Route{}, nil
+func (p *PostgreSQL) GetByID(routeID int) (models.Route, error) {
+	var route models.Route
+	if err := p.db.First(&route, routeID).Error; err != nil {
+		return models.Route{}, err
+	}
+
+	return route, nil
 }
 
 func (p *PostgreSQL) List() ([]models.Route, error) {
-	return nil, nil
+	var routes []models.Route
+	if err := p.db.Where("active = true").Find(&routes).Error; err != nil {
+		return nil, err
+	}
+
+	return routes, nil
 }
 
 func (p *PostgreSQL) Create(route models.Route) (models.Route, error) {
-	return models.Route{}, nil
+	if err := p.db.Create(&route).Error; err != nil {
+		return models.Route{}, err
+	}
+
+	return route, nil
 }
 
-func (p *PostgreSQL) DeleteByID(routeID uint32) error {
+func (p *PostgreSQL) Search(subString string) ([]models.Route, error) {
+	var routes []models.Route
+	fmt.Println(subString)
+	likeStatement := "%" + subString + "%"
+	if err := p.db.Where("active = true AND name like ?", likeStatement).Find(&routes).Error; err != nil {
+		return nil, err
+	}
+
+	return routes, nil
+}
+
+func (p *PostgreSQL) DeleteByID(routeID int) error {
+	route, err := p.GetByID(routeID)
+	if err != nil {
+		return err
+	}
+
+	route.Active = false
+	p.db.Save(route)
+
 	return nil
 }

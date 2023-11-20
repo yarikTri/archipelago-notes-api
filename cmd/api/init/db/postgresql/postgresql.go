@@ -43,6 +43,8 @@ func initPostgresConfig() (PostgresConfig, error) { // TODO CHECK FIELDS
 		strings.TrimSpace(cfg.DBPassword) == "" ||
 		strings.TrimSpace(cfg.DBSSLMode) == "" {
 
+		fmt.Print(cfg)
+
 		return PostgresConfig{}, errors.New("invalid db config")
 	}
 
@@ -93,6 +95,10 @@ func (pt PostgreSQLTables) Routes() string {
 
 func (pt PostgreSQLTables) RoutesStations() string {
 	return "Routes_Stations"
+}
+
+func (pt PostgreSQLTables) RoutesTickets() string {
+	return "Routes_Tickets"
 }
 
 func (pt PostgreSQLTables) Tickets() string {

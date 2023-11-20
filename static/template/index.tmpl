@@ -51,14 +51,19 @@
         {{ range .routes }}
 
         <div class="col-sm-4 mb-3">
-          <a class="card-href" href="routes/{{ .ID }}">
-            <div class="custom-card">
+          <div class="custom-card">
+            <a class="card-href" href="routes/{{ .ID }}">
               <img src="{{ .ImagePath }}" alt="{{ .Name }}" class="custom-card-img">
               <div class="custom-card-body">
                 <p class="custom-card-text text-center">{{ .Name }}</p>
               </div>
+            </a>
+            <div class="delete-button">
+              <form method="post" action="routes/{{ .ID }}/disactivate">
+                <button type="submit" name="delete_btn"> ❌ Delete </button>
+              </form>
             </div>
-          </a>
+          </div>
         </div>
 
         {{ end }}

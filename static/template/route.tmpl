@@ -45,6 +45,11 @@
         <div class="route-card-description">
             <h2>{{ .Name }}</h2>
             <p>{{ .Description }}</p>
+            <p><b>Начало: </b>{{ .StartTime }}</p>
+            <p><b>Конец: </b>{{ .EndTime }}</p>
+            <p><b>Интервал следования: </b>{{ .IntervalMinutes }}</p>
+            <p><b>Вместимость: </b>{{ .Capacity }}</p>
+            <p><b>Маршрут следования: </b><br>{{ .StartStation }} - {{ .EndStation }}</p>
             <a class="btn-back-to-routes" href="/">Вернуться к услугам</a>
         </div>
     </div>

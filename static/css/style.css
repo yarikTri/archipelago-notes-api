@@ -246,3 +246,18 @@ body {
     transform: translateY(-1.5px);
     box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
 }
+
+.delete-button {
+    position: absolute;
+    top: 5px;
+    right: 17px;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: default;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.delete-button:hover {
+    opacity: 1;
+}

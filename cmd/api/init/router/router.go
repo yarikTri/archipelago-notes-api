@@ -23,8 +23,10 @@ func InitRoutes(
 	r.Static("/image", "./static")
 
 	r.GET("/", routeH.List)
+	r.POST("/", routeH.List)
 
 	r.GET("/search", routeH.Search)
+	r.POST("/routes/:id/disactivate", routeH.DeleteByID)
 	r.GET("/routes/:id", routeH.GetByID)
 
 	return r

@@ -19,7 +19,7 @@ func NewMock(db mock.MockDB) *Mock {
 	}
 }
 
-func (m *Mock) GetByID(routeID uint32) (models.Route, error) {
+func (m *Mock) GetByID(routeID int) (models.Route, error) {
 	return m.db.Routes[fmt.Sprint(routeID)], nil
 }
 
@@ -45,7 +45,7 @@ func (m *Mock) Search(subRoute string) ([]models.Route, error) {
 	return routes, nil
 }
 
-func (m *Mock) DeleteByID(routeID uint32) error {
+func (m *Mock) DeleteByID(routeID int) error {
 	delete(m.db.Routes, fmt.Sprint(routeID))
 
 	return nil

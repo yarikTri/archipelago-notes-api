@@ -15,7 +15,7 @@ func NewMock(db map[int]models.Ticket) *Mock {
 	}
 }
 
-func (m *Mock) GetByID(ticketID uint32) (*models.Ticket, error) {
+func (m *Mock) GetByID(ticketID int) (*models.Ticket, error) {
 	return nil, nil
 }
 
@@ -27,6 +27,6 @@ func (m *Mock) Create(ticket models.Ticket) (*models.Ticket, error) {
 	return nil, nil
 }
 
-func (*Mock) DeleteByID(ticketID uint32) error {
+func (*Mock) DeleteByID(ticketID int) error {
 	return nil
 }

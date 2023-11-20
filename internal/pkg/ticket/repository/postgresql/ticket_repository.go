@@ -2,24 +2,21 @@ package postgresql
 
 import (
 	"github.com/yarikTri/web-transport-cards/internal/models"
-	"github.com/yarikTri/web-transport-cards/internal/pkg/ticket"
 	"gorm.io/gorm"
 )
 
 // PostgreSQL implements ticket.Repository
 type PostgreSQL struct {
-	db     *gorm.DB
-	tables ticket.Tables
+	db *gorm.DB
 }
 
-func NewPostgreSQL(db *gorm.DB, t ticket.Tables) *PostgreSQL {
+func NewPostgreSQL(db *gorm.DB) *PostgreSQL {
 	return &PostgreSQL{
-		db:     db,
-		tables: t,
+		db: db,
 	}
 }
 
-func (p *PostgreSQL) GetByID(ticketID uint32) (models.Ticket, error) {
+func (p *PostgreSQL) GetByID(ticketID int) (models.Ticket, error) {
 	return models.Ticket{}, nil
 }
 
@@ -31,6 +28,6 @@ func (p *PostgreSQL) Create(ticket models.Ticket) (models.Ticket, error) {
 	return models.Ticket{}, nil
 }
 
-func (p *PostgreSQL) DeleteByID(ticketID uint32) error {
+func (p *PostgreSQL) DeleteByID(ticketID int) error {
 	return nil
 }

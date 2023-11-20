@@ -16,7 +16,7 @@ func NewUsecase(rr route.Repository) *Usecase {
 	}
 }
 
-func (u *Usecase) GetByID(routeID uint32) (models.Route, error) {
+func (u *Usecase) GetByID(routeID int) (models.Route, error) {
 	return u.repo.GetByID(routeID)
 }
 
@@ -26,4 +26,8 @@ func (u *Usecase) List() ([]models.Route, error) {
 
 func (u *Usecase) Search(subString string) ([]models.Route, error) {
 	return u.repo.Search(subString)
+}
+
+func (u *Usecase) DeleteByID(routeID int) error {
+	return u.repo.DeleteByID(routeID)
 }
