@@ -1,20 +1,25 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Route struct {
 	gorm.Model
-	Name string
-	// Tickets         []*Ticket `gorm:"many2many:route_ticket;"`
-	Active          bool
+
+	Name            string
+	Active          bool `gorm:"default:true"`
 	Capacity        uint32
 	StartStation    string
 	EndStation      string
-	StartTime       string
-	EndTime         string
+	StartTime       time.Time
+	EndTime         time.Time
 	IntervalMinutes uint32
 	Description     string
-	ImagePath       *string
+	ImageUUID       uuid.UUID
 }
 
 func (r *Route) ToTransfer() RouteTransfer {
@@ -26,23 +31,23 @@ func (r *Route) ToTransfer() RouteTransfer {
 		StartStation:    r.StartStation,
 		EndStation:      r.EndStation,
 		IntervalMinutes: r.IntervalMinutes,
-		StartTime:       r.StartTime,
-		EndTime:         r.EndTime,
+		StartTime:       int(r.StartTime.Unix()),
+		EndTime:         int(r.EndTime.Unix()),
 		Description:     r.Description,
-		ImagePath:       r.ImagePath,
+		ImageUUID:       r.ImageUUID,
 	}
 }
 
 type RouteTransfer struct {
-	ID              uint
-	Name            string
-	Active          bool
-	Capacity        uint32
-	StartStation    string
-	EndStation      string
-	StartTime       string
-	EndTime         string
-	IntervalMinutes uint32
-	Description     string
-	ImagePath       *string
+	ID              uint      `json:"id"`
+	Name            string    `json:"name"`
+	Active          bool      `json:"active"`
+	Capacity        uint32    `json:"capacity"`
+	StartStation    string    `json:"start_station"`
+	EndStation      string    `json:"end_station"`
+	StartTime       int       `json:"start_time"`
+	EndTime         int       `json:"end_time"`
+	IntervalMinutes uint32    `json:"interval_minutes"`
+	Description     string    `json:"description"`
+	ImageUUID       uuid.UUID `json:"image_uuid"`
 }

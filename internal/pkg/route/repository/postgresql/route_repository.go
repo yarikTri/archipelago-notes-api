@@ -1,8 +1,7 @@
 package postgresql
 
 import (
-	"fmt"
-
+	"github.com/google/uuid"
 	"github.com/yarikTri/web-transport-cards/internal/models"
 	"gorm.io/gorm"
 )
@@ -36,6 +35,16 @@ func (p *PostgreSQL) List() ([]models.Route, error) {
 	return routes, nil
 }
 
+func (p *PostgreSQL) Search(subString string) ([]models.Route, error) {
+	var routes []models.Route
+	likeStatement := "%" + subString + "%"
+	if err := p.db.Where("active = true AND name like ?", likeStatement).Find(&routes).Error; err != nil {
+		return nil, err
+	}
+
+	return routes, nil
+}
+
 func (p *PostgreSQL) Create(route models.Route) (models.Route, error) {
 	if err := p.db.Create(&route).Error; err != nil {
 		return models.Route{}, err
@@ -44,15 +53,12 @@ func (p *PostgreSQL) Create(route models.Route) (models.Route, error) {
 	return route, nil
 }
 
-func (p *PostgreSQL) Search(subString string) ([]models.Route, error) {
-	var routes []models.Route
-	fmt.Println(subString)
-	likeStatement := "%" + subString + "%"
-	if err := p.db.Where("active = true AND name like ?", likeStatement).Find(&routes).Error; err != nil {
-		return nil, err
+func (p *PostgreSQL) Update(route models.Route) (models.Route, error) {
+	if err := p.db.Save(&route).Error; err != nil {
+		return models.Route{}, err
 	}
 
-	return routes, nil
+	return route, nil
 }
 
 func (p *PostgreSQL) DeleteByID(routeID int) error {
@@ -62,7 +68,15 @@ func (p *PostgreSQL) DeleteByID(routeID int) error {
 	}
 
 	route.Active = false
-	p.db.Save(route)
+	return p.db.Save(&route).Error
+}
 
-	return nil
+func (p *PostgreSQL) UpdateImageUUID(routeID int, imageUUID uuid.UUID) error {
+	route, err := p.GetByID(routeID)
+	if err != nil {
+		return err
+	}
+
+	route.ImageUUID = imageUUID
+	return p.db.Save(&route).Error
 }

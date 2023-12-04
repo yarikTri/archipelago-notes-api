@@ -1,54 +1,63 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/yarikTri/web-transport-cards/internal/models"
+	"github.com/yarikTri/web-transport-cards/internal/pkg/image"
 	"github.com/yarikTri/web-transport-cards/internal/pkg/route"
-	"github.com/yarikTri/web-transport-cards/internal/pkg/station"
 )
 
 type Handler struct {
-	routeServices   route.Usecase
-	stationServices station.Usecase
-	logger          logger.Logger
+	routeServices route.Usecase
+	imageServices image.Usecase
+	logger        logger.Logger
 }
 
-func NewHandler(ru route.Usecase, su station.Usecase, l logger.Logger) *Handler {
+func NewHandler(ru route.Usecase, iu image.Usecase, l logger.Logger) *Handler {
 	return &Handler{
-		routeServices:   ru,
-		stationServices: su,
-		logger:          l,
+		routeServices: ru,
+		imageServices: iu,
+		logger:        l,
 	}
 }
 
 func (h *Handler) GetByID(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
-	_route, _ := h.routeServices.GetByID(int(id))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.logger.Infof("Invalid route id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid route id '%s'", c.Param("id")))
+		return
+	}
 
-	// stations, _ := h.stationServices.ListByRoute(_route.ID)
+	route, err := h.routeServices.GetByID(int(id))
+	if err != nil {
+		h.logger.Errorf("Error while getting route with id %d: %w", id, err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
 
-	c.HTML(http.StatusOK, "route.tmpl", gin.H{
-		"routes": []models.RouteTransfer{_route.ToTransfer()},
-	})
+	c.JSON(http.StatusOK, route.ToTransfer())
 }
 
 func (h *Handler) List(c *gin.Context) {
-	routes, _ := h.routeServices.List()
+	routes, err := h.routeServices.List()
+	if err != nil {
+		h.logger.Errorf("Error while listing routes: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
 
 	routesTransfers := make([]models.RouteTransfer, 0)
 	for _, route := range routes {
-		// stations, _ := h.stationServices.ListByRoute(route.ID)
-
 		routesTransfers = append(routesTransfers, route.ToTransfer())
 	}
 
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
-		"routes": routesTransfers,
-	})
+	c.JSON(http.StatusOK, routesTransfers)
 }
 
 func (h *Handler) Search(c *gin.Context) {
@@ -57,22 +66,111 @@ func (h *Handler) Search(c *gin.Context) {
 
 	routesTransfers := make([]models.RouteTransfer, 0)
 	for _, route := range routes {
-		// stations, _ := h.stationServices.ListByRoute(route.ID)
-
 		routesTransfers = append(routesTransfers, route.ToTransfer())
 	}
 
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
-		"routes": routesTransfers,
-		"filter": searchQuery,
-	})
+	c.JSON(http.StatusOK, routesTransfers)
+}
+
+func (h *Handler) Create(c *gin.Context) {
+	var req CreateRouteRequest
+	c.BindJSON(&req)
+
+	if err := req.validate(); err != nil {
+		h.logger.Infof("Invalid create route request: %w", err)
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid create route request: %s", err.Error()))
+		return
+	}
+
+	createdRoute, err := h.routeServices.Create(req.ToRoute())
+	if err != nil {
+		h.logger.Errorf("Error: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, createdRoute.ToTransfer())
+}
+
+func (h *Handler) Update(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.logger.Infof("Invalid route id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid route id '%s'", c.Param("id")))
+		return
+	}
+
+	var req UpdateRouteRequest
+	c.BindJSON(&req)
+
+	if err := req.validate(); err != nil {
+		h.logger.Infof("Invalid update route request: %w", err)
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid update route request: %s", err.Error()))
+		return
+	}
+
+	updatedRoute, err := h.routeServices.Update(req.ToRoute(id))
+	if err != nil {
+		h.logger.Errorf("Error: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedRoute.ToTransfer())
 }
 
 func (h *Handler) DeleteByID(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.logger.Infof("Invalid route id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid route id '%s'", c.Param("id")))
+		return
+	}
 
-	h.routeServices.DeleteByID(int(id))
+	if err := h.routeServices.DeleteByID(int(id)); err != nil {
+		h.logger.Errorf("Error: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
 
-	c.Request.URL.Path = "/"
-	c.Redirect(http.StatusFound, c.Request.URL.Path)
+	c.JSON(http.StatusOK, nil)
+}
+
+func (h *Handler) PutImage(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.logger.Infof("Invalid route id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid route id '%s'", c.Param("id")))
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		h.logger.Infof("Can't parse multipart form")
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Can't parse multipart form"))
+		return
+	}
+	fileHeader := form.File["image"][0]
+
+	image, err := form.File["image"][0].Open()
+	if err != nil {
+		h.logger.Infof("Can't get image from request")
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Can't get image from request"))
+		return
+	}
+
+	imageUUID, err := h.imageServices.Put(c, image, fileHeader.Size)
+	if err != nil {
+		h.logger.Errorf("Can't save image: %w", err)
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Can't save image: %s", err.Error()))
+		return
+	}
+
+	if err := h.routeServices.UpdateImageUUID(int(id), imageUUID); err != nil {
+		h.logger.Errorf("Can't save image: %w", err)
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Can't save image: %s", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }

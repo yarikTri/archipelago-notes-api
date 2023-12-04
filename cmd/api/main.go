@@ -34,6 +34,10 @@ func main() {
 	}
 
 	router, err := app.Init(db, flogger)
+	if err != nil {
+		flogger.Errorf("error while launching routes: %v", err)
+		return
+	}
 
 	var srv server.Server
 	if err := srv.Init(os.Getenv(config.ApiListenParamName), router); err != nil {
