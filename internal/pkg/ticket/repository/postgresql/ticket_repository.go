@@ -39,6 +39,15 @@ func (p *PostgreSQL) List() ([]models.Ticket, error) {
 	return tickets, nil
 }
 
+func (p *PostgreSQL) ListAll() ([]models.Ticket, error) {
+	var tickets []models.Ticket
+	if err := p.db.Preload("Routes").Find(&tickets).Error; err != nil {
+		return nil, err
+	}
+
+	return tickets, nil
+}
+
 func (p *PostgreSQL) Create(ticket models.Ticket) (models.Ticket, error) {
 	if err := p.db.Create(&ticket).Error; err != nil {
 		return models.Ticket{}, err

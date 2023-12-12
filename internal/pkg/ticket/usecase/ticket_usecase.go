@@ -24,6 +24,10 @@ func (u *Usecase) List() ([]models.Ticket, error) {
 	return u.repo.List()
 }
 
+func (u *Usecase) ListAll() ([]models.Ticket, error) {
+	return u.repo.ListAll()
+}
+
 func (u *Usecase) Create(ticket models.Ticket) (models.Ticket, error) {
 	return u.repo.Create(ticket)
 }

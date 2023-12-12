@@ -30,6 +30,7 @@ func InitRoutes(
 
 	r.GET("/tickets/:id", ticketH.GetByID)
 	r.GET("/tickets", ticketH.List)
+	r.GET("/tickets/search", ticketH.Search)
 	// r.POST("/tickets", ticketH.Create)
 	// r.PUT("/tickets/:id", ticketH.Update)
 	r.PUT("/tickets/:id/form", ticketH.FormByID)

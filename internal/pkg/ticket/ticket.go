@@ -5,6 +5,7 @@ import "github.com/yarikTri/web-transport-cards/internal/models"
 type Usecase interface {
 	GetByID(ticketID int) (models.Ticket, error)
 	List() ([]models.Ticket, error)
+	ListAll() ([]models.Ticket, error)
 	Create(ticket models.Ticket) (models.Ticket, error)
 	FormByID(ticketID int) (models.Ticket, error)
 	ApproveByID(ticketID int) (models.Ticket, error)
@@ -18,6 +19,7 @@ type Usecase interface {
 type Repository interface {
 	GetByID(ticketID int) (models.Ticket, error)
 	List() ([]models.Ticket, error)
+	ListAll() ([]models.Ticket, error)
 	Create(ticket models.Ticket) (models.Ticket, error)
 	FormByID(ticketID int) (models.Ticket, error)
 	ApproveByID(ticketID int) (models.Ticket, error)

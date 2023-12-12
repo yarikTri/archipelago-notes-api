@@ -42,6 +42,10 @@ func (h *Handler) GetByID(c *gin.Context) {
 }
 
 func (h *Handler) List(c *gin.Context) {
+	formTimeQuery, _ := strconv.ParseInt(c.Query("formTime"), 10, 32)
+
+	stateQuery := c.Query("state")
+
 	tickets, err := h.services.List()
 	if err != nil {
 		h.logger.Errorf("Error while listing tickets: %w", err)
@@ -51,7 +55,33 @@ func (h *Handler) List(c *gin.Context) {
 
 	ticketsTransfers := make([]models.TicketTransfer, 0)
 	for _, ticket := range tickets {
-		ticketsTransfers = append(ticketsTransfers, ticket.ToTransfer())
+		if (formTimeQuery == 0 || ticket.FormTime.Unix() == formTimeQuery) &&
+			(stateQuery == "" || ticket.State == stateQuery) {
+			ticketsTransfers = append(ticketsTransfers, ticket.ToTransfer())
+		}
+	}
+
+	c.JSON(http.StatusOK, ticketsTransfers)
+}
+
+func (h *Handler) Search(c *gin.Context) {
+	formTimeQuery, _ := strconv.ParseInt(c.Query("formTime"), 10, 32)
+
+	stateQuery := c.Query("state")
+
+	tickets, err := h.services.ListAll()
+	if err != nil {
+		h.logger.Errorf("Error while listing tickets: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	ticketsTransfers := make([]models.TicketTransfer, 0)
+	for _, ticket := range tickets {
+		if (formTimeQuery == 0 || ticket.FormTime.Unix() == formTimeQuery) &&
+			(stateQuery == "" || ticket.State == stateQuery) {
+			ticketsTransfers = append(ticketsTransfers, ticket.ToTransfer())
+		}
 	}
 
 	c.JSON(http.StatusOK, ticketsTransfers)
