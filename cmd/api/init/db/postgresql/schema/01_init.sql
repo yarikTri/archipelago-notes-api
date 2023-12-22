@@ -32,7 +32,7 @@
 --     PRIMARY KEY (route_id, ticket_id)
 -- )
 
-INSERT INTO Routes (name, active, capacity, interval_minutes, start_time, end_time, start_station, end_station, image_path, description) VALUES 
-    ('Автобус №50', true, 50, 10, '05:00', '23:30', 'ПАТП №1', 'Завод "Призма"', '/static/image/12.jpeg', 'Автобус'),
-    ('Троллейбус №6', true, 50, 10, '05:30', '23:00', 'Завод "Призма"', 'Улица Ворошилова', '/static/image/6.jpeg', 'От Мариевки до Ворошилова с божьей помощью'),
-    ('Автобус №3', true, 50, 10, '05:00', '23:30', 'Ж/Д Вокзал', 'Переборы', '/static/image/3.jpeg', 'Всегда пустой автобус');
+INSERT INTO Routes (name, active, capacity, interval_minutes, start_time, end_time, start_station, end_station, description) VALUES 
+    ('Автобус №50', true, 50, 10, '05:00', '23:30', 'ПАТП №1', 'Завод "Призма"', 'Автобус'),
+    ('Троллейбус №6', true, 50, 10, '05:30', '23:00', 'Завод "Призма"', 'Улица Ворошилова', 'От Мариевки до Ворошилова с божьей помощью'),
+    ('Автобус №3', true, 50, 10, '05:00', '23:30', 'Ж/Д Вокзал', 'Переборы', 'Всегда пустой автобус');

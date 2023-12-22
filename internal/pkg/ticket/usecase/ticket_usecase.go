@@ -56,6 +56,6 @@ func (u *Usecase) DeleteRoute(ticketID, routeID int) (models.Ticket, error) {
 	return u.repo.AddRoute(ticketID, routeID)
 }
 
-func (u *Usecase) GetTicketDraftByCreatorID(creatorID int) *models.Ticket {
+func (u *Usecase) GetTicketDraftByCreatorID(creatorID int) (*models.Ticket, error) {
 	return u.repo.GetTicketDraftByCreatorID(creatorID)
 }

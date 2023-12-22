@@ -170,9 +170,9 @@ func (p *PostgreSQL) DeleteRoute(ticketID, routeID int) (models.Ticket, error) {
 	return ticket, nil
 }
 
-func (p *PostgreSQL) GetTicketDraftByCreatorID(creatorID int) *models.Ticket {
+func (p *PostgreSQL) GetTicketDraftByCreatorID(creatorID int) (*models.Ticket, error) {
 	var ticket models.Ticket
-	p.db.Where("state = ? AND creator_id = ?", models.DRAFT_STATE, creatorID).First(&ticket)
+	err := p.db.Where("state = ? AND creator_id = ?", models.DRAFT_STATE, creatorID).First(&ticket).Error
 
-	return &ticket
+	return &ticket, err
 }

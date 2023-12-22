@@ -13,7 +13,7 @@ type Usecase interface {
 	DeleteByID(ticketID int) error
 	AddRoute(ticketID, routeID int) (models.Ticket, error)
 	DeleteRoute(ticketID, routeID int) (models.Ticket, error)
-	GetTicketDraftByCreatorID(creatorID int) *models.Ticket
+	GetTicketDraftByCreatorID(creatorID int) (*models.Ticket, error)
 }
 
 type Repository interface {
@@ -27,7 +27,7 @@ type Repository interface {
 	DeleteByID(ticketID int) error
 	AddRoute(ticketID, routeID int) (models.Ticket, error)
 	DeleteRoute(ticketID, routeID int) (models.Ticket, error)
-	GetTicketDraftByCreatorID(creatorID int) *models.Ticket
+	GetTicketDraftByCreatorID(creatorID int) (*models.Ticket, error)
 }
 
 type Tables interface {

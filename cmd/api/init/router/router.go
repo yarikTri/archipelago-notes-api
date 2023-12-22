@@ -5,6 +5,8 @@ import (
 
 	routeDelivery "github.com/yarikTri/web-transport-cards/internal/pkg/route/delivery/http"
 	ticketDelivery "github.com/yarikTri/web-transport-cards/internal/pkg/ticket/delivery/http"
+
+	middleware "github.com/yarikTri/web-transport-cards/internal/common/http/middleware"
 )
 
 const TEMPLATE_ROUTE = "static/template/*"
@@ -14,11 +16,8 @@ func InitRoutes(
 	ticketH *ticketDelivery.Handler,
 ) *gin.Engine {
 	r := gin.Default()
-	r.LoadHTMLGlob(TEMPLATE_ROUTE)
 
-	r.Static("/static", "./static")
-	r.Static("/css", "./static")
-	r.Static("/image", "./static")
+	r.Use(middleware.CORSMiddleware())
 
 	r.GET("/routes/:id", routeH.GetByID)
 	r.GET("/routes", routeH.List)
@@ -38,7 +37,7 @@ func InitRoutes(
 	r.DELETE("/tickets/:id", ticketH.DeleteByID)
 
 	r.POST("/tickets/routes/:route_id", ticketH.AddRoute)
-	r.DELETE("/tickets/:id/routes/:route_id", ticketH.DeleteRoute)
+	r.DELETE("/tickets/routes/:route_id", ticketH.DeleteRoute)
 
 	return r
 }

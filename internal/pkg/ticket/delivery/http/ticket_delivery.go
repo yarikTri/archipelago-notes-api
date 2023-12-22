@@ -166,6 +166,7 @@ func (h *Handler) DeleteByID(c *gin.Context) {
 
 func (h *Handler) AddRoute(c *gin.Context) {
 	routeID, err := strconv.ParseUint(c.Param("route_id"), 10, 32)
+	fmt.Println(routeID)
 	if err != nil {
 		h.logger.Infof("Invalid route id '%s'", c.Param("route_id"))
 		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid ticket id '%s'", c.Param("id")))
@@ -173,8 +174,8 @@ func (h *Handler) AddRoute(c *gin.Context) {
 	}
 
 	var ticketID int
-	foundTicket := h.services.GetTicketDraftByCreatorID(models.DEFAULT_CREATOR_ID)
-	if foundTicket == nil {
+	foundTicket, err := h.services.GetTicketDraftByCreatorID(models.DEFAULT_CREATOR_ID)
+	if err != nil {
 		// Транспортная карта не найдена - создаём черновик
 		ticket, err := h.services.Create(
 			models.Ticket{
