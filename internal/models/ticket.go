@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"gorm.io/gorm"
@@ -29,6 +30,14 @@ type Ticket struct {
 	Creator     User `gorm:"foreignKey:CreatorID"`
 	ModeratorID *int
 	Moderator   *User `gorm:"foreignKey:ModeratorID"`
+}
+
+func (t Ticket) MarshalBinary() ([]byte, error) {
+	return json.Marshal(t)
+}
+
+func (t *Ticket) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, t)
 }
 
 func (t *Ticket) ToTransfer() TicketTransfer {

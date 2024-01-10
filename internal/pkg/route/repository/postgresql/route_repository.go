@@ -1,6 +1,9 @@
 package postgresql
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/google/uuid"
 	"github.com/yarikTri/web-transport-cards/internal/models"
 	"gorm.io/gorm"
@@ -37,8 +40,8 @@ func (p *PostgreSQL) List() ([]models.Route, error) {
 
 func (p *PostgreSQL) Search(subString string) ([]models.Route, error) {
 	var routes []models.Route
-	likeStatement := "%" + subString + "%"
-	if err := p.db.Where("active = true AND name like ?", likeStatement).Find(&routes).Error; err != nil {
+	likeStatement := "%" + strings.ToLower(subString) + "%"
+	if err := p.db.Where("active = true AND lower(name) like ?", likeStatement).Find(&routes).Error; err != nil {
 		return nil, err
 	}
 
@@ -54,7 +57,14 @@ func (p *PostgreSQL) Create(route models.Route) (models.Route, error) {
 }
 
 func (p *PostgreSQL) Update(route models.Route) (models.Route, error) {
-	if err := p.db.Save(&route).Error; err != nil {
+	fmt.Println(route)
+	if err := p.db.Exec(
+		"UPDATE routes "+
+			"SET name = ?, capacity = ?, start_station = ?, end_station = ?, start_time = ?, end_time = ?, interval_minutes = ?, description = ? "+
+			"WHERE id = ?",
+		route.Name, route.Capacity, route.StartStation, route.EndStation, route.StartTime, route.EndTime, route.IntervalMinutes, route.Description,
+		route.ID).Error; err != nil {
+
 		return models.Route{}, err
 	}
 

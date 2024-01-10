@@ -17,6 +17,17 @@ import (
 	"github.com/yarikTri/web-transport-cards/cmd/api/init/server"
 )
 
+// @title		Rip
+// @version		1.0.1
+// @description	Rip
+
+// @contact.name   Rip API
+// @contact.email  yarik_tri@mail.ru
+
+// @host localhost:8080
+// @schemes https http
+// @BasePath /
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

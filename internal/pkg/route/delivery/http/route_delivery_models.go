@@ -64,3 +64,8 @@ func (urr *UpdateRouteRequest) ToRoute(id uint64) models.Route {
 		Description:     urr.Description,
 	}
 }
+
+type ListRoutesResponse struct {
+	TicketDraftID *int                   `json:"ticket_draft_id"`
+	Routes        []models.RouteTransfer `json:"routes"`
+}

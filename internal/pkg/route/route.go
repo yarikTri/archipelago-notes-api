@@ -24,9 +24,3 @@ type Repository interface {
 	DeleteByID(routeID int) error
 	UpdateImageUUID(routeID int, imageUUID uuid.UUID) error
 }
-
-type Tables interface {
-	Routes() string
-	RoutesStations() string
-	Stations() string
-}

@@ -28,12 +28,12 @@ type PostgresConfig struct {
 // InitConfig inits DB configuration from environment variables
 func initPostgresConfig() (PostgresConfig, error) { // TODO CHECK FIELDS
 	cfg := PostgresConfig{
-		DBHost:     os.Getenv("DB_HOST"),
-		DBPort:     os.Getenv("DB_PORT"),
-		DBUser:     os.Getenv("DB_USER"),
-		DBName:     os.Getenv("DB_NAME"),
-		DBPassword: os.Getenv("DB_PASSWORD"),
-		DBSSLMode:  os.Getenv("DB_SSLMODE"),
+		DBHost:     os.Getenv("POSTGRESQL_HOST"),
+		DBPort:     os.Getenv("POSTGRESQL_PORT"),
+		DBUser:     os.Getenv("POSTGRESQL_USER"),
+		DBName:     os.Getenv("POSTGRESQL_NAME"),
+		DBPassword: os.Getenv("POSTGRESQL_PASSWORD"),
+		DBSSLMode:  os.Getenv("POSTGRESQL_SSLMODE"),
 	}
 
 	if strings.TrimSpace(cfg.DBHost) == "" ||
@@ -45,7 +45,7 @@ func initPostgresConfig() (PostgresConfig, error) { // TODO CHECK FIELDS
 
 		fmt.Print(cfg)
 
-		return PostgresConfig{}, errors.New("invalid db config")
+		return PostgresConfig{}, errors.New("invalid postgresql config")
 	}
 
 	return cfg, nil

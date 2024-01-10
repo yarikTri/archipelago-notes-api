@@ -8,24 +8,41 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/yarikTri/web-transport-cards/internal/models"
+	"github.com/yarikTri/web-transport-cards/internal/pkg/auth"
 	"github.com/yarikTri/web-transport-cards/internal/pkg/image"
 	"github.com/yarikTri/web-transport-cards/internal/pkg/route"
+	"github.com/yarikTri/web-transport-cards/internal/pkg/ticket"
+
+	commonHttp "github.com/yarikTri/web-transport-cards/internal/common/http"
 )
 
 type Handler struct {
-	routeServices route.Usecase
-	imageServices image.Usecase
-	logger        logger.Logger
+	routeServices  route.Usecase
+	imageServices  image.Usecase
+	ticketServices ticket.Usecase
+	authServices   auth.Usecase
+	logger         logger.Logger
 }
 
-func NewHandler(ru route.Usecase, iu image.Usecase, l logger.Logger) *Handler {
+func NewHandler(ru route.Usecase, iu image.Usecase, tu ticket.Usecase, au auth.Usecase, l logger.Logger) *Handler {
 	return &Handler{
-		routeServices: ru,
-		imageServices: iu,
-		logger:        l,
+		routeServices:  ru,
+		imageServices:  iu,
+		ticketServices: tu,
+		authServices:   au,
+		logger:         l,
 	}
 }
 
+// @Summary		Get route
+// @Tags		Routes
+// @Description	Get route by ID
+// @Produce     json
+// @Param		routeID path int true 							"Route ID"
+// @Success		200			{object}	models.RouteTransfer	"Got route"
+// @Failure		400			{object}	error					"Incorrect input"
+// @Failure		500			{object}	error					"Server error"
+// @Router		/routes/{routeID} [get]
 func (h *Handler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -44,23 +61,15 @@ func (h *Handler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, route.ToTransfer())
 }
 
+// @Summary		List routes
+// @Tags		Routes
+// @Description	Get all routes
+// @Produce     json
+// @Success		200			{object}	ListRoutesResponse	"Got routes"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/routes [get]
 func (h *Handler) List(c *gin.Context) {
-	routes, err := h.routeServices.List()
-	if err != nil {
-		h.logger.Errorf("Error while listing routes: %w", err)
-		c.JSON(http.StatusBadRequest, err)
-		return
-	}
-
-	routesTransfers := make([]models.RouteTransfer, 0)
-	for _, route := range routes {
-		routesTransfers = append(routesTransfers, route.ToTransfer())
-	}
-
-	c.JSON(http.StatusOK, routesTransfers)
-}
-
-func (h *Handler) Search(c *gin.Context) {
 	searchQuery := c.Query("route")
 	routes, _ := h.routeServices.Search(searchQuery)
 
@@ -69,9 +78,30 @@ func (h *Handler) Search(c *gin.Context) {
 		routesTransfers = append(routesTransfers, route.ToTransfer())
 	}
 
-	c.JSON(http.StatusOK, routesTransfers)
+	var draftTicketID *int = nil
+	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
+	if err == nil { // РАВНО!
+		user, errr := h.authServices.GetUserBySessionID(sessionID)
+		if errr == nil { // РАВНО!
+			h.logger.Infof("User not found")
+			userID := int(user.ID)
+			draftTicketID = h.getDraftTicketID(userID)
+		}
+	}
+
+	c.JSON(http.StatusOK, ListRoutesResponse{draftTicketID, routesTransfers})
 }
 
+// @Summary		Create route
+// @Tags		Routes
+// @Description	Create route
+// @Accept		json
+// @Produce     json
+// @Param		routeInfo	body		CreateRouteRequest		true	"Route info"
+// @Success		200			{object}	models.RouteTransfer			"Route created"
+// @Failure		400			{object}	error							"Incorrect input"
+// @Failure		500			{object}	error							"Server error"
+// @Router		/routes [post]
 func (h *Handler) Create(c *gin.Context) {
 	var req CreateRouteRequest
 	c.BindJSON(&req)
@@ -92,6 +122,17 @@ func (h *Handler) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, createdRoute.ToTransfer())
 }
 
+// @Summary		Update route
+// @Tags		Routes
+// @Description	Update route by ID
+// @Accept		json
+// @Produce     json
+// @Param		routeID path int true 							"Route ID"
+// @Param		routeInfo	body		UpdateRouteRequest		true	"Route info"
+// @Success		200			{object}	models.RouteTransfer			"Updated route"
+// @Failure		400			{object}	error							"Incorrect input"
+// @Failure		500			{object}	error							"Server error"
+// @Router		/routes/{routeID} [put]
 func (h *Handler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -119,6 +160,15 @@ func (h *Handler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedRoute.ToTransfer())
 }
 
+// @Summary		Delete route
+// @Tags		Routes
+// @Description	Delete route by ID
+// @Produce     json
+// @Param		routeID path int true 			"Route ID"
+// @Success		200								"Route deleted"
+// @Failure		400			{object}	error	"Incorrect input"
+// @Failure		500			{object}	error	"Server error"
+// @Router		/routes/{routeID} [delete]
 func (h *Handler) DeleteByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -133,9 +183,19 @@ func (h *Handler) DeleteByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.Status(http.StatusOK)
 }
 
+// @Summary		Put route image
+// @Tags		Routes
+// @Description	Put image of route by ID
+// @Accept 		multipart/form-data
+// @Produce     json
+// @Param		image formData file true 					"Route image"
+// @Success		200											"Route image updated"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/routes/{routeID}/image [put]
 func (h *Handler) PutImage(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -172,5 +232,15 @@ func (h *Handler) PutImage(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.Status(http.StatusOK)
+}
+
+func (h *Handler) getDraftTicketID(userID int) *int {
+	foundTicket, err := h.ticketServices.GetDraft(userID)
+	if err != nil {
+		return nil
+	}
+
+	ticketID := int(foundTicket.ID)
+	return &ticketID
 }

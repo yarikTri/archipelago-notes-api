@@ -24,7 +24,6 @@ func (r *Route) ToTransfer() RouteTransfer {
 	return RouteTransfer{
 		ID:              r.ID,
 		Name:            r.Name,
-		Active:          r.Active,
 		Capacity:        r.Capacity,
 		StartStation:    r.StartStation,
 		EndStation:      r.EndStation,
@@ -39,7 +38,6 @@ func (r *Route) ToTransfer() RouteTransfer {
 type RouteTransfer struct {
 	ID              uint      `json:"id"`
 	Name            string    `json:"name"`
-	Active          bool      `json:"active"`
 	Capacity        uint32    `json:"capacity"`
 	StartStation    string    `json:"start_station"`
 	EndStation      string    `json:"end_station"`
