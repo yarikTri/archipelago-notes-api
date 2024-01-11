@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	DRAFT_STATE    = "draft"
-	DELETED_STATE  = "deleted"
-	FORMED_STATE   = "formed"
-	APPROVED_STATE = "approved"
-	REJECTED_STATE = "rejected"
-	ENDED_STATE    = "ended"
+	DRAFT_STATE     = "draft"
+	DELETED_STATE   = "deleted"
+	FORMED_STATE    = "formed"
+	APPROVED_STATE  = "approved"
+	REJECTED_STATE  = "rejected"
+	ENDED_STATE     = "ended"
+	FINALIZED_STATE = "finalized"
 
 	DEFAULT_CREATOR_ID = 1
 )

@@ -47,6 +47,8 @@ func InitRoutes(
 	tickets.POST("/routes/:route_id", ticketH.AddRoute)
 	tickets.DELETE("/routes/:route_id", ticketH.DeleteRoute)
 
+	tickets.PUT("/:id/finalize_writing", ticketH.FinalizeWriting)
+
 	auth := r.Group("/auth")
 	auth.POST("/signup", authH.SignUp)
 	auth.POST("/login", authH.Login)

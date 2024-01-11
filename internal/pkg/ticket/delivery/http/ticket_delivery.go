@@ -45,15 +45,17 @@ func (h *Handler) GetByID(c *gin.Context) {
 		return
 	}
 
+	isService := c.GetHeader("X-SERVICE") == "true"
+
 	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
-	if err != nil {
+	if err != nil && !isService {
 		h.logger.Infof("No session cookie")
 		c.JSON(http.StatusBadRequest, "No session cookie")
 		return
 	}
 
 	user, err := h.authServices.GetUserBySessionID(sessionID)
-	if err != nil {
+	if err != nil && !isService {
 		h.logger.Infof("User not found")
 		c.JSON(http.StatusBadRequest, "User not found")
 		return
@@ -68,7 +70,7 @@ func (h *Handler) GetByID(c *gin.Context) {
 		return
 	}
 
-	if !isModerator && ticket.CreatorID != int(user.ID) {
+	if !isModerator && !isService && ticket.CreatorID != int(user.ID) {
 		h.logger.Error("Forbidden to get ticket")
 		c.JSON(http.StatusForbidden, err)
 		return
@@ -414,6 +416,40 @@ func (h *Handler) DeleteDraft(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+// TODO: swagger
+func (h *Handler) FinalizeWriting(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.logger.Infof("Invalid ticket id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid ticket id '%s'", c.Param("id")))
+		return
+	}
+
+	isService := c.GetHeader("X-SERVICE") == "true"
+	if !isService {
+		h.logger.Infof("Not a service call")
+		c.JSON(http.StatusForbidden, fmt.Sprintf("Not a service call"))
+		return
+	}
+
+	var req FinalizeWritingRequest
+	c.BindJSON(&req)
+	if req.State != "success" {
+		h.logger.Infof("Got error of finalizing ticket with id %d", id)
+		c.Status(http.StatusOK)
+		return
+	}
+
+	finalizedTicket, err := h.ticketServices.FinalizeWriting(int(id))
+	if err != nil {
+		h.logger.Infof("%w", err)
+		c.JSON(http.StatusInternalServerError, fmt.Sprintf("%s", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, finalizedTicket.ToTransfer())
 }
 
 func (h *Handler) getOrCreateDraftTicket(userID int) (int, error) {
