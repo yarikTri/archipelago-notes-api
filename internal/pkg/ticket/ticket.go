@@ -6,10 +6,11 @@ type Usecase interface {
 	GetByID(ticketID int) (models.Ticket, error)
 	List() ([]models.Ticket, error)
 	Create(ticket models.Ticket) (models.Ticket, error)
+	DeleteByID(ticketID int) error
 	FormDraft(ticketID int) (models.Ticket, error)
 	ApproveByID(ticketID, moderatorID int) (models.Ticket, error)
 	RejectByID(ticketID, moderatorID int) (models.Ticket, error)
-	DeleteByID(ticketID int) error
+	EndByID(ticketID, moderatorID int) (models.Ticket, error)
 
 	GetDraft(creatorID int) (models.Ticket, error)
 	DeleteDraft(creatorID int) error
@@ -26,6 +27,7 @@ type Repository interface {
 	DeleteByID(ticketID int) error
 	ApproveByID(ticketID, moderatorID int) (models.Ticket, error)
 	RejectByID(ticketID, moderatorID int) (models.Ticket, error)
+	EndByID(ticketID, moderatorID int) (models.Ticket, error)
 
 	FinalizeWriting(ticketID int) (models.Ticket, error)
 }

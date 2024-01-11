@@ -85,6 +85,26 @@ func (p *PostgreSQL) RejectByID(ticketID, moderatorID int) (models.Ticket, error
 	return ticket, nil
 }
 
+func (p *PostgreSQL) EndByID(ticketID, moderatorID int) (models.Ticket, error) {
+	ticket, err := p.GetByID(ticketID)
+	if err != nil {
+		return models.Ticket{}, err
+	}
+
+	if ticket.State != models.APPROVED_STATE && ticket.State != models.FINALIZED_STATE {
+		return models.Ticket{}, errors.New("Invalid ticket's state to approve, has to be 'formed'")
+	}
+
+	ticket.State = models.ENDED_STATE
+	ticket.ModeratorID = &moderatorID
+	ticket.EndTime = time.Now()
+	if err = p.db.Preload("Routes").Save(&ticket).Error; err != nil {
+		return models.Ticket{}, err
+	}
+
+	return ticket, nil
+}
+
 func (p *PostgreSQL) DeleteByID(ticketID int) error {
 	ticket, err := p.GetByID(ticketID)
 	if err != nil {

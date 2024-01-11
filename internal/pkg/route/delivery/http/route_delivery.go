@@ -103,6 +103,27 @@ func (h *Handler) List(c *gin.Context) {
 // @Failure		500			{object}	error							"Server error"
 // @Router		/routes [post]
 func (h *Handler) Create(c *gin.Context) {
+	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
+	if err != nil {
+		h.logger.Infof("No session cookie")
+		c.JSON(http.StatusUnauthorized, "No session cookie")
+		return
+	}
+
+	user, err := h.authServices.GetUserBySessionID(sessionID)
+	if err != nil {
+		h.logger.Infof("User not found")
+		c.JSON(http.StatusBadRequest, "User not found")
+		return
+	}
+
+	isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID))
+	if !isModerator {
+		h.logger.Infof("Forbidden to create route")
+		c.JSON(http.StatusForbidden, fmt.Sprintf("Forbidden to create route"))
+		return
+	}
+
 	var req CreateRouteRequest
 	c.BindJSON(&req)
 
@@ -134,6 +155,27 @@ func (h *Handler) Create(c *gin.Context) {
 // @Failure		500			{object}	error							"Server error"
 // @Router		/routes/{routeID} [put]
 func (h *Handler) Update(c *gin.Context) {
+	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
+	if err != nil {
+		h.logger.Infof("No session cookie")
+		c.JSON(http.StatusUnauthorized, "No session cookie")
+		return
+	}
+
+	user, err := h.authServices.GetUserBySessionID(sessionID)
+	if err != nil {
+		h.logger.Infof("User not found")
+		c.JSON(http.StatusBadRequest, "User not found")
+		return
+	}
+
+	isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID))
+	if !isModerator {
+		h.logger.Infof("Forbidden to update route")
+		c.JSON(http.StatusForbidden, fmt.Sprintf("Forbidden to update route"))
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		h.logger.Infof("Invalid route id '%s'", c.Param("id"))
@@ -170,6 +212,27 @@ func (h *Handler) Update(c *gin.Context) {
 // @Failure		500			{object}	error	"Server error"
 // @Router		/routes/{routeID} [delete]
 func (h *Handler) DeleteByID(c *gin.Context) {
+	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
+	if err != nil {
+		h.logger.Infof("No session cookie")
+		c.JSON(http.StatusUnauthorized, "No session cookie")
+		return
+	}
+
+	user, err := h.authServices.GetUserBySessionID(sessionID)
+	if err != nil {
+		h.logger.Infof("User not found")
+		c.JSON(http.StatusBadRequest, "User not found")
+		return
+	}
+
+	isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID))
+	if !isModerator {
+		h.logger.Infof("Forbidden to delete route")
+		c.JSON(http.StatusForbidden, fmt.Sprintf("Forbidden to delete route"))
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		h.logger.Infof("Invalid route id '%s'", c.Param("id"))
@@ -197,6 +260,27 @@ func (h *Handler) DeleteByID(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/routes/{routeID}/image [put]
 func (h *Handler) PutImage(c *gin.Context) {
+	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
+	if err != nil {
+		h.logger.Infof("No session cookie")
+		c.JSON(http.StatusUnauthorized, "No session cookie")
+		return
+	}
+
+	user, err := h.authServices.GetUserBySessionID(sessionID)
+	if err != nil {
+		h.logger.Infof("User not found")
+		c.JSON(http.StatusBadRequest, "User not found")
+		return
+	}
+
+	isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID))
+	if !isModerator {
+		h.logger.Infof("Forbidden to update route's image")
+		c.JSON(http.StatusForbidden, fmt.Sprintf("Forbidden to update route's image"))
+		return
+	}
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		h.logger.Infof("Invalid route id '%s'", c.Param("id"))

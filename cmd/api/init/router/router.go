@@ -36,6 +36,7 @@ func InitRoutes(
 	tickets.GET("/:id", ticketH.GetByID)
 	tickets.GET("", ticketH.List)
 	tickets.PUT("/:id/moderate", ticketH.ModerateByID)
+	tickets.PUT("/:id/end", ticketH.EndByID)
 	tickets.DELETE("/:id", ticketH.DeleteByID)
 
 	// ticket draft

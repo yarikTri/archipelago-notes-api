@@ -68,6 +68,10 @@ func (u *Usecase) RejectByID(ticketID, moderatorID int) (models.Ticket, error) {
 	return u.repo.RejectByID(ticketID, moderatorID)
 }
 
+func (u *Usecase) EndByID(ticketID, moderatorID int) (models.Ticket, error) {
+	return u.repo.EndByID(ticketID, moderatorID)
+}
+
 func (u *Usecase) DeleteByID(ticketID int) error {
 	return u.repo.DeleteByID(ticketID)
 }

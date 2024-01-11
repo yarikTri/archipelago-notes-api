@@ -120,8 +120,6 @@ definitions:
         type: integer
       is_moderator:
         type: boolean
-      password:
-        type: string
       username:
         type: string
     type: object
@@ -419,6 +417,31 @@ paths:
           description: Server error
           schema: {}
       summary: Get ticket
+      tags:
+      - Tickets
+  /tickets/{ticketID}/end:
+    put:
+      description: End ticket by ID
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: ticketID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ticket ended
+          schema:
+            $ref: '#/definitions/models.TicketTransfer'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: End ticket
       tags:
       - Tickets
   /tickets/{ticketID}/moderate:

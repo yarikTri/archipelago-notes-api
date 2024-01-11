@@ -96,7 +96,7 @@ func (h *Handler) List(c *gin.Context) {
 	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
 	if err != nil {
 		h.logger.Infof("No session cookie")
-		c.JSON(http.StatusBadRequest, "No session cookie")
+		c.JSON(http.StatusForbidden, "No session cookie")
 		return
 	}
 
@@ -170,6 +170,53 @@ func (h *Handler) FormDraft(c *gin.Context) {
 	c.JSON(http.StatusOK, ticket.ToTransfer())
 }
 
+// @Summary		End ticket
+// @Tags		Tickets
+// @Description	End ticket by ID
+// @Produce     json
+// @Param		ticketID path int true 							"Ticket ID"
+// @Success		200			{object}	models.TicketTransfer	"Ticket ended"
+// @Failure		400			{object}	error					"Incorrect input"
+// @Failure		500			{object}	error					"Server error"
+// @Router		/tickets/{ticketID}/end [put]
+func (h *Handler) EndByID(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.logger.Infof("Invalid ticket id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid ticket id '%s'", c.Param("id")))
+		return
+	}
+
+	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
+	if err != nil {
+		h.logger.Infof("No session cookie")
+		c.JSON(http.StatusForbidden, "No session cookie")
+		return
+	}
+
+	user, err := h.authServices.GetUserBySessionID(sessionID)
+	if err != nil {
+		h.logger.Infof("User not found")
+		c.JSON(http.StatusBadRequest, "User not found")
+		return
+	}
+
+	if isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID)); !isModerator {
+		h.logger.Infof("User is not a moderator")
+		c.JSON(http.StatusForbidden, "User is not a moderator")
+		return
+	}
+
+	ticket, err := h.ticketServices.EndByID(int(id), int(user.ID))
+	if err != nil {
+		h.logger.Errorf("Error while ending ticket with id %d: %w", id, err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, ticket.ToTransfer())
+}
+
 // @Summary		Moderate ticket
 // @Tags		Tickets
 // @Description	Moderate formed ticket by ID
@@ -192,7 +239,7 @@ func (h *Handler) ModerateByID(c *gin.Context) {
 	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
 	if err != nil {
 		h.logger.Infof("No session cookie")
-		c.JSON(http.StatusBadRequest, "No session cookie")
+		c.JSON(http.StatusUnauthorized, "No session cookie")
 		return
 	}
 
@@ -205,7 +252,7 @@ func (h *Handler) ModerateByID(c *gin.Context) {
 
 	if isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID)); !isModerator {
 		h.logger.Infof("User is not a moderator")
-		c.JSON(http.StatusBadRequest, "User is not a moderator")
+		c.JSON(http.StatusForbidden, "User is not a moderator")
 		return
 	}
 

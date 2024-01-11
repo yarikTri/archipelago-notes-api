@@ -606,6 +606,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/tickets/{ticketID}/end": {
+            "put": {
+                "description": "End ticket by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "End ticket",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Ticket ID",
+                        "name": "ticketID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ticket ended",
+                        "schema": {
+                            "$ref": "#/definitions/models.TicketTransfer"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/tickets/{ticketID}/moderate": {
             "put": {
                 "description": "Moderate formed ticket by ID",
@@ -840,9 +877,6 @@ const docTemplate = `{
                 },
                 "is_moderator": {
                     "type": "boolean"
-                },
-                "password": {
-                    "type": "string"
                 },
                 "username": {
                     "type": "string"

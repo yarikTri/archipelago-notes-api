@@ -48,7 +48,19 @@ func (t *Ticket) ToTransfer() TicketTransfer {
 	}
 
 	if t.EndTime.Before(time.Now()) && int(t.EndTime.Unix()) != -62135596800 {
-		t.State = "ended"
+		t.State = ENDED_STATE
+	}
+
+	endTimeUnix := int(t.EndTime.Unix())
+	var endTime *int = &endTimeUnix
+	if int(t.EndTime.Unix()) == -62135596800 {
+		endTime = nil
+	}
+
+	formTimeUnix := int(t.FormTime.Unix())
+	var formTime *int = &formTimeUnix
+	if int(t.EndTime.Unix()) == -62135596800 {
+		formTime = nil
 	}
 
 	return TicketTransfer{
@@ -56,8 +68,8 @@ func (t *Ticket) ToTransfer() TicketTransfer {
 		Routes:      routesTransfers,
 		State:       t.State,
 		CreateTime:  int(t.CreatedAt.Unix()),
-		FormTime:    int(t.FormTime.Unix()),
-		EndTime:     int(t.EndTime.Unix()),
+		FormTime:    formTime,
+		EndTime:     endTime,
 		CreatorID:   t.CreatorID,
 		ModeratorID: t.ModeratorID,
 	}
@@ -68,8 +80,8 @@ type TicketTransfer struct {
 	Routes      []RouteTransfer `json:"routes"`
 	State       string          `json:"state"`
 	CreateTime  int             `json:"create_time"`
-	FormTime    int             `json:"form_time"`
-	EndTime     int             `json:"end_time"`
+	FormTime    *int            `json:"form_time"`
+	EndTime     *int            `json:"end_time"`
 	CreatorID   int             `json:"creator_id"`
 	ModeratorID *int            `json:"moderator_id"`
 }
