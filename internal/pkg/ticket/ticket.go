@@ -32,7 +32,7 @@ type Repository interface {
 
 type DraftRepository interface {
 	GetTicketDraft(creatorID int) (models.Ticket, error)
-	SetTicketDraft(ticket models.Ticket) (models.Ticket, error)
+	SetTicketDraft(ticket models.Ticket, created bool) (models.Ticket, error)
 	DelTicketDraft(creatorID int) error
 
 	AddRoute(creatorID int, route models.Route) (models.Ticket, error)

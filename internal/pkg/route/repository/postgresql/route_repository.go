@@ -68,7 +68,7 @@ func (p *PostgreSQL) Update(route models.Route) (models.Route, error) {
 		return models.Route{}, err
 	}
 
-	return route, nil
+	return p.GetByID(int(route.ID))
 }
 
 func (p *PostgreSQL) DeleteByID(routeID int) error {

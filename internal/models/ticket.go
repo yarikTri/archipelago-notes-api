@@ -47,6 +47,10 @@ func (t *Ticket) ToTransfer() TicketTransfer {
 		routesTransfers = append(routesTransfers, route.ToTransfer())
 	}
 
+	if t.EndTime.Before(time.Now()) && int(t.EndTime.Unix()) != -62135596800 {
+		t.State = "ended"
+	}
+
 	return TicketTransfer{
 		ID:          t.ID,
 		Routes:      routesTransfers,

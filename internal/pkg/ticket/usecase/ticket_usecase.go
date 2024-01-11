@@ -32,7 +32,7 @@ func (u *Usecase) List() ([]models.Ticket, error) {
 }
 
 func (u *Usecase) Create(ticket models.Ticket) (models.Ticket, error) {
-	return u.draftRepo.SetTicketDraft(ticket)
+	return u.draftRepo.SetTicketDraft(ticket, true)
 }
 
 func (u *Usecase) FormDraft(creatorID int) (models.Ticket, error) {

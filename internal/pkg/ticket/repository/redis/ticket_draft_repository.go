@@ -32,7 +32,11 @@ func (r *Redis) GetTicketDraft(userID int) (models.Ticket, error) {
 	return ticket, nil
 }
 
-func (r *Redis) SetTicketDraft(ticket models.Ticket) (models.Ticket, error) {
+func (r *Redis) SetTicketDraft(ticket models.Ticket, created bool) (models.Ticket, error) {
+	if created {
+		ticket.CreatedAt = time.Now()
+	}
+
 	err := r.db.Set(r.ctx, fmt.Sprint(ticket.CreatorID), ticket, time.Duration((1>>32)*time.Hour)).Err()
 	if err != nil {
 		return models.Ticket{}, err
@@ -52,7 +56,7 @@ func (r *Redis) AddRoute(userID int, route models.Route) (models.Ticket, error) 
 	}
 
 	ticket.Routes = append(ticket.Routes, route)
-	return r.SetTicketDraft(ticket)
+	return r.SetTicketDraft(ticket, false)
 }
 
 func (r *Redis) DeleteRoute(userID int, routeID int) (models.Ticket, error) {
@@ -65,7 +69,7 @@ func (r *Redis) DeleteRoute(userID int, routeID int) (models.Ticket, error) {
 	for ind, _route := range currRoutes {
 		if int(_route.ID) == routeID {
 			ticket.Routes = append(currRoutes[:ind], currRoutes[ind+1:]...)
-			return r.SetTicketDraft(ticket)
+			return r.SetTicketDraft(ticket, false)
 		}
 	}
 

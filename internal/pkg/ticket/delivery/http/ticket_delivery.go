@@ -50,14 +50,14 @@ func (h *Handler) GetByID(c *gin.Context) {
 	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
 	if err != nil && !isService {
 		h.logger.Infof("No session cookie")
-		c.JSON(http.StatusBadRequest, "No session cookie")
+		c.JSON(http.StatusUnauthorized, "No session cookie")
 		return
 	}
 
 	user, err := h.authServices.GetUserBySessionID(sessionID)
 	if err != nil && !isService {
 		h.logger.Infof("User not found")
-		c.JSON(http.StatusBadRequest, "User not found")
+		c.JSON(http.StatusInternalServerError, "User not found")
 		return
 	}
 
@@ -115,6 +115,10 @@ func (h *Handler) List(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	}
+
+	draft, _ := h.ticketServices.GetDraft(int(user.ID))
+
+	tickets = append(tickets, draft)
 
 	ticketsTransfers := make([]models.TicketTransfer, 0)
 	for _, ticket := range tickets {
@@ -366,7 +370,7 @@ func (h *Handler) GetDraft(c *gin.Context) {
 	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
 	if err != nil {
 		h.logger.Infof("No session cookie")
-		c.JSON(http.StatusBadRequest, "No session cookie")
+		c.JSON(http.StatusUnauthorized, "No session cookie")
 		return
 	}
 
