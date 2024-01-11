@@ -23,7 +23,11 @@ func NewUsecase(tr ticket.Repository, tdr ticket.DraftRepository, rr route.Repos
 	}
 }
 
-func (u *Usecase) GetByID(ticketID int) (models.Ticket, error) {
+func (u *Usecase) GetByID(ticketID, userID int) (models.Ticket, error) {
+	if ticketID == 0 {
+		return u.draftRepo.GetTicketDraft(userID)
+	}
+
 	return u.repo.GetByID(ticketID)
 }
 

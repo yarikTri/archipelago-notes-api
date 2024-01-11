@@ -63,7 +63,7 @@ func (h *Handler) GetByID(c *gin.Context) {
 
 	isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID))
 
-	ticket, err := h.ticketServices.GetByID(int(id))
+	ticket, err := h.ticketServices.GetByID(int(id), int(user.ID))
 	if err != nil {
 		h.logger.Errorf("Error while getting ticket with id %d: %w", id, err)
 		c.JSON(http.StatusBadRequest, err)

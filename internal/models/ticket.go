@@ -14,7 +14,7 @@ const (
 	APPROVED_STATE  = "approved"
 	REJECTED_STATE  = "rejected"
 	ENDED_STATE     = "ended"
-	FINALIZED_STATE = "finalized"
+	FINALIZED_STATE = "written_on_card"
 
 	DEFAULT_CREATOR_ID = 1
 )
@@ -51,15 +51,15 @@ func (t *Ticket) ToTransfer() TicketTransfer {
 		t.State = ENDED_STATE
 	}
 
-	endTimeUnix := int(t.EndTime.Unix())
-	var endTime *int = &endTimeUnix
-	if int(t.EndTime.Unix()) == -62135596800 {
+	endTimeUnix := t.EndTime.Unix()
+	var endTime *int64 = &endTimeUnix
+	if *endTime == -62135596800 {
 		endTime = nil
 	}
 
-	formTimeUnix := int(t.FormTime.Unix())
-	var formTime *int = &formTimeUnix
-	if int(t.EndTime.Unix()) == -62135596800 {
+	formTimeUnix := t.FormTime.Unix()
+	var formTime *int64 = &formTimeUnix
+	if *formTime == -62135596800 {
 		formTime = nil
 	}
 
@@ -67,7 +67,7 @@ func (t *Ticket) ToTransfer() TicketTransfer {
 		ID:          t.ID,
 		Routes:      routesTransfers,
 		State:       t.State,
-		CreateTime:  int(t.CreatedAt.Unix()),
+		CreateTime:  t.CreatedAt.Unix(),
 		FormTime:    formTime,
 		EndTime:     endTime,
 		CreatorID:   t.CreatorID,
@@ -79,9 +79,9 @@ type TicketTransfer struct {
 	ID          uint            `json:"id"`
 	Routes      []RouteTransfer `json:"routes"`
 	State       string          `json:"state"`
-	CreateTime  int             `json:"create_time"`
-	FormTime    *int            `json:"form_time"`
-	EndTime     *int            `json:"end_time"`
+	CreateTime  int64           `json:"create_time"`
+	FormTime    *int64          `json:"form_time"`
+	EndTime     *int64          `json:"end_time"`
 	CreatorID   int             `json:"creator_id"`
 	ModeratorID *int            `json:"moderator_id"`
 }
