@@ -101,6 +101,6 @@ func (u *Usecase) DeleteRoute(creatorID, routeID int) (models.Ticket, error) {
 	return u.draftRepo.DeleteRoute(creatorID, routeID)
 }
 
-func (u *Usecase) FinalizeWriting(ticketID int) (models.Ticket, error) {
-	return u.repo.FinalizeWriting(ticketID)
+func (u *Usecase) UpdateWriteState(ticketID int, state string) (models.Ticket, error) {
+	return u.repo.UpdateWriteState(ticketID, state)
 }

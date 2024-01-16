@@ -91,7 +91,7 @@ func (p *PostgreSQL) EndByID(ticketID, moderatorID int) (models.Ticket, error) {
 		return models.Ticket{}, err
 	}
 
-	if ticket.State != models.APPROVED_STATE && ticket.State != models.FINALIZED_STATE {
+	if ticket.State != models.APPROVED_STATE {
 		return models.Ticket{}, errors.New("Invalid ticket's state to approve, has to be 'formed'")
 	}
 
@@ -126,17 +126,17 @@ func (p *PostgreSQL) GetTicketDraftByCreatorID(creatorID int) (models.Ticket, er
 	return ticket, err
 }
 
-func (p *PostgreSQL) FinalizeWriting(ticketID int) (models.Ticket, error) {
+func (p *PostgreSQL) UpdateWriteState(ticketID int, state string) (models.Ticket, error) {
 	ticket, err := p.GetByID(ticketID)
 	if err != nil {
 		return models.Ticket{}, err
 	}
 
 	if ticket.State != models.APPROVED_STATE {
-		return models.Ticket{}, errors.New(fmt.Sprintf("Invalid ticket's state to finalize, has to be %s", models.APPROVED_STATE))
+		return models.Ticket{}, errors.New(fmt.Sprintf("Invalid ticket's state to write, has to be %s", models.APPROVED_STATE))
 	}
 
-	ticket.State = models.FINALIZED_STATE
+	ticket.WriteState = &state
 	if err := p.db.Save(&ticket).Error; err != nil {
 		return models.Ticket{}, err
 	}

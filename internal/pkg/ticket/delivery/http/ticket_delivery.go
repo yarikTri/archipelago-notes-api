@@ -14,6 +14,9 @@ import (
 	commonHttp "github.com/yarikTri/web-transport-cards/internal/common/http"
 )
 
+const SERVICE_TICKET_NAME = "X-Service-Ticket"
+const SERVICE_TICKET_CORRECT_VALUE = "Q5%7&fG*"
+
 type Handler struct {
 	ticketServices ticket.Usecase
 	authServices   auth.Usecase
@@ -469,8 +472,14 @@ func (h *Handler) DeleteDraft(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// TODO: swagger
-func (h *Handler) FinalizeWriting(c *gin.Context) {
+// @Summary		Start updating ticket's write state
+// @Tags		Tickets
+// @Description	Start updating ticket's write state
+// @Success		200								"Write state started to update"
+// @Failure		400			{object}	error	"Incorrect input"
+// @Failure		500			{object}	error	"Server error"
+// @Router		/tickets/{ticket_id}/start_update_write_state [put]
+func (h *Handler) StartWriting(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		h.logger.Infof("Invalid ticket id '%s'", c.Param("id"))
@@ -478,29 +487,82 @@ func (h *Handler) FinalizeWriting(c *gin.Context) {
 		return
 	}
 
-	isService := c.GetHeader("X-SERVICE") == "true"
-	if !isService {
-		h.logger.Infof("Not a service call")
-		c.JSON(http.StatusForbidden, fmt.Sprintf("Not a service call"))
+	sessionID, err := c.Cookie(commonHttp.AUTH_COOKIE_NAME)
+	if err != nil {
+		h.logger.Infof("No session cookie")
+		c.JSON(http.StatusBadRequest, "No session cookie")
+		return
+	}
+
+	user, err := h.authServices.GetUserBySessionID(sessionID)
+	if err != nil {
+		h.logger.Infof("User not found")
+		c.JSON(http.StatusBadRequest, "User not found")
+		return
+	}
+
+	if isModerator, _ := h.authServices.CheckUserIsModerator(int(user.ID)); !isModerator {
+		h.logger.Infof("User is not a moderator")
+		c.JSON(http.StatusForbidden, "User is not a moderator")
+		return
+	}
+
+	t, err := h.ticketServices.GetByID(int(id), int(user.ID))
+	if err != nil {
+		h.logger.Infof("Ticket with id %d not found", id)
+		c.JSON(http.StatusNotFound, "Ticket with such id not found")
+		return
+	}
+
+	if t.State != models.APPROVED_STATE {
+		h.logger.Infof("Invalid ticket's state to update write state")
+		c.JSON(http.StatusForbidden, "Invalid ticket's state to update write state")
+		return
+	}
+
+	resp, err := http.Post(fmt.Sprintf("localhost:8000/write_ticket/%d", id), "application/json", nil)
+
+	c.JSON(resp.StatusCode, err)
+}
+
+// @Summary		Update ticket's write state
+// @Tags		Tickets
+// @Description	Update ticket's write state
+// @Success		200								"Write state updated"
+// @Failure		400			{object}	error	"Incorrect input"
+// @Failure		500			{object}	error	"Server error"
+// @Router		/tickets/{ticket_id}/update_write_state [put]
+func (h *Handler) UpdateWriteState(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.logger.Infof("Invalid ticket id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid ticket id '%s'", c.Param("id")))
+		return
+	}
+
+	if isService := c.GetHeader(SERVICE_TICKET_NAME) == SERVICE_TICKET_CORRECT_VALUE; !isService {
+		h.logger.Infof("Invalid service ticket")
+		c.JSON(http.StatusForbidden, fmt.Sprintf("Invalid service ticket"))
 		return
 	}
 
 	var req FinalizeWritingRequest
 	c.BindJSON(&req)
-	if req.State != "success" {
-		h.logger.Infof("Got error of finalizing ticket with id %d", id)
-		c.Status(http.StatusOK)
+	state := req.State
+	if state != "success" && state != "fail" && state != "updating" {
+		h.logger.Infof("Invalid state '%s'", req.State)
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Invalid state '%s'", req.State))
 		return
 	}
 
-	finalizedTicket, err := h.ticketServices.FinalizeWriting(int(id))
+	updatedTicket, err := h.ticketServices.UpdateWriteState(int(id), req.State)
 	if err != nil {
 		h.logger.Infof("%w", err)
 		c.JSON(http.StatusInternalServerError, fmt.Sprintf("%s", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, finalizedTicket.ToTransfer())
+	c.JSON(http.StatusOK, updatedTicket.ToTransfer())
 }
 
 func (h *Handler) getOrCreateDraftTicket(userID int) (int, error) {

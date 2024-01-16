@@ -8,13 +8,12 @@ import (
 )
 
 const (
-	DRAFT_STATE     = "draft"
-	DELETED_STATE   = "deleted"
-	FORMED_STATE    = "formed"
-	APPROVED_STATE  = "approved"
-	REJECTED_STATE  = "rejected"
-	ENDED_STATE     = "ended"
-	FINALIZED_STATE = "written_on_card"
+	DRAFT_STATE    = "draft"
+	DELETED_STATE  = "deleted"
+	FORMED_STATE   = "formed"
+	APPROVED_STATE = "approved"
+	REJECTED_STATE = "rejected"
+	ENDED_STATE    = "ended"
 
 	DEFAULT_CREATOR_ID = 1
 )
@@ -24,10 +23,11 @@ type Ticket struct {
 
 	Routes      []Route `gorm:"many2many:ticket_routes;"`
 	State       string  `gorm:"default:draft"`
+	WriteState  *string
 	FormTime    time.Time
 	ApproveTime time.Time
 	EndTime     time.Time
-	CreatorID   int  `gorm:"default:1"`
+	CreatorID   int
 	Creator     User `gorm:"foreignKey:CreatorID"`
 	ModeratorID *int
 	Moderator   *User `gorm:"foreignKey:ModeratorID"`
@@ -67,6 +67,7 @@ func (t *Ticket) ToTransfer() TicketTransfer {
 		ID:          t.ID,
 		Routes:      routesTransfers,
 		State:       t.State,
+		WriteState:  *t.WriteState,
 		CreateTime:  t.CreatedAt.Unix(),
 		FormTime:    formTime,
 		EndTime:     endTime,
@@ -79,6 +80,7 @@ type TicketTransfer struct {
 	ID          uint            `json:"id"`
 	Routes      []RouteTransfer `json:"routes"`
 	State       string          `json:"state"`
+	WriteState  string          `json:"write_state"`
 	CreateTime  int64           `json:"create_time"`
 	FormTime    *int64          `json:"form_time"`
 	EndTime     *int64          `json:"end_time"`

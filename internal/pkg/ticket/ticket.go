@@ -17,7 +17,7 @@ type Usecase interface {
 	AddRoute(creatorID, routeID int) (models.Ticket, error)
 	DeleteRoute(creatorID, routeID int) (models.Ticket, error)
 
-	FinalizeWriting(ticketID int) (models.Ticket, error)
+	UpdateWriteState(ticketID int, state string) (models.Ticket, error)
 }
 
 type Repository interface {
@@ -29,7 +29,7 @@ type Repository interface {
 	RejectByID(ticketID, moderatorID int) (models.Ticket, error)
 	EndByID(ticketID, moderatorID int) (models.Ticket, error)
 
-	FinalizeWriting(ticketID int) (models.Ticket, error)
+	UpdateWriteState(ticketID int, state string) (models.Ticket, error)
 }
 
 type DraftRepository interface {
