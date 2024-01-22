@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -520,7 +521,16 @@ func (h *Handler) StartWriting(c *gin.Context) {
 		return
 	}
 
-	resp, err := http.Post(fmt.Sprintf("localhost:8000/write_ticket/%d", id), "application/json", nil)
+	postEndpoint := fmt.Sprintf("http://127.0.0.1:8000/write_ticket/%d", id)
+	fmt.Println("Post endpoint: ", postEndpoint)
+
+	resp, err := http.Post(postEndpoint, "application/json", bytes.NewBuffer(nil))
+	if err != nil {
+		fmt.Println("Resp: ", resp)
+		fmt.Println("Err: ", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
 
 	c.JSON(resp.StatusCode, err)
 }
