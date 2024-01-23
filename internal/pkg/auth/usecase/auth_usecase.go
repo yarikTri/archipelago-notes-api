@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/yarikTri/web-transport-cards/internal/models"
@@ -38,16 +39,17 @@ func (u *Usecase) SignUp(user models.User) (models.User, error) {
 	return u.userRepo.Create(user)
 }
 
-func (u *Usecase) Login(username, password string, sessionDuration time.Duration) (string, error) {
+func (u *Usecase) Login(username, password string, sessionDuration time.Duration) (string, models.User, error) {
 	user, err := u.userRepo.GetByCreds(username, password)
 	if err != nil {
-		return "", err
+		fmt.Println("NOT FOUND")
+		return "", models.User{}, err
 	}
 
 	sessionID := u.userRepo.GetSaltedHash(username)
 	u.authRepo.CreateSession(sessionID, int(user.ID), sessionDuration)
 
-	return sessionID, err
+	return sessionID, user, err
 }
 
 func (u *Usecase) Logout(sessionID string) error {

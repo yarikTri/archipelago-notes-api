@@ -22,7 +22,7 @@ func NewPostgreSQL(db *gorm.DB) *PostgreSQL {
 
 func (p *PostgreSQL) GetByID(ticketID int) (models.Ticket, error) {
 	var ticket models.Ticket
-	if err := p.db.Preload("Routes").First(&ticket, ticketID).Error; err != nil {
+	if err := p.db.Preload("Routes").Preload("Creator").First(&ticket, ticketID).Error; err != nil {
 		return models.Ticket{}, err
 	}
 
@@ -31,7 +31,7 @@ func (p *PostgreSQL) GetByID(ticketID int) (models.Ticket, error) {
 
 func (p *PostgreSQL) List() ([]models.Ticket, error) {
 	var tickets []models.Ticket
-	if err := p.db.Preload("Routes").Find(&tickets).Error; err != nil {
+	if err := p.db.Preload("Routes").Preload("Creator").Find(&tickets).Error; err != nil {
 		return nil, err
 	}
 

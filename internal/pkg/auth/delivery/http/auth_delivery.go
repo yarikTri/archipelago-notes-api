@@ -75,15 +75,15 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	sessionID, err := h.authServices.Login(req.Username, req.Password, time.Duration(SESSION_DURATION_NANOSECONDS))
+	sessionID, user, err := h.authServices.Login(req.Username, req.Password, time.Duration(SESSION_DURATION_NANOSECONDS))
 	if err != nil {
 		h.logger.Errorf("Error while login: %w", err)
-		c.JSON(http.StatusInternalServerError, fmt.Sprintf("Error while login: %s", err.Error()))
+		c.JSON(http.StatusBadRequest, fmt.Sprintf("Error while login: %s", err.Error()))
 		return
 	}
 
 	c.SetCookie(commonHttp.AUTH_COOKIE_NAME, sessionID, SESSION_DURATION_NANOSECONDS/NANOSECONDS_IN_SECOND, "", "", false, false)
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, user.ToTransfer())
 }
 
 // @Summary		Logout

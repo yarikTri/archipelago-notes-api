@@ -10,7 +10,7 @@ type Usecase interface {
 	GetUserBySessionID(sessionID string) (models.User, error)
 	CheckUserIsModerator(userID int) (bool, error)
 	SignUp(user models.User) (models.User, error)
-	Login(username, password string, sessionDuration time.Duration) (sessionID string, err error)
+	Login(username, password string, sessionDuration time.Duration) (sessionID string, user models.User, err error)
 	Logout(sessionID string) error
 }
 

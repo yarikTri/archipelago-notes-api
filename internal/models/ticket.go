@@ -60,26 +60,26 @@ func (t *Ticket) ToTransfer() TicketTransfer {
 	}
 
 	return TicketTransfer{
-		ID:          t.ID,
-		Routes:      routesTransfers,
-		State:       t.State,
-		WriteState:  t.WriteState,
-		CreateTime:  t.CreatedAt.Unix(),
-		FormTime:    formTime,
-		EndTime:     endTime,
-		CreatorID:   t.CreatorID,
-		ModeratorID: t.ModeratorID,
+		ID:              t.ID,
+		Routes:          routesTransfers,
+		State:           t.State,
+		WriteState:      t.WriteState,
+		CreateTime:      t.CreatedAt.Unix(),
+		FormTime:        formTime,
+		EndTime:         endTime,
+		CreatorUsername: t.Creator.Username,
+		ModeratorID:     t.ModeratorID,
 	}
 }
 
 type TicketTransfer struct {
-	ID          uint            `json:"id"`
-	Routes      []RouteTransfer `json:"routes"`
-	State       string          `json:"state"`
-	WriteState  *string         `json:"write_state"`
-	CreateTime  int64           `json:"create_time"`
-	FormTime    *int64          `json:"form_time"`
-	EndTime     *int64          `json:"end_time"`
-	CreatorID   int             `json:"creator_id"`
-	ModeratorID *int            `json:"moderator_id"`
+	ID              uint            `json:"id"`
+	Routes          []RouteTransfer `json:"routes"`
+	State           string          `json:"state"`
+	WriteState      *string         `json:"write_state"`
+	CreateTime      int64           `json:"create_time"`
+	FormTime        *int64          `json:"form_time"`
+	EndTime         *int64          `json:"end_time"`
+	CreatorUsername string          `json:"creator_username"`
+	ModeratorID     *int            `json:"moderator_id"`
 }

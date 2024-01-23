@@ -60,7 +60,6 @@ func (h *Handler) GetByID(c *gin.Context) {
 
 	user, err := h.authServices.GetUserBySessionID(sessionID)
 	if err != nil && !isService {
-		h.logger.Infof("User not found")
 		c.JSON(http.StatusInternalServerError, "User not found")
 		return
 	}
@@ -106,7 +105,7 @@ func (h *Handler) List(c *gin.Context) {
 
 	user, err := h.authServices.GetUserBySessionID(sessionID)
 	if err != nil {
-		h.logger.Infof("User not found")
+		h.logger.Infof("User not found %v, %v", user, err)
 		c.JSON(http.StatusBadRequest, "User not found")
 		return
 	}

@@ -42,7 +42,7 @@ func (p *PostgreSQL) GetByUsername(username string) (models.User, error) {
 func (p *PostgreSQL) GetByCreds(username, password string) (models.User, error) {
 	var user models.User
 	if err := p.db.Where("username = ? AND password = ?", username, p.GetSaltedHash(password)).First(&user).Error; err != nil {
-		return models.User{}, nil
+		return models.User{}, err
 	}
 
 	return user, nil
