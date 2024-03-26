@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/yarikTri/web-transport-cards/internal/models"
+	"github.com/yarikTri/archipelago-nodes-api/internal/models"
 	"gorm.io/gorm"
 )
 
-// PostgreSQL implements route.Repository
+// PostgreSQL implements notes.Repository
 type PostgreSQL struct {
 	db *gorm.DB
 }
