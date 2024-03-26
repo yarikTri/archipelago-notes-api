@@ -1,594 +1,171 @@
 basePath: /
 definitions:
-  delivery.UpdateStateRequest:
+  http.CreateNoteRequest:
     properties:
-      new_state:
+      plain_text:
+        type: string
+      title:
         type: string
     type: object
-  http.CreateRouteRequest:
+  http.ListNotesResponse:
     properties:
-      capacity:
-        type: integer
-      description:
-        type: string
-      end_station:
-        type: string
-      end_time:
-        type: string
-      interval_minutes:
-        type: integer
-      name:
-        type: string
-      start_station:
-        type: string
-      start_time:
-        type: string
-    type: object
-  http.ListRoutesResponse:
-    properties:
-      routes:
+      notes:
         items:
-          $ref: '#/definitions/models.RouteTransfer'
+          $ref: '#/definitions/models.NoteTransfer'
         type: array
-      ticket_draft_id:
-        type: integer
     type: object
-  http.LoginRequest:
+  http.UpdateNoteRequest:
     properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
-  http.SignUpRequest:
-    properties:
-      full_name:
-        type: string
-      password:
-        type: string
-      username:
-        type: string
-    type: object
-  http.UpdateRouteRequest:
-    properties:
-      capacity:
-        type: integer
-      description:
-        type: string
-      end_station:
-        type: string
-      end_time:
-        type: string
-      interval_minutes:
-        type: integer
-      name:
-        type: string
-      start_station:
-        type: string
-      start_time:
-        type: string
-    type: object
-  models.RouteTransfer:
-    properties:
-      capacity:
-        type: integer
-      description:
-        type: string
-      end_station:
-        type: string
-      end_time:
-        type: string
       id:
-        type: integer
-      image_uuid:
         type: string
-      interval_minutes:
-        type: integer
-      name:
+      plain_text:
         type: string
-      start_station:
-        type: string
-      start_time:
+      title:
         type: string
     type: object
-  models.TicketTransfer:
+  models.NoteTransfer:
     properties:
-      create_time:
-        type: integer
-      creator_id:
-        type: integer
-      end_time:
-        type: integer
-      form_time:
-        type: integer
       id:
-        type: integer
-      moderator_id:
-        type: integer
-      routes:
-        items:
-          $ref: '#/definitions/models.RouteTransfer'
-        type: array
-      state:
         type: string
-    type: object
-  models.UserTransfer:
-    properties:
-      full_name:
+      plain_text:
         type: string
-      id:
-        type: integer
-      is_moderator:
-        type: boolean
-      username:
+      title:
         type: string
     type: object
 host: localhost:8080
 info:
   contact:
-    email: yarik_tri@mail.ru
-    name: Rip API
-  description: Rip
-  title: Rip
+    email: yarik1448kuzmin@gmail.com
+    name: Yaroslav Kuzmin
+  description: Notes API
+  title: Archipelago Notes API
   version: 1.0.1
 paths:
-  /auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Create session
-      parameters:
-      - description: Username and password
-        in: body
-        name: req
-        required: true
-        schema:
-          $ref: '#/definitions/http.LoginRequest'
-      responses:
-        "200":
-          description: User logined
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Login
-      tags:
-      - Auth
-  /auth/logout:
-    post:
-      consumes:
-      - application/json
-      description: Logout
-      responses:
-        "200":
-          description: User logined
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Logout
-      tags:
-      - Auth
-  /auth/signup:
-    post:
-      consumes:
-      - application/json
-      description: Create account
-      parameters:
-      - description: User info
-        in: body
-        name: req
-        required: true
-        schema:
-          $ref: '#/definitions/http.SignUpRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Created user
-          schema:
-            $ref: '#/definitions/models.UserTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Sign Up
-      tags:
-      - Auth
-  /routes:
+  /notes:
     get:
-      description: Get all routes
+      description: Get all notes
       produces:
       - application/json
       responses:
         "200":
-          description: Got routes
+          description: Notes
           schema:
-            $ref: '#/definitions/http.ListRoutesResponse'
+            $ref: '#/definitions/http.ListNotesResponse'
         "400":
           description: Incorrect input
           schema: {}
         "500":
           description: Server error
           schema: {}
-      summary: List routes
+      summary: List notes
       tags:
-      - Routes
+      - Notes
     post:
       consumes:
       - application/json
-      description: Create route
+      description: Create notes
       parameters:
-      - description: Route info
+      - description: Note info
         in: body
-        name: routeInfo
+        name: noteInfo
         required: true
         schema:
-          $ref: '#/definitions/http.CreateRouteRequest'
+          $ref: '#/definitions/http.CreateNoteRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Route created
+          description: Note created
           schema:
-            $ref: '#/definitions/models.RouteTransfer'
+            $ref: '#/definitions/models.NoteTransfer'
         "400":
           description: Incorrect input
           schema: {}
         "500":
           description: Server error
           schema: {}
-      summary: Create route
+      summary: Create notes
       tags:
-      - Routes
-  /routes/{routeID}:
+      - Notes
+  /notes/{noteID}:
     delete:
-      description: Delete route by ID
+      description: Delete notes by ID
       parameters:
-      - description: Route ID
+      - description: Note ID
         in: path
-        name: routeID
+        name: noteID
         required: true
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Route deleted
+          description: Note deleted
         "400":
           description: Incorrect input
           schema: {}
         "500":
           description: Server error
           schema: {}
-      summary: Delete route
+      summary: Delete notes
       tags:
-      - Routes
+      - Notes
     get:
-      description: Get route by ID
+      description: Get note by ID
       parameters:
-      - description: Route ID
+      - description: Note ID
         in: path
-        name: routeID
+        name: noteID
         required: true
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Got route
+          description: Note
           schema:
-            $ref: '#/definitions/models.RouteTransfer'
+            $ref: '#/definitions/models.NoteTransfer'
         "400":
           description: Incorrect input
           schema: {}
         "500":
           description: Server error
           schema: {}
-      summary: Get route
+      summary: Get note
       tags:
-      - Routes
-    put:
-      consumes:
-      - application/json
-      description: Update route by ID
-      parameters:
-      - description: Route ID
-        in: path
-        name: routeID
-        required: true
-        type: integer
-      - description: Route info
-        in: body
-        name: routeInfo
-        required: true
-        schema:
-          $ref: '#/definitions/http.UpdateRouteRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Updated route
-          schema:
-            $ref: '#/definitions/models.RouteTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Update route
-      tags:
-      - Routes
-  /routes/{routeID}/image:
-    put:
-      consumes:
-      - multipart/form-data
-      description: Put image of route by ID
-      parameters:
-      - description: Route image
-        in: formData
-        name: image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Route image updated
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Put route image
-      tags:
-      - Routes
-  /tickets:
-    get:
-      description: Get all not draft tickets
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Got tickets
-          schema:
-            items:
-              $ref: '#/definitions/models.TicketTransfer'
-            type: array
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: List tickets
-      tags:
-      - Tickets
-  /tickets/{ticketID}:
-    delete:
-      description: Delete ticket by ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: ticketID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Ticket deleted
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Delete ticket
-      tags:
-      - Tickets
-    get:
-      description: Get ticket by ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: ticketID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Got ticket
-          schema:
-            $ref: '#/definitions/models.TicketTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Get ticket
-      tags:
-      - Tickets
-  /tickets/{ticketID}/end:
-    put:
-      description: End ticket by ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: ticketID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Ticket ended
-          schema:
-            $ref: '#/definitions/models.TicketTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: End ticket
-      tags:
-      - Tickets
-  /tickets/{ticketID}/moderate:
-    put:
-      consumes:
-      - application/json
-      description: Moderate formed ticket by ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: ticketID
-        required: true
-        type: integer
-      - description: Ticket new state
-        in: body
-        name: req
-        required: true
-        schema:
-          $ref: '#/definitions/delivery.UpdateStateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Ticket moderated
-          schema:
-            $ref: '#/definitions/models.TicketTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Moderate ticket
-      tags:
-      - Tickets
-  /tickets/draft:
-    delete:
-      description: Delete ticket draft
-      responses:
-        "200":
-          description: Draft deleted
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Delete ticket draft
-      tags:
-      - Tickets
-    get:
-      description: Get ticket draft
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Ticket draft for current user
-          schema:
-            $ref: '#/definitions/models.TicketTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Get ticket draft
-      tags:
-      - Tickets
-  /tickets/draft/form:
-    put:
-      description: Form ticket draft by ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: ticketID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Ticket formed
-          schema:
-            $ref: '#/definitions/models.TicketTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Form ticket
-      tags:
-      - Tickets
-  /tickets/routes/{routeID}:
-    delete:
-      description: Delete route from ticket draft
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: ticketID
-        required: true
-        type: integer
-      - description: Route ID
-        in: path
-        name: routeID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Route deleted from ticket draft
-          schema:
-            $ref: '#/definitions/models.TicketTransfer'
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Delete route from ticket
-      tags:
-      - Routes
+      - Notes
     post:
-      description: Add route to ticket draft by ID
+      consumes:
+      - application/json
+      description: Update note by ID
       parameters:
-      - description: Route ID
+      - description: Note ID
         in: path
-        name: routeID
+        name: noteID
         required: true
         type: integer
+      - description: Note info
+        in: body
+        name: noteInfo
+        required: true
+        schema:
+          $ref: '#/definitions/http.UpdateNoteRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Route added
+          description: Updated notes
           schema:
-            $ref: '#/definitions/models.TicketTransfer'
+            $ref: '#/definitions/models.NoteTransfer'
         "400":
           description: Incorrect input
           schema: {}
         "500":
           description: Server error
           schema: {}
-      summary: Add route to ticket
+      summary: Update note
       tags:
-      - Routes
+      - Notes
 schemes:
 - https
 - http

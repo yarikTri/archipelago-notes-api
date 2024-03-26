@@ -3,7 +3,7 @@ package http
 import (
 	valid "github.com/asaskevich/govalidator"
 	"github.com/gofrs/uuid/v5"
-	"github.com/yarikTri/archipelago-nodes-api/internal/models"
+	"github.com/yarikTri/archipelago-notes-api/internal/models"
 )
 
 type CreateNoteRequest struct {
@@ -14,13 +14,6 @@ type CreateNoteRequest struct {
 func (cnr *CreateNoteRequest) validate() error {
 	_, err := valid.ValidateStruct(cnr)
 	return err
-}
-
-func (cnr *CreateNoteRequest) ToNode() models.Note {
-	return models.Note{
-		Title:     cnr.Title,
-		PlainText: cnr.PlainText,
-	}
 }
 
 type UpdateNoteRequest struct {
@@ -34,7 +27,7 @@ func (unr *UpdateNoteRequest) validate() error {
 	return err
 }
 
-func (unr *UpdateNoteRequest) ToNode() models.Note {
+func (unr *UpdateNoteRequest) ToNote() models.Note {
 	id, _ := uuid.FromString(unr.ID)
 	return models.Note{
 		ID:        id,
@@ -43,6 +36,6 @@ func (unr *UpdateNoteRequest) ToNode() models.Note {
 	}
 }
 
-type ListNodesResponse struct {
-	Nodes []models.NoteTransfer `json:"notes"`
+type ListNotesResponse struct {
+	Notes []models.NoteTransfer `json:"notes"`
 }

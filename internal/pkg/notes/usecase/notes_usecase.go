@@ -1,7 +1,9 @@
 package usecase
 
 import (
-	"github.com/yarikTri/archipelago-nodes-api/internal/models"
+	"github.com/gofrs/uuid/v5"
+	"github.com/yarikTri/archipelago-notes-api/internal/models"
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/notes"
 )
 
 // Usecase implements notes.Usecase
@@ -15,22 +17,22 @@ func NewUsecase(rr notes.Repository) *Usecase {
 	}
 }
 
-func (u *Usecase) GetByID(routeID int) (models.Route, error) {
-	return u.repo.GetByID(routeID)
+func (u *Usecase) GetByID(noteID uuid.UUID) (*models.Note, error) {
+	return u.repo.GetByID(noteID)
 }
 
-func (u *Usecase) List() ([]models.Route, error) {
+func (u *Usecase) List() ([]models.Note, error) {
 	return u.repo.List()
 }
 
-func (u *Usecase) Create(route models.Route) (models.Route, error) {
-	return u.repo.Create(route)
+func (u *Usecase) Create(title string) (*models.Note, error) {
+	return u.repo.Create(title)
 }
 
-func (u *Usecase) Update(route models.Route) (models.Route, error) {
+func (u *Usecase) Update(route models.Note) (*models.Note, error) {
 	return u.repo.Update(route)
 }
 
-func (u *Usecase) DeleteByID(routeID int) error {
-	return u.repo.DeleteByID(routeID)
+func (u *Usecase) DeleteByID(noteID uuid.UUID) error {
+	return u.repo.DeleteByID(noteID)
 }

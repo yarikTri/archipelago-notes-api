@@ -1,92 +1,109 @@
 package postgresql
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
-	"strings"
+	"github.com/gofrs/uuid/v5"
+	"github.com/jmoiron/sqlx"
 
-	"github.com/google/uuid"
-	"github.com/yarikTri/archipelago-nodes-api/internal/models"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"
+	"github.com/yarikTri/archipelago-notes-api/internal/common/repository"
+	"github.com/yarikTri/archipelago-notes-api/internal/models"
 )
 
 // PostgreSQL implements notes.Repository
 type PostgreSQL struct {
-	db *gorm.DB
+	db *sqlx.DB
 }
 
-func NewPostgreSQL(db *gorm.DB) *PostgreSQL {
+func NewPostgreSQL(db *sqlx.DB) *PostgreSQL {
 	return &PostgreSQL{
 		db: db,
 	}
 }
 
-func (p *PostgreSQL) GetByID(routeID int) (models.Route, error) {
-	var route models.Route
-	if err := p.db.First(&route, routeID).Error; err != nil {
-		return models.Route{}, err
+func (p *PostgreSQL) GetByID(noteID uuid.UUID) (*models.Note, error) {
+	query := fmt.Sprint(
+		`SELECT id, title, plain_text
+			FROM notes
+			WHERE id = $1`,
+	)
+
+	var album models.Note
+	if err := p.db.Get(&album, query, noteID.String()); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("(repo) %w: %v", &repository.NotFoundError{ID: noteID}, err)
+		}
+
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 
-	return route, nil
+	return &album, nil
 }
 
-func (p *PostgreSQL) List() ([]models.Route, error) {
-	var routes []models.Route
-	if err := p.db.Where("active = true").Find(&routes).Error; err != nil {
-		return nil, err
+func (p *PostgreSQL) List() ([]models.Note, error) {
+	query := fmt.Sprint(
+		`SELECT id, title, plain_text 
+			FROM notes`,
+	)
+
+	var notes []models.Note
+	if err := p.db.Select(&notes, query); err != nil {
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 
-	return routes, nil
+	return notes, nil
 }
 
-func (p *PostgreSQL) Search(subString string) ([]models.Route, error) {
-	var routes []models.Route
-	likeStatement := "%" + strings.ToLower(subString) + "%"
-	if err := p.db.Where("active = true AND lower(name) like ?", likeStatement).Find(&routes).Error; err != nil {
-		return nil, err
+func (p *PostgreSQL) Create(title string) (*models.Note, error) {
+	query := fmt.Sprint(
+		`INSERT INTO notes (title) VALUES ($1) RETURNING id`,
+	)
+
+	var noteID string
+	row := p.db.QueryRow(query, title)
+	if err := row.Scan(&noteID); err != nil {
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 
-	return routes, nil
+	uuid, _ := uuid.FromString(noteID)
+
+	return &models.Note{ID: uuid, Title: title}, nil
 }
 
-func (p *PostgreSQL) Create(route models.Route) (models.Route, error) {
-	if err := p.db.Create(&route).Error; err != nil {
-		return models.Route{}, err
-	}
+func (p *PostgreSQL) Update(note models.Note) (*models.Note, error) {
+	query := fmt.Sprint(
+		`UPDATE notes SET title = $1, plain_text = $2 WHERE id = $3 RETURNING id`,
+	)
 
-	return route, nil
-}
-
-func (p *PostgreSQL) Update(route models.Route) (models.Route, error) {
-	fmt.Println(route)
-	if err := p.db.Exec(
-		"UPDATE routes "+
-			"SET name = ?, capacity = ?, start_station = ?, end_station = ?, start_time = ?, end_time = ?, interval_minutes = ?, description = ? "+
-			"WHERE id = ?",
-		route.Name, route.Capacity, route.StartStation, route.EndStation, route.StartTime, route.EndTime, route.IntervalMinutes, route.Description,
-		route.ID).Error; err != nil {
-
-		return models.Route{}, err
-	}
-
-	return p.GetByID(int(route.ID))
-}
-
-func (p *PostgreSQL) DeleteByID(routeID int) error {
-	route, err := p.GetByID(routeID)
+	_, err := p.db.Exec(query, note.Title, note.PlainText, note.ID.String())
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 
-	route.Active = false
-	return p.db.Save(&route).Error
+	return &note, nil
 }
 
-func (p *PostgreSQL) UpdateImageUUID(routeID int, imageUUID uuid.UUID) error {
-	route, err := p.GetByID(routeID)
+func (p *PostgreSQL) DeleteByID(noteID uuid.UUID) error {
+	query := fmt.Sprint(
+		`DELETE
+		FROM notes
+		WHERE id = $1`,
+	)
+
+	resExec, err := p.db.Exec(query, noteID.String())
 	if err != nil {
-		return err
+		return fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+	deleted, err := resExec.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("(repo) failed to check RowsAffected: %w", err)
 	}
 
-	route.ImageUUID = imageUUID
-	return p.db.Save(&route).Error
+	if deleted == 0 {
+		return fmt.Errorf("(repo): %w", &repository.NotFoundError{ID: noteID})
+	}
+
+	return nil
 }

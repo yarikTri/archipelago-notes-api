@@ -5,135 +5,32 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Rip",
-        "title": "Rip",
+        "description": "Notes API",
+        "title": "Archipelago Notes API",
         "contact": {
-            "name": "Rip API",
-            "email": "yarik_tri@mail.ru"
+            "name": "Yaroslav Kuzmin",
+            "email": "yarik1448kuzmin@gmail.com"
         },
         "version": "1.0.1"
     },
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
-        "/auth/login": {
-            "post": {
-                "description": "Create session",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Login",
-                "parameters": [
-                    {
-                        "description": "Username and password",
-                        "name": "req",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.LoginRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User logined"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/auth/logout": {
-            "post": {
-                "description": "Logout",
-                "consumes": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Logout",
-                "responses": {
-                    "200": {
-                        "description": "User logined"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/auth/signup": {
-            "post": {
-                "description": "Create account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Sign Up",
-                "parameters": [
-                    {
-                        "description": "User info",
-                        "name": "req",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.SignUpRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Created user",
-                        "schema": {
-                            "$ref": "#/definitions/models.UserTransfer"
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/routes": {
+        "/notes": {
             "get": {
-                "description": "Get all routes",
+                "description": "Get all notes",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Routes"
+                    "Notes"
                 ],
-                "summary": "List routes",
+                "summary": "List notes",
                 "responses": {
                     "200": {
-                        "description": "Got routes",
+                        "description": "Notes",
                         "schema": {
-                            "$ref": "#/definitions/http.ListRoutesResponse"
+                            "$ref": "#/definitions/http.ListNotesResponse"
                         }
                     },
                     "400": {
@@ -147,7 +44,7 @@
                 }
             },
             "post": {
-                "description": "Create route",
+                "description": "Create notes",
                 "consumes": [
                     "application/json"
                 ],
@@ -155,25 +52,25 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Routes"
+                    "Notes"
                 ],
-                "summary": "Create route",
+                "summary": "Create notes",
                 "parameters": [
                     {
-                        "description": "Route info",
-                        "name": "routeInfo",
+                        "description": "Note info",
+                        "name": "noteInfo",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.CreateRouteRequest"
+                            "$ref": "#/definitions/http.CreateNoteRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Route created",
+                        "description": "Note created",
                         "schema": {
-                            "$ref": "#/definitions/models.RouteTransfer"
+                            "$ref": "#/definitions/models.NoteTransfer"
                         }
                     },
                     "400": {
@@ -187,30 +84,30 @@
                 }
             }
         },
-        "/routes/{routeID}": {
+        "/notes/{noteID}": {
             "get": {
-                "description": "Get route by ID",
+                "description": "Get note by ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Routes"
+                    "Notes"
                 ],
-                "summary": "Get route",
+                "summary": "Get note",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Route ID",
-                        "name": "routeID",
+                        "description": "Note ID",
+                        "name": "noteID",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Got route",
+                        "description": "Note",
                         "schema": {
-                            "$ref": "#/definitions/models.RouteTransfer"
+                            "$ref": "#/definitions/models.NoteTransfer"
                         }
                     },
                     "400": {
@@ -223,8 +120,8 @@
                     }
                 }
             },
-            "put": {
-                "description": "Update route by ID",
+            "post": {
+                "description": "Update note by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -232,32 +129,32 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Routes"
+                    "Notes"
                 ],
-                "summary": "Update route",
+                "summary": "Update note",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Route ID",
-                        "name": "routeID",
+                        "description": "Note ID",
+                        "name": "noteID",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Route info",
-                        "name": "routeInfo",
+                        "description": "Note info",
+                        "name": "noteInfo",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.UpdateRouteRequest"
+                            "$ref": "#/definitions/http.UpdateNoteRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Updated route",
+                        "description": "Updated notes",
                         "schema": {
-                            "$ref": "#/definitions/models.RouteTransfer"
+                            "$ref": "#/definitions/models.NoteTransfer"
                         }
                     },
                     "400": {
@@ -271,413 +168,26 @@
                 }
             },
             "delete": {
-                "description": "Delete route by ID",
+                "description": "Delete notes by ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Routes"
+                    "Notes"
                 ],
-                "summary": "Delete route",
+                "summary": "Delete notes",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Route ID",
-                        "name": "routeID",
+                        "description": "Note ID",
+                        "name": "noteID",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Route deleted"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/routes/{routeID}/image": {
-            "put": {
-                "description": "Put image of route by ID",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Routes"
-                ],
-                "summary": "Put route image",
-                "parameters": [
-                    {
-                        "type": "file",
-                        "description": "Route image",
-                        "name": "image",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Route image updated"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/tickets": {
-            "get": {
-                "description": "Get all not draft tickets",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "List tickets",
-                "responses": {
-                    "200": {
-                        "description": "Got tickets",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.TicketTransfer"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/tickets/draft": {
-            "get": {
-                "description": "Get ticket draft",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "Get ticket draft",
-                "responses": {
-                    "200": {
-                        "description": "Ticket draft for current user",
-                        "schema": {
-                            "$ref": "#/definitions/models.TicketTransfer"
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete ticket draft",
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "Delete ticket draft",
-                "responses": {
-                    "200": {
-                        "description": "Draft deleted"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/tickets/draft/form": {
-            "put": {
-                "description": "Form ticket draft by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "Form ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "ticketID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ticket formed",
-                        "schema": {
-                            "$ref": "#/definitions/models.TicketTransfer"
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/tickets/routes/{routeID}": {
-            "post": {
-                "description": "Add route to ticket draft by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Routes"
-                ],
-                "summary": "Add route to ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Route ID",
-                        "name": "routeID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Route added",
-                        "schema": {
-                            "$ref": "#/definitions/models.TicketTransfer"
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete route from ticket draft",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Routes"
-                ],
-                "summary": "Delete route from ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "ticketID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Route ID",
-                        "name": "routeID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Route deleted from ticket draft",
-                        "schema": {
-                            "$ref": "#/definitions/models.TicketTransfer"
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/tickets/{ticketID}": {
-            "get": {
-                "description": "Get ticket by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "Get ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "ticketID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Got ticket",
-                        "schema": {
-                            "$ref": "#/definitions/models.TicketTransfer"
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete ticket by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "Delete ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "ticketID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ticket deleted"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/tickets/{ticketID}/end": {
-            "put": {
-                "description": "End ticket by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "End ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "ticketID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ticket ended",
-                        "schema": {
-                            "$ref": "#/definitions/models.TicketTransfer"
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/tickets/{ticketID}/moderate": {
-            "put": {
-                "description": "Moderate formed ticket by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tickets"
-                ],
-                "summary": "Moderate ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "ticketID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Ticket new state",
-                        "name": "req",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/delivery.UpdateStateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ticket moderated",
-                        "schema": {
-                            "$ref": "#/definitions/models.TicketTransfer"
-                        }
+                        "description": "Note deleted"
                     },
                     "400": {
                         "description": "Incorrect input",
@@ -692,191 +202,52 @@
         }
     },
     "definitions": {
-        "delivery.UpdateStateRequest": {
+        "http.CreateNoteRequest": {
             "type": "object",
             "properties": {
-                "new_state": {
+                "plain_text": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }
         },
-        "http.CreateRouteRequest": {
+        "http.ListNotesResponse": {
             "type": "object",
             "properties": {
-                "capacity": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "end_station": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "interval_minutes": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "start_station": {
-                    "type": "string"
-                },
-                "start_time": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.ListRoutesResponse": {
-            "type": "object",
-            "properties": {
-                "routes": {
+                "notes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.RouteTransfer"
+                        "$ref": "#/definitions/models.NoteTransfer"
                     }
-                },
-                "ticket_draft_id": {
-                    "type": "integer"
                 }
             }
         },
-        "http.LoginRequest": {
+        "http.UpdateNoteRequest": {
             "type": "object",
             "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.SignUpRequest": {
-            "type": "object",
-            "properties": {
-                "full_name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.UpdateRouteRequest": {
-            "type": "object",
-            "properties": {
-                "capacity": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "end_station": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "interval_minutes": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "start_station": {
-                    "type": "string"
-                },
-                "start_time": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.RouteTransfer": {
-            "type": "object",
-            "properties": {
-                "capacity": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "end_station": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "string"
-                },
                 "id": {
-                    "type": "integer"
-                },
-                "image_uuid": {
                     "type": "string"
                 },
-                "interval_minutes": {
-                    "type": "integer"
-                },
-                "name": {
+                "plain_text": {
                     "type": "string"
                 },
-                "start_station": {
-                    "type": "string"
-                },
-                "start_time": {
+                "title": {
                     "type": "string"
                 }
             }
         },
-        "models.TicketTransfer": {
+        "models.NoteTransfer": {
             "type": "object",
             "properties": {
-                "create_time": {
-                    "type": "integer"
-                },
-                "creator_id": {
-                    "type": "integer"
-                },
-                "end_time": {
-                    "type": "integer"
-                },
-                "form_time": {
-                    "type": "integer"
-                },
                 "id": {
-                    "type": "integer"
-                },
-                "moderator_id": {
-                    "type": "integer"
-                },
-                "routes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RouteTransfer"
-                    }
-                },
-                "state": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.UserTransfer": {
-            "type": "object",
-            "properties": {
-                "full_name": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
+                "plain_text": {
+                    "type": "string"
                 },
-                "is_moderator": {
-                    "type": "boolean"
-                },
-                "username": {
+                "title": {
                     "type": "string"
                 }
             }

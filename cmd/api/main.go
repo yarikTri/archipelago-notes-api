@@ -11,18 +11,18 @@ import (
 	"github.com/joho/godotenv" // load environment
 
 	flog "github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
-	app "github.com/yarikTri/web-transport-cards/cmd/api/init"
-	"github.com/yarikTri/web-transport-cards/cmd/api/init/config"
-	"github.com/yarikTri/web-transport-cards/cmd/api/init/db/postgresql"
-	"github.com/yarikTri/web-transport-cards/cmd/api/init/server"
+	app "github.com/yarikTri/archipelago-notes-api/cmd/api/init"
+	"github.com/yarikTri/archipelago-notes-api/cmd/api/init/config"
+	"github.com/yarikTri/archipelago-notes-api/cmd/api/init/db/postgresql"
+	"github.com/yarikTri/archipelago-notes-api/cmd/api/init/server"
 )
 
-// @title		Rip
+// @title		Archipelago Notes API
 // @version		1.0.1
-// @description	Rip
+// @description	Notes API
 
-// @contact.name   Rip API
-// @contact.email  yarik_tri@mail.ru
+// @contact.name   Yaroslav Kuzmin
+// @contact.email  yarik1448kuzmin@gmail.com
 
 // @host localhost:8080
 // @schemes https http
@@ -38,7 +38,7 @@ func main() {
 		log.Fatalf("logger can not be defined: %v\n", err)
 	}
 
-	db, _, err := postgresql.InitPostgresDB()
+	db, err := postgresql.InitPostgresDB()
 	if err != nil {
 		flogger.Errorf("error while connecting to database: %v", err)
 		return

@@ -5,21 +5,21 @@ import (
 )
 
 type Note struct {
-	ID        uuid.UUID
-	Title     string
-	PlainText string
+	ID        uuid.UUID `db:"id"`
+	Title     string    `db:"title"`
+	PlainText string    `db:"plain_text"`
 }
 
 func (n *Note) ToTransfer() NoteTransfer {
 	return NoteTransfer{
-		ID:        n.ID,
+		ID:        n.ID.String(),
 		Title:     n.Title,
 		PlainText: n.PlainText,
 	}
 }
 
 type NoteTransfer struct {
-	ID        uuid.UUID `json:"id"`
-	Title     string    `json:"title"`
-	PlainText string    `json:"plain_text"`
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	PlainText string `json:"plain_text"`
 }

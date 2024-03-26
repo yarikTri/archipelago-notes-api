@@ -3,11 +3,9 @@ package postgresql
 import (
 	"errors"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"os"
 	"strings"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 const (
@@ -53,54 +51,31 @@ func initPostgresConfig() (PostgresConfig, error) { // TODO CHECK FIELDS
 
 // NewPostgresDB connects to chosen postgreSQL database
 // and returns interaction interface of the database
-func InitPostgresDB() (*gorm.DB, PostgreSQLTables, error) {
+func InitPostgresDB() (*sqlx.DB, error) {
 	cfg, err := initPostgresConfig()
 	if err != nil {
-		return nil, PostgreSQLTables{}, fmt.Errorf("can't init postgresql: %w", err)
+		return nil, fmt.Errorf("can't init postgresql: %w", err)
 	}
 
 	dbInfo := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBName, cfg.DBPassword, cfg.DBSSLMode)
 
-	db, err := gorm.Open(postgres.Open(dbInfo), &gorm.Config{})
+	db, err := sqlx.Open("postgres", dbInfo)
 	if err != nil {
-		return nil, PostgreSQLTables{}, err
+		return nil, err
 	}
 
-	// db.SetMaxIdleConns(maxIdleConns)
-	// db.SetMaxOpenConns(maxOpenConns)
+	db.SetMaxIdleConns(maxIdleConns)
+	db.SetMaxOpenConns(maxOpenConns)
 
-	// err = db.Ping()
-	// if err != nil {
-	// 	errClose := db.Close()
-	// 	if errClose != nil {
-	// 		return nil, PostgreSQLTables{},
-	// 			fmt.Errorf("can't close postgresql (%w) after failed ping: %w", errClose, err)
-	// 	}
-	// 	return nil, PostgreSQLTables{}, err
-	// }
+	err = db.Ping()
+	if err != nil {
+		errClose := db.Close()
+		if errClose != nil {
+			return nil, fmt.Errorf("can't close postgresql (%w) after failed ping: %w", errClose, err)
+		}
+		return nil, err
+	}
 
-	return db, PostgreSQLTables{}, nil
-}
-
-type PostgreSQLTables struct{}
-
-func (pt PostgreSQLTables) Stations() string {
-	return "Stations"
-}
-
-func (pt PostgreSQLTables) Routes() string {
-	return "Routes"
-}
-
-func (pt PostgreSQLTables) RoutesStations() string {
-	return "Routes_Stations"
-}
-
-func (pt PostgreSQLTables) RoutesTickets() string {
-	return "Routes_Tickets"
-}
-
-func (pt PostgreSQLTables) Tickets() string {
-	return "Tickets"
+	return db, nil
 }
