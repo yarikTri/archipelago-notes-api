@@ -8,7 +8,7 @@ import (
 
 type CreateNoteRequest struct {
 	Title     string `json:"title" valid:"required"`
-	PlainText string `json:"plain_text"`
+	AutomergeURL string `json:"automerge_url" valid:"required"`
 }
 
 func (cnr *CreateNoteRequest) validate() error {
@@ -18,8 +18,8 @@ func (cnr *CreateNoteRequest) validate() error {
 
 type UpdateNoteRequest struct {
 	ID        string `json:"id"`
+	AutomergeURL string `json:"automerge_url" valid:"required"`
 	Title     string `json:"title" valid:"required"`
-	PlainText string `json:"plain_text,omitempty"`
 }
 
 func (unr *UpdateNoteRequest) validate() error {
@@ -31,8 +31,8 @@ func (unr *UpdateNoteRequest) ToNote() models.Note {
 	id, _ := uuid.FromString(unr.ID)
 	return models.Note{
 		ID:        id,
+		AutomergeURL: unr.AutomergeURL,
 		Title:     unr.Title,
-		PlainText: unr.PlainText,
 	}
 }
 

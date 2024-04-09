@@ -6,20 +6,20 @@ import (
 
 type Note struct {
 	ID        uuid.UUID `db:"id"`
+	AutomergeURL string `db:"automerge_url"`
 	Title     string    `db:"title"`
-	PlainText string    `db:"plain_text"`
 }
 
 func (n *Note) ToTransfer() NoteTransfer {
 	return NoteTransfer{
 		ID:        n.ID.String(),
+		AutomergeURL: n.AutomergeURL,
 		Title:     n.Title,
-		PlainText: n.PlainText,
 	}
 }
 
 type NoteTransfer struct {
 	ID        string `json:"id"`
+	AutomergeURL string `json:"automerge_url"`
 	Title     string `json:"title"`
-	PlainText string `json:"plain_text"`
 }

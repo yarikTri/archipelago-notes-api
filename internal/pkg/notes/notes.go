@@ -8,7 +8,7 @@ import (
 type Usecase interface {
 	GetByID(noteID uuid.UUID) (*models.Note, error)
 	List() ([]models.Note, error)
-	Create(title string) (*models.Note, error)
+	Create(automergeURL, title string) (*models.Note, error)
 	Update(route models.Note) (*models.Note, error)
 	DeleteByID(noteID uuid.UUID) error
 }
@@ -16,7 +16,7 @@ type Usecase interface {
 type Repository interface {
 	GetByID(nodeID uuid.UUID) (*models.Note, error)
 	List() ([]models.Note, error)
-	Create(title string) (*models.Note, error)
+	Create(automergeURL, title string) (*models.Note, error)
 	Update(route models.Note) (*models.Note, error)
 	DeleteByID(nodeID uuid.UUID) error
 }

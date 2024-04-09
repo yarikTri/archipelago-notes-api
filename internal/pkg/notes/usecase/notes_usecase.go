@@ -25,8 +25,8 @@ func (u *Usecase) List() ([]models.Note, error) {
 	return u.repo.List()
 }
 
-func (u *Usecase) Create(title string) (*models.Note, error) {
-	return u.repo.Create(title)
+func (u *Usecase) Create(automergeURL, title string) (*models.Note, error) {
+	return u.repo.Create(automergeURL, title)
 }
 
 func (u *Usecase) Update(route models.Note) (*models.Note, error) {

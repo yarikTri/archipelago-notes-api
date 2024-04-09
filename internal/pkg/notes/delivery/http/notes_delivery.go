@@ -96,7 +96,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	createdNote, err := h.notesUsecase.Create(req.Title)
+	createdNote, err := h.notesUsecase.Create(req.AutomergeURL, req.Title)
 	if err != nil {
 		h.logger.Errorf("Error: %w", err)
 		c.JSON(http.StatusInternalServerError, err)

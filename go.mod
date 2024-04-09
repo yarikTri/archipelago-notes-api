@@ -6,7 +6,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-park-mail-ru/2023_1_Technokaif v0.0.0-20230524161419-951f3675cfd1
-	github.com/gofrs/uuid/v5 v5.0.0
+	github.com/gofrs/uuid/v5 v5.1.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
