@@ -6,7 +6,7 @@ import (
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/notes"
 )
 
-// Usecase implements notes.Usecase
+// Usecase implements dirs.Usecase
 type Usecase struct {
 	dirsRepo  dirs.Repository
 	notesRepo notes.Repository

@@ -13,10 +13,6 @@ type CreateNoteRequest struct {
 }
 
 func (cnr *CreateNoteRequest) validate() error {
-	// ХАРДКОД ДЛЯ ОБРАТНОЙ СОВМЕСТИМОСТИ
-	// TODO: убрать
-	cnr.DirID = 1
-
 	_, err := valid.ValidateStruct(cnr)
 	return err
 }
@@ -29,10 +25,6 @@ type UpdateNoteRequest struct {
 }
 
 func (unr *UpdateNoteRequest) validate() error {
-	// ХАРДКОД ДЛЯ ОБРАТНОЙ СОВМЕСТИМОСТИ
-	// TODO: убрать
-	unr.DirID = 1
-
 	_, err := valid.ValidateStruct(unr)
 	return err
 }

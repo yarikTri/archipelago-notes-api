@@ -1,4 +1,4 @@
-package notes
+package users
 
 import (
 	"github.com/gofrs/uuid/v5"
@@ -6,18 +6,11 @@ import (
 )
 
 type Usecase interface {
-	GetByID(noteID uuid.UUID) (*models.Note, error)
-	List() ([]*models.Note, error)
-	Create(dirID int, automergeURL, title string) (*models.Note, error)
-	Update(note models.Note) (*models.Note, error)
-	DeleteByID(noteID uuid.UUID) error
+	GetByID(userID uuid.UUID) (*models.User, error)
+	SetRootDirByID(userID uuid.UUID, dirID int) error
 }
 
 type Repository interface {
-	GetByID(noteID uuid.UUID) (*models.Note, error)
-	List() ([]*models.Note, error)
-	ListByDirIds(dirIDs []int) ([]*models.Note, error)
-	Create(dirID int, automergeURL, title string) (*models.Note, error)
-	Update(note models.Note) (*models.Note, error)
-	DeleteByID(noteID uuid.UUID) error
+	GetByID(userID uuid.UUID) (*models.User, error)
+	SetRootDirByID(userID uuid.UUID, dirID int) error
 }

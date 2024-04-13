@@ -11,7 +11,7 @@ import (
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
 )
 
-// PostgreSQL implements notes.Repository
+// PostgreSQL implements dirs.Repository
 type PostgreSQL struct {
 	db *sqlx.DB
 }

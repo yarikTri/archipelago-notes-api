@@ -78,6 +78,17 @@ definitions:
       title:
         type: string
     type: object
+  models.UserTransfer:
+    properties:
+      id:
+        type: string
+      login:
+        type: string
+      name:
+        type: string
+      root_dir_id:
+        type: integer
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -338,6 +349,59 @@ paths:
       summary: Update note
       tags:
       - Notes
+  /api/users/{userID}:
+    get:
+      description: Get user by user id
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User
+          schema:
+            $ref: '#/definitions/models.UserTransfer'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Get user
+      tags:
+      - Users
+  /api/users/{userID}/root_dir/{rootDirID}:
+    post:
+      description: Set root dir id by user id
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: integer
+      - description: Root dir ID
+        in: path
+        name: rootDirID
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Root dir setted
+          schema:
+            type: string
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Set root dir id
+      tags:
+      - Users
 schemes:
 - https
 - http

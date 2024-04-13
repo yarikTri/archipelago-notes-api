@@ -5,17 +5,18 @@ import (
 
 	_ "github.com/yarikTri/archipelago-notes-api/docs"
 
+	swaggerFiles "github.com/swaggo/files" // swagger embed files
+	swagger "github.com/swaggo/gin-swagger"
 	"github.com/yarikTri/archipelago-notes-api/internal/common/http/middleware"
 	dirsDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/dirs/delivery/http"
 	notesDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/delivery/http"
-
-	swaggerFiles "github.com/swaggo/files" // swagger embed files
-	swagger "github.com/swaggo/gin-swagger"
+	usersDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/delivery/http"
 )
 
 func InitRoutes(
 	notesHandler *notesDelivery.Handler,
 	dirsHandler *dirsDelivery.Handler,
+	usersHandler *usersDelivery.Handler,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -36,6 +37,10 @@ func InitRoutes(
 	dirs.POST("", dirsHandler.Create)
 	dirs.POST("/:id", dirsHandler.Update)
 	dirs.DELETE("/:id", dirsHandler.Delete)
+
+	users := api.Group("/users")
+	users.GET("/:id", usersHandler.Get)
+	users.POST("/:userID/root_dir/:rootDirID", usersHandler.Get)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
