@@ -18,40 +18,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/Dirs/{dirID}": {
-            "delete": {
-                "description": "Delete dir by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dirs"
-                ],
-                "summary": "Delete dir",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Dir ID",
-                        "name": "dirID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dir deleted"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
         "/api/dirs": {
             "post": {
                 "description": "Create dir",
@@ -166,6 +132,38 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.Dir"
                         }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete dir by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dirs"
+                ],
+                "summary": "Delete dir",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Dir ID",
+                        "name": "dirID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dir deleted"
                     },
                     "400": {
                         "description": "Incorrect input",
@@ -409,6 +407,9 @@ const docTemplate = `{
                 "automerge_url": {
                     "type": "string"
                 },
+                "dir_id": {
+                    "type": "integer"
+                },
                 "title": {
                     "type": "string"
                 }
@@ -444,6 +445,9 @@ const docTemplate = `{
             "properties": {
                 "automerge_url": {
                     "type": "string"
+                },
+                "dir_id": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "string"
@@ -481,6 +485,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.NoteTransfer"
+                    }
                 }
             }
         },
@@ -489,6 +499,9 @@ const docTemplate = `{
             "properties": {
                 "automerge_url": {
                     "type": "string"
+                },
+                "dir_id": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "string"

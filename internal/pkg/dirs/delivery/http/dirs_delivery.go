@@ -164,7 +164,7 @@ func (h *Handler) Update(c *gin.Context) {
 // @Success		200								"Dir deleted"
 // @Failure		400			{object}	error	"Incorrect input"
 // @Failure		500			{object}	error	"Server error"
-// @Router		/api/Dirs/{dirID} [delete]
+// @Router		/api/dirs/{dirID} [delete]
 func (h *Handler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

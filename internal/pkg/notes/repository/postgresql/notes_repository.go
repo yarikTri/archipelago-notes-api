@@ -58,7 +58,7 @@ func (p *PostgreSQL) List() ([]*models.Note, error) {
 
 func (p *PostgreSQL) ListByDirIds(dirIDs []int) ([]*models.Note, error) {
 	query := fmt.Sprint(
-		`SELECT id, automerge_url, title 
+		`SELECT id, dir_id, automerge_url, title 
 			FROM note
 			WHERE dir_id = ANY($1)`,
 	)

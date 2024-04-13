@@ -11,6 +11,8 @@ definitions:
     properties:
       automerge_url:
         type: string
+      dir_id:
+        type: integer
       title:
         type: string
     type: object
@@ -34,6 +36,8 @@ definitions:
     properties:
       automerge_url:
         type: string
+      dir_id:
+        type: integer
       id:
         type: string
       title:
@@ -58,11 +62,17 @@ definitions:
         type: integer
       name:
         type: string
+      notes:
+        items:
+          $ref: '#/definitions/models.NoteTransfer'
+        type: array
     type: object
   models.NoteTransfer:
     properties:
       automerge_url:
         type: string
+      dir_id:
+        type: integer
       id:
         type: string
       title:
@@ -77,29 +87,6 @@ info:
   title: Archipelago Notes API
   version: 1.0.1
 paths:
-  /api/Dirs/{dirID}:
-    delete:
-      description: Delete dir by ID
-      parameters:
-      - description: Dir ID
-        in: path
-        name: dirID
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Dir deleted
-        "400":
-          description: Incorrect input
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Delete dir
-      tags:
-      - Dirs
   /api/dirs:
     post:
       consumes:
@@ -129,6 +116,28 @@ paths:
       tags:
       - Dirs
   /api/dirs/{dirID}:
+    delete:
+      description: Delete dir by ID
+      parameters:
+      - description: Dir ID
+        in: path
+        name: dirID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dir deleted
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Delete dir
+      tags:
+      - Dirs
     get:
       description: Get dir by ID
       parameters:
