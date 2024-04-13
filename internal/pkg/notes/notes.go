@@ -14,6 +14,11 @@ type Usecase interface {
 
 	GetUserAccess(noteID uuid.UUID, userID uuid.UUID) (models.NoteAccess, error)
 	SetUserAccess(noteID uuid.UUID, userID uuid.UUID, access models.NoteAccess, sendInvitation bool) error
+	CheckOwner(noteID uuid.UUID, userID uuid.UUID) (bool, error)
+
+	AttachNoteToSummary(summID, noteID uuid.UUID) error
+	DettachNoteFromSummary(summID, noteID uuid.UUID) error
+	GetSummaryListByNote(noteID uuid.UUID) ([]uuid.UUID, []uuid.UUID, error)
 }
 
 type Repository interface {
@@ -25,4 +30,8 @@ type Repository interface {
 
 	GetUserAccess(noteID uuid.UUID, userID uuid.UUID) (models.NoteAccess, error)
 	SetUserAccess(noteID uuid.UUID, userID uuid.UUID, access models.NoteAccess) error
+
+	AttachNoteToSummary(summID, noteID uuid.UUID) error
+	DettachNoteFromSummary(summID, noteID uuid.UUID) error
+	GetSummaryListByNote(noteID uuid.UUID) ([]models.SummaryIDStatus, error)
 }

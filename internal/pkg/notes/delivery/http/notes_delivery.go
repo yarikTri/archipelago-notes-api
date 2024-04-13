@@ -2,13 +2,15 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/gofrs/uuid/v5"
 	"github.com/yarikTri/archipelago-notes-api/internal/common/http/auth"
+	"github.com/yarikTri/archipelago-notes-api/internal/common/utils"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/notes"
-	"net/http"
 )
 
 type Handler struct {
@@ -281,4 +283,120 @@ func (h *Handler) SetAccess(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func (h *Handler) CheckOwner(c *gin.Context) {
+	noteID, err := uuid.FromString(c.Param("id"))
+	if err != nil {
+		h.logger.Infof("Invalid note id '%s'", c.Param("id"))
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	userID, err := uuid.FromString(c.Param("userID"))
+	if err != nil {
+		h.logger.Infof("Invalid note id '%s'", c.Param("userID"))
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	isOwner, err := h.notesUsecase.CheckOwner(noteID, userID)
+	if err != nil {
+		h.logger.Errorf("Error: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, IsOwnerResponse{
+		IsOwner: isOwner,
+	})
+}
+
+func (h *Handler) AttachNoteToSummary(c *gin.Context) {
+	// type AttachSummaryToNoteRequest struct {
+	// 	SummID string `json:"summ_id" valid:"required"`
+	// 	NoteID string `json:"note_id" valid:"required"`
+	// }
+
+	// var req AttachSummaryToNoteRequest
+	// c.BindJSON(&req)
+
+	summID, err := uuid.FromString(c.Param("summID"))
+	if err != nil {
+		h.logger.Errorf("Failed to cast summ_id to uuid %s: %w", summID, err)
+		c.JSON(http.StatusBadRequest, err)
+	}
+
+	noteID, err := uuid.FromString(c.Param("id"))
+	if err != nil {
+		h.logger.Errorf("Failed to cast note_id to uuid %s: %w", noteID, err)
+		c.JSON(http.StatusBadRequest, err)
+	}
+
+	access := h.checkAccess(c, noteID, attachSummaryMethodName)
+	if access == nil {
+		return
+	}
+
+	err = h.notesUsecase.AttachNoteToSummary(summID, noteID)
+	if err != nil {
+		h.logger.Errorf("Error while attaching note to summary: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (h *Handler) DetachNoteFromSummary(c *gin.Context) {
+	summID, err := uuid.FromString(c.Param("summID"))
+	if err != nil {
+		h.logger.Errorf("Failed to cast summ_id to uuid %s: %w", summID, err)
+		c.JSON(http.StatusBadRequest, err)
+	}
+
+	noteID, err := uuid.FromString(c.Param("id"))
+	if err != nil {
+		h.logger.Errorf("Failed to cast note_id to uuid %s: %w", noteID, err)
+		c.JSON(http.StatusBadRequest, err)
+	}
+
+	access := h.checkAccess(c, noteID, attachSummaryMethodName)
+	if access == nil {
+		return
+	}
+
+	err = h.notesUsecase.DettachNoteFromSummary(summID, noteID)
+	if err != nil {
+		h.logger.Errorf("Error while detaching note to summary: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (h *Handler) GetSummaryListByNote(c *gin.Context) {
+	noteID, err := uuid.FromString(c.Param("id"))
+	if err != nil {
+		h.logger.Errorf("Failed to cast note_id to uuid %s: %w", noteID, err)
+		c.JSON(http.StatusBadRequest, err)
+	}
+
+	access := h.checkAccess(c, noteID, getSummaryListMethodName)
+	if access == nil {
+		return
+	}
+
+	nonActiveIds, activeIds, err := h.notesUsecase.GetSummaryListByNote(noteID)
+	if err != nil {
+		h.logger.Errorf("Error while getting summary list by note: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, ListSummaryResponse{
+		NonActiveSummaryIds: utils.ConvertUUIDListToStringList(nonActiveIds),
+		ActiveSummaryIds:    utils.ConvertUUIDListToStringList(activeIds),
+	})
 }
