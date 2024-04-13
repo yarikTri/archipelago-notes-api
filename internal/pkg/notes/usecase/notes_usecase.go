@@ -21,16 +21,16 @@ func (u *Usecase) GetByID(noteID uuid.UUID) (*models.Note, error) {
 	return u.repo.GetByID(noteID)
 }
 
-func (u *Usecase) List() ([]models.Note, error) {
+func (u *Usecase) List() ([]*models.Note, error) {
 	return u.repo.List()
 }
 
-func (u *Usecase) Create(automergeURL, title string) (*models.Note, error) {
-	return u.repo.Create(automergeURL, title)
+func (u *Usecase) Create(dirID int, automergeURL, title string) (*models.Note, error) {
+	return u.repo.Create(dirID, automergeURL, title)
 }
 
-func (u *Usecase) Update(route models.Note) (*models.Note, error) {
-	return u.repo.Update(route)
+func (u *Usecase) Update(note models.Note) (*models.Note, error) {
+	return u.repo.Update(note)
 }
 
 func (u *Usecase) DeleteByID(noteID uuid.UUID) error {

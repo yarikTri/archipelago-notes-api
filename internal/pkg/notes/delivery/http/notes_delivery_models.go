@@ -7,22 +7,32 @@ import (
 )
 
 type CreateNoteRequest struct {
-	Title     string `json:"title" valid:"required"`
+	DirID        int    `json:"dir_id" valid:"required"`
+	Title        string `json:"title" valid:"required"`
 	AutomergeURL string `json:"automerge_url" valid:"required"`
 }
 
 func (cnr *CreateNoteRequest) validate() error {
+	// ХАРДКОД ДЛЯ ОБРАТНОЙ СОВМЕСТИМОСТИ
+	// TODO: убрать
+	cnr.DirID = 1
+
 	_, err := valid.ValidateStruct(cnr)
 	return err
 }
 
 type UpdateNoteRequest struct {
-	ID        string `json:"id"`
+	ID           string `json:"id" valid:"required"`
+	DirID        int    `json:"dir_id" valid:"required"`
 	AutomergeURL string `json:"automerge_url" valid:"required"`
-	Title     string `json:"title" valid:"required"`
+	Title        string `json:"title" valid:"required"`
 }
 
 func (unr *UpdateNoteRequest) validate() error {
+	// ХАРДКОД ДЛЯ ОБРАТНОЙ СОВМЕСТИМОСТИ
+	// TODO: убрать
+	unr.DirID = 1
+
 	_, err := valid.ValidateStruct(unr)
 	return err
 }
@@ -30,12 +40,12 @@ func (unr *UpdateNoteRequest) validate() error {
 func (unr *UpdateNoteRequest) ToNote() models.Note {
 	id, _ := uuid.FromString(unr.ID)
 	return models.Note{
-		ID:        id,
+		ID:           id,
 		AutomergeURL: unr.AutomergeURL,
-		Title:     unr.Title,
+		Title:        unr.Title,
 	}
 }
 
 type ListNotesResponse struct {
-	Notes []models.NoteTransfer `json:"notes"`
+	Notes []*models.NoteTransfer `json:"notes"`
 }

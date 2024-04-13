@@ -1,8 +1,15 @@
 basePath: /
 definitions:
+  http.CreateDirRequest:
+    properties:
+      name:
+        type: string
+      parent_dir_id:
+        type: integer
+    type: object
   http.CreateNoteRequest:
     properties:
-      plain_text:
+      automerge_url:
         type: string
       title:
         type: string
@@ -14,20 +21,49 @@ definitions:
           $ref: '#/definitions/models.NoteTransfer'
         type: array
     type: object
-  http.UpdateNoteRequest:
+  http.UpdateDirRequest:
     properties:
       id:
+        type: integer
+      name:
         type: string
-      plain_text:
+      subpath:
+        type: string
+    type: object
+  http.UpdateNoteRequest:
+    properties:
+      automerge_url:
+        type: string
+      id:
         type: string
       title:
         type: string
     type: object
-  models.NoteTransfer:
+  models.Dir:
     properties:
       id:
+        type: integer
+      name:
         type: string
-      plain_text:
+      subpath:
+        type: string
+    type: object
+  models.DirTree:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/models.DirTree'
+        type: array
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.NoteTransfer:
+    properties:
+      automerge_url:
+        type: string
+      id:
         type: string
       title:
         type: string
@@ -41,7 +77,134 @@ info:
   title: Archipelago Notes API
   version: 1.0.1
 paths:
-  /notes:
+  /api/Dirs/{dirID}:
+    delete:
+      description: Delete dir by ID
+      parameters:
+      - description: Dir ID
+        in: path
+        name: dirID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dir deleted
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Delete dir
+      tags:
+      - Dirs
+  /api/dirs:
+    post:
+      consumes:
+      - application/json
+      description: Create dir
+      parameters:
+      - description: Dir info
+        in: body
+        name: dirInfo
+        required: true
+        schema:
+          $ref: '#/definitions/http.CreateDirRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dir created
+          schema:
+            $ref: '#/definitions/models.Dir'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Create dir
+      tags:
+      - Dirs
+  /api/dirs/{dirID}:
+    get:
+      description: Get dir by ID
+      parameters:
+      - description: Dir ID
+        in: path
+        name: dirID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dir
+          schema:
+            $ref: '#/definitions/models.Dir'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Get dir
+      tags:
+      - Dirs
+    post:
+      consumes:
+      - application/json
+      description: Update dir by ID
+      parameters:
+      - description: Dir ID
+        in: path
+        name: dirID
+        required: true
+        type: integer
+      - description: Dir info
+        in: body
+        name: dirInfo
+        required: true
+        schema:
+          $ref: '#/definitions/http.UpdateDirRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated dir
+          schema:
+            $ref: '#/definitions/models.Dir'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Update dir
+      tags:
+      - Dirs
+  /api/dirs/{dirID}/tree:
+    get:
+      description: Get subtree of dir with id {dirID}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dir tree
+          schema:
+            $ref: '#/definitions/models.DirTree'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Get dir Tree
+      tags:
+      - Dirs
+  /api/notes:
     get:
       description: Get all notes
       produces:
@@ -63,7 +226,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create notes
+      description: Create note
       parameters:
       - description: Note info
         in: body
@@ -84,12 +247,12 @@ paths:
         "500":
           description: Server error
           schema: {}
-      summary: Create notes
+      summary: Create note
       tags:
       - Notes
-  /notes/{noteID}:
+  /api/notes/{noteID}:
     delete:
-      description: Delete notes by ID
+      description: Delete note by ID
       parameters:
       - description: Note ID
         in: path
@@ -107,7 +270,7 @@ paths:
         "500":
           description: Server error
           schema: {}
-      summary: Delete notes
+      summary: Delete note
       tags:
       - Notes
     get:
@@ -154,7 +317,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Updated notes
+          description: Updated note
           schema:
             $ref: '#/definitions/models.NoteTransfer'
         "400":

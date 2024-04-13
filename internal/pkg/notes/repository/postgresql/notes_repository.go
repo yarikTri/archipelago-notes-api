@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid/v5"
 	"github.com/jmoiron/sqlx"
-
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"github.com/yarikTri/archipelago-notes-api/internal/common/repository"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
@@ -25,13 +25,13 @@ func NewPostgreSQL(db *sqlx.DB) *PostgreSQL {
 
 func (p *PostgreSQL) GetByID(noteID uuid.UUID) (*models.Note, error) {
 	query := fmt.Sprint(
-		`SELECT id, automerge_url, title
-			FROM notes
+		`SELECT id, dir_id, automerge_url, title
+			FROM note
 			WHERE id = $1`,
 	)
 
-	var album models.Note
-	if err := p.db.Get(&album, query, noteID.String()); err != nil {
+	var note models.Note
+	if err := p.db.Get(&note, query, noteID.String()); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("(repo) %w: %v", &repository.NotFoundError{ID: noteID}, err)
 		}
@@ -39,16 +39,16 @@ func (p *PostgreSQL) GetByID(noteID uuid.UUID) (*models.Note, error) {
 		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 
-	return &album, nil
+	return &note, nil
 }
 
-func (p *PostgreSQL) List() ([]models.Note, error) {
+func (p *PostgreSQL) List() ([]*models.Note, error) {
 	query := fmt.Sprint(
-		`SELECT id, automerge_url, title 
-			FROM notes`,
+		`SELECT id, dir_id, automerge_url, title 
+			FROM note`,
 	)
 
-	var notes []models.Note
+	var notes []*models.Note
 	if err := p.db.Select(&notes, query); err != nil {
 		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
@@ -56,28 +56,48 @@ func (p *PostgreSQL) List() ([]models.Note, error) {
 	return notes, nil
 }
 
-func (p *PostgreSQL) Create(automergeUrl, title string) (*models.Note, error) {
+func (p *PostgreSQL) ListByDirIds(dirIDs []int) ([]*models.Note, error) {
 	query := fmt.Sprint(
-		`INSERT INTO notes (automerge_url, title) VALUES ($1, $2) RETURNING id`,
+		`SELECT id, automerge_url, title 
+			FROM note
+			WHERE dir_id = ANY($1)`,
+	)
+
+	var notes []*models.Note
+	if err := p.db.Select(&notes, query, pq.Array(dirIDs)); err != nil {
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+
+	return notes, nil
+}
+
+func (p *PostgreSQL) Create(dirID int, automergeUrl, title string) (*models.Note, error) {
+	query := fmt.Sprint(
+		`INSERT INTO note (dir_id, automerge_url, title)
+			VALUES ($1, $2, $3)
+			RETURNING id`,
 	)
 
 	var noteID string
-	row := p.db.QueryRow(query, automergeUrl, title)
+	row := p.db.QueryRow(query, dirID, automergeUrl, title)
 	if err := row.Scan(&noteID); err != nil {
 		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 
 	uuid, _ := uuid.FromString(noteID)
 
-	return &models.Note{ID: uuid, AutomergeURL: automergeUrl, Title: title}, nil
+	return &models.Note{ID: uuid, DirID: dirID, AutomergeURL: automergeUrl, Title: title}, nil
 }
 
 func (p *PostgreSQL) Update(note models.Note) (*models.Note, error) {
 	query := fmt.Sprint(
-		`UPDATE notes SET automerge_url = $1, title = $2 WHERE id = $3 RETURNING id`,
+		`UPDATE note
+			SET dir_id = $1 automerge_url = $2, title = $3
+			WHERE id = $4
+			RETURNING id`,
 	)
 
-	_, err := p.db.Exec(query, note.AutomergeURL, note.Title, note.ID.String())
+	_, err := p.db.Exec(query, note.DirID, note.AutomergeURL, note.Title, note.ID.String())
 	if err != nil {
 		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
@@ -88,7 +108,7 @@ func (p *PostgreSQL) Update(note models.Note) (*models.Note, error) {
 func (p *PostgreSQL) DeleteByID(noteID uuid.UUID) error {
 	query := fmt.Sprint(
 		`DELETE
-		FROM notes
+		FROM note
 		WHERE id = $1`,
 	)
 

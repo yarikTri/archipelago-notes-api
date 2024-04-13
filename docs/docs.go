@@ -18,7 +18,195 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/notes": {
+        "/api/Dirs/{dirID}": {
+            "delete": {
+                "description": "Delete dir by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dirs"
+                ],
+                "summary": "Delete dir",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Dir ID",
+                        "name": "dirID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dir deleted"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/dirs": {
+            "post": {
+                "description": "Create dir",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dirs"
+                ],
+                "summary": "Create dir",
+                "parameters": [
+                    {
+                        "description": "Dir info",
+                        "name": "dirInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.CreateDirRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dir created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Dir"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/dirs/{dirID}": {
+            "get": {
+                "description": "Get dir by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dirs"
+                ],
+                "summary": "Get dir",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Dir ID",
+                        "name": "dirID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dir",
+                        "schema": {
+                            "$ref": "#/definitions/models.Dir"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Update dir by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dirs"
+                ],
+                "summary": "Update dir",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Dir ID",
+                        "name": "dirID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dir info",
+                        "name": "dirInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateDirRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated dir",
+                        "schema": {
+                            "$ref": "#/definitions/models.Dir"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/dirs/{dirID}/tree": {
+            "get": {
+                "description": "Get subtree of dir with id {dirID}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dirs"
+                ],
+                "summary": "Get dir Tree",
+                "responses": {
+                    "200": {
+                        "description": "Dir tree",
+                        "schema": {
+                            "$ref": "#/definitions/models.DirTree"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/notes": {
             "get": {
                 "description": "Get all notes",
                 "produces": [
@@ -46,7 +234,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create notes",
+                "description": "Create note",
                 "consumes": [
                     "application/json"
                 ],
@@ -56,7 +244,7 @@ const docTemplate = `{
                 "tags": [
                     "Notes"
                 ],
-                "summary": "Create notes",
+                "summary": "Create note",
                 "parameters": [
                     {
                         "description": "Note info",
@@ -86,7 +274,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/notes/{noteID}": {
+        "/api/notes/{noteID}": {
             "get": {
                 "description": "Get note by ID",
                 "produces": [
@@ -154,7 +342,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Updated notes",
+                        "description": "Updated note",
                         "schema": {
                             "$ref": "#/definitions/models.NoteTransfer"
                         }
@@ -170,14 +358,14 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Delete notes by ID",
+                "description": "Delete note by ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notes"
                 ],
-                "summary": "Delete notes",
+                "summary": "Delete note",
                 "parameters": [
                     {
                         "type": "integer",
@@ -204,10 +392,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "http.CreateDirRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "parent_dir_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "http.CreateNoteRequest": {
             "type": "object",
             "properties": {
-                "plain_text": {
+                "automerge_url": {
                     "type": "string"
                 },
                 "title": {
@@ -226,13 +425,27 @@ const docTemplate = `{
                 }
             }
         },
-        "http.UpdateNoteRequest": {
+        "http.UpdateDirRequest": {
             "type": "object",
             "properties": {
                 "id": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 },
-                "plain_text": {
+                "subpath": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.UpdateNoteRequest": {
+            "type": "object",
+            "properties": {
+                "automerge_url": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "title": {
@@ -240,13 +453,44 @@ const docTemplate = `{
                 }
             }
         },
-        "models.NoteTransfer": {
+        "models.Dir": {
             "type": "object",
             "properties": {
                 "id": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 },
-                "plain_text": {
+                "subpath": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DirTree": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DirTree"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NoteTransfer": {
+            "type": "object",
+            "properties": {
+                "automerge_url": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "title": {

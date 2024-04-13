@@ -31,7 +31,7 @@ func NewHandler(nu notes.Usecase, l logger.Logger) *Handler {
 // @Success		200			{object}	models.NoteTransfer		"Note"
 // @Failure		400			{object}	error					"Incorrect input"
 // @Failure		500			{object}	error					"Server error"
-// @Router		/notes/{noteID} [get]
+// @Router		/api/notes/{noteID} [get]
 func (h *Handler) Get(c *gin.Context) {
 	id, err := uuid.FromString(c.Param("id"))
 	if err != nil {
@@ -58,7 +58,7 @@ func (h *Handler) Get(c *gin.Context) {
 // @Success		200			{object}	ListNotesResponse	"Notes"
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/notes [get]
+// @Router		/api/notes [get]
 func (h *Handler) List(c *gin.Context) {
 	notes, err := h.notesUsecase.List()
 	if err != nil {
@@ -67,7 +67,7 @@ func (h *Handler) List(c *gin.Context) {
 		return
 	}
 
-	notesTransfers := make([]models.NoteTransfer, 0)
+	notesTransfers := make([]*models.NoteTransfer, 0)
 	for _, note := range notes {
 		notesTransfers = append(notesTransfers, note.ToTransfer())
 	}
@@ -76,16 +76,16 @@ func (h *Handler) List(c *gin.Context) {
 }
 
 // Create
-// @Summary		Create notes
+// @Summary		Create note
 // @Tags		Notes
-// @Description	Create notes
+// @Description	Create note
 // @Accept		json
 // @Produce     json
 // @Param		noteInfo	body		CreateNoteRequest		true	"Note info"
 // @Success		200			{object}	models.NoteTransfer				"Note created"
 // @Failure		400			{object}	error							"Incorrect input"
 // @Failure		500			{object}	error							"Server error"
-// @Router		/notes [post]
+// @Router		/api/notes [post]
 func (h *Handler) Create(c *gin.Context) {
 	var req CreateNoteRequest
 	c.BindJSON(&req)
@@ -96,7 +96,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	createdNote, err := h.notesUsecase.Create(req.AutomergeURL, req.Title)
+	createdNote, err := h.notesUsecase.Create(req.DirID, req.AutomergeURL, req.Title)
 	if err != nil {
 		h.logger.Errorf("Error: %w", err)
 		c.JSON(http.StatusInternalServerError, err)
@@ -114,10 +114,10 @@ func (h *Handler) Create(c *gin.Context) {
 // @Produce     json
 // @Param		noteID path int true 							"Note ID"
 // @Param		noteInfo	body		UpdateNoteRequest		true	"Note info"
-// @Success		200			{object}	models.NoteTransfer		"Updated notes"
+// @Success		200			{object}	models.NoteTransfer		"Updated note"
 // @Failure		400			{object}	error					"Incorrect input"
 // @Failure		500			{object}	error					"Server error"
-// @Router		/notes/{noteID} [post]
+// @Router		/api/notes/{noteID} [post]
 func (h *Handler) Update(c *gin.Context) {
 	id, err := uuid.FromString(c.Param("id"))
 	if err != nil {
@@ -155,15 +155,15 @@ func (h *Handler) Update(c *gin.Context) {
 }
 
 // Delete
-// @Summary		Delete notes
+// @Summary		Delete note
 // @Tags		Notes
-// @Description	Delete notes by ID
+// @Description	Delete note by ID
 // @Produce     json
 // @Param		noteID path int true 			"Note ID"
 // @Success		200								"Note deleted"
 // @Failure		400			{object}	error	"Incorrect input"
 // @Failure		500			{object}	error	"Server error"
-// @Router		/notes/{noteID} [delete]
+// @Router		/api/notes/{noteID} [delete]
 func (h *Handler) Delete(c *gin.Context) {
 	id, err := uuid.FromString(c.Param("id"))
 	if err != nil {
