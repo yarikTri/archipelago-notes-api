@@ -24,7 +24,7 @@ func NewPostgreSQL(db *sqlx.DB) *PostgreSQL {
 
 func (p *PostgreSQL) GetByID(userID uuid.UUID) (*models.User, error) {
 	query := fmt.Sprint(
-		`SELECT u.id, u.login, u.name, urd.root_dir_id as root_dir_id
+		`SELECT u.id, u.username, u.email, u.name, urd.root_dir_id as root_dir_id
 			FROM "user" u
 				INNER JOIN user_root_dir urd ON u.id = urd.user_id
 			WHERE u.id = $1`,
@@ -40,6 +40,29 @@ func (p *PostgreSQL) GetByID(userID uuid.UUID) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (p *PostgreSQL) Search(searchQuery string) ([]*models.User, error) {
+	query := fmt.Sprint(
+		`SELECT
+				u.id as id,
+				u.username as username,
+				u.email as email,
+				u.name as name,
+				urd.root_dir_id as root_dir_id
+			FROM "user" u
+				INNER JOIN user_root_dir urd ON u.id = urd.user_id
+			WHERE lower(u.username) LIKE '%' || lower($1) || '%' OR
+			      lower(u.email) LIKE '%' || lower($1) || '%' OR
+			      LOWER(u.name) LIKE '%' || lower($1) || '%'`,
+	)
+
+	var users []*models.User
+	if err := p.db.Select(&users, query, searchQuery); err != nil {
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+
+	return users, nil
 }
 
 func (p *PostgreSQL) SetRootDirByID(userID uuid.UUID, rootID int) error {

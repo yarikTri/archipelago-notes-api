@@ -21,6 +21,10 @@ func (u *Usecase) GetByID(userID uuid.UUID) (*models.User, error) {
 	return u.repo.GetByID(userID)
 }
 
+func (u *Usecase) Search(query string) ([]*models.User, error) {
+	return u.repo.Search(query)
+}
+
 func (u *Usecase) SetRootDirByID(userID uuid.UUID, dirID int) error {
 	return u.repo.SetRootDirByID(userID, dirID)
 }

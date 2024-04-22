@@ -2,6 +2,7 @@ package init
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github.com/yarikTri/archipelago-notes-api/cmd/api/clients/email"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
@@ -21,11 +22,13 @@ import (
 )
 
 func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
+	emailInvitationClient := email.NewSmtpInvitationClient()
+
 	notesRepo := notesRepository.NewPostgreSQL(sqlDBClient)
 	dirsRepo := dirsRepository.NewPostgreSQL(sqlDBClient)
 	usersRepo := usersRepository.NewPostgreSQL(sqlDBClient)
 
-	notesUsecase := notesUsecase.NewUsecase(notesRepo)
+	notesUsecase := notesUsecase.NewUsecase(notesRepo, usersRepo, emailInvitationClient)
 	dirsUsecase := dirsUsecase.NewUsecase(dirsRepo, notesRepo)
 	usersUsecase := usersUsecase.NewUsecase(usersRepo)
 

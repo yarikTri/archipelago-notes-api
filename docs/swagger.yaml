@@ -23,6 +23,20 @@ definitions:
           $ref: '#/definitions/models.NoteTransfer'
         type: array
     type: object
+  http.SearchUsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/models.UserTransfer'
+        type: array
+    type: object
+  http.SetAccessRequest:
+    properties:
+      access:
+        type: string
+      with_invitation:
+        type: boolean
+    type: object
   http.UpdateDirRequest:
     properties:
       id:
@@ -35,6 +49,8 @@ definitions:
   http.UpdateNoteRequest:
     properties:
       automerge_url:
+        type: string
+      default_access:
         type: string
       dir_id:
         type: integer
@@ -62,14 +78,18 @@ definitions:
         type: integer
       name:
         type: string
-      notes:
-        items:
-          $ref: '#/definitions/models.NoteTransfer'
-        type: array
     type: object
   models.NoteTransfer:
     properties:
+      allowed_methods:
+        items:
+          type: string
+        type: array
       automerge_url:
+        type: string
+      creator_id:
+        type: string
+      default_access:
         type: string
       dir_id:
         type: integer
@@ -80,14 +100,16 @@ definitions:
     type: object
   models.UserTransfer:
     properties:
-      id:
+      email:
         type: string
-      login:
+      id:
         type: string
       name:
         type: string
       root_dir_id:
         type: integer
+      username:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -226,7 +248,9 @@ paths:
       - Dirs
   /api/notes:
     get:
-      description: Get all notes
+      consumes:
+      - application/json
+      description: Get all notes user has access to
       produces:
       - application/json
       responses:
@@ -278,7 +302,7 @@ paths:
         in: path
         name: noteID
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -300,7 +324,7 @@ paths:
         in: path
         name: noteID
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -326,7 +350,7 @@ paths:
         in: path
         name: noteID
         required: true
-        type: integer
+        type: string
       - description: Note info
         in: body
         name: noteInfo
@@ -349,6 +373,67 @@ paths:
       summary: Update note
       tags:
       - Notes
+  /api/notes/{noteID}/access/{userID}:
+    post:
+      consumes:
+      - application/json
+      description: Set access to note to user
+      parameters:
+      - description: Note ID
+        in: path
+        name: noteID
+        required: true
+        type: string
+      - description: User to set access ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: Note info
+        in: body
+        name: access
+        required: true
+        schema:
+          $ref: '#/definitions/http.SetAccessRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Note deleted
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Set Access
+      tags:
+      - Notes
+  /api/users/:
+    get:
+      description: Search users by query
+      parameters:
+      - description: Query of search
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Found users
+          schema:
+            $ref: '#/definitions/http.SearchUsersResponse'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Search users
+      tags:
+      - Users
   /api/users/{userID}:
     get:
       description: Get user by user id
@@ -357,7 +442,7 @@ paths:
         in: path
         name: userID
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -382,7 +467,7 @@ paths:
         in: path
         name: userID
         required: true
-        type: integer
+        type: string
       - description: Root dir ID
         in: path
         name: rootDirID

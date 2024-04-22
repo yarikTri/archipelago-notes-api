@@ -11,36 +11,20 @@ type Dir struct {
 }
 
 type DirTree struct {
-	ID       int             `json:"id"`
-	Name     string          `json:"name"`
-	Children []*DirTree      `json:"children"`
-	Notes    []*NoteTransfer `json:"notes"`
+	ID       int        `json:"id"`
+	Name     string     `json:"name"`
+	Children []*DirTree `json:"children"`
 }
 
-func (d *Dir) ToTree(notes []*Note) *DirTree {
-	var notesTransfer = make([]*NoteTransfer, 0)
-	for _, note := range notes {
-		notesTransfer = append(notesTransfer, note.ToTransfer())
-	}
-
+func (d *Dir) ToTree() *DirTree {
 	return &DirTree{
 		ID:       d.ID,
 		Name:     d.Name,
 		Children: make([]*DirTree, 0),
-		Notes:    notesTransfer,
 	}
 }
 
-func ToTree(rootID int, dirs []*Dir, notes []*Note) *DirTree {
-	notesByDirID := make(map[int][]*Note)
-	for _, note := range notes {
-		if notesByDirID[note.DirID] == nil {
-			notesByDirID[note.DirID] = make([]*Note, 0)
-		}
-
-		notesByDirID[note.DirID] = append(notesByDirID[note.DirID], note)
-	}
-
+func ToTree(rootID int, dirs []*Dir) *DirTree {
 	dirTreesByPathMap := make(map[string]*DirTree)
 	dirTreesByID := make(map[int]*DirTree)
 
@@ -51,7 +35,7 @@ func ToTree(rootID int, dirs []*Dir, notes []*Note) *DirTree {
 			keyPrefix = dir.Path + "."
 		}
 
-		dirTree := dir.ToTree(notesByDirID[dir.ID])
+		dirTree := dir.ToTree()
 
 		key := keyPrefix + strconv.Itoa(dir.ID)
 		dirTreesByPathMap[key] = dirTree

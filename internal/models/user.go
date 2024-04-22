@@ -4,7 +4,8 @@ import "github.com/gofrs/uuid/v5"
 
 type User struct {
 	ID        uuid.UUID `db:"id"`
-	Login     string    `db:"login"`
+	Username  string    `db:"username"`
+	Email     string    `db:"email"`
 	Name      string    `db:"name"`
 	RootDirID int       `db:"root_dir_id"`
 }
@@ -12,7 +13,8 @@ type User struct {
 func (u *User) ToTransfer() *UserTransfer {
 	return &UserTransfer{
 		ID:        u.ID.String(),
-		Login:     u.Login,
+		Username:  u.Username,
+		Email:     u.Email,
 		Name:      u.Name,
 		RootDirID: u.RootDirID,
 	}
@@ -20,7 +22,8 @@ func (u *User) ToTransfer() *UserTransfer {
 
 type UserTransfer struct {
 	ID        string `json:"id"`
-	Login     string `json:"login"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
 	Name      string `json:"name"`
 	RootDirID int    `json:"root_dir_id"`
 }

@@ -7,17 +7,22 @@ import (
 
 type Usecase interface {
 	GetByID(noteID uuid.UUID) (*models.Note, error)
-	List() ([]*models.Note, error)
-	Create(dirID int, automergeURL, title string) (*models.Note, error)
+	List(userID uuid.UUID) ([]*models.Note, error)
+	Create(dirID int, automergeURL, title string, creatorID uuid.UUID) (*models.Note, error)
 	Update(note models.Note) (*models.Note, error)
 	DeleteByID(noteID uuid.UUID) error
+
+	GetUserAccess(noteID uuid.UUID, userID uuid.UUID) (models.NoteAccess, error)
+	SetUserAccess(noteID uuid.UUID, userID uuid.UUID, access models.NoteAccess, sendInvitation bool) error
 }
 
 type Repository interface {
 	GetByID(noteID uuid.UUID) (*models.Note, error)
-	List() ([]*models.Note, error)
-	ListByDirIds(dirIDs []int) ([]*models.Note, error)
-	Create(dirID int, automergeURL, title string) (*models.Note, error)
+	List(userID uuid.UUID) ([]*models.Note, error)
+	Create(dirID int, automergeURL, title string, creatorID uuid.UUID) (*models.Note, error)
 	Update(note models.Note) (*models.Note, error)
 	DeleteByID(noteID uuid.UUID) error
+
+	GetUserAccess(noteID uuid.UUID, userID uuid.UUID) (models.NoteAccess, error)
+	SetUserAccess(noteID uuid.UUID, userID uuid.UUID, access models.NoteAccess) error
 }

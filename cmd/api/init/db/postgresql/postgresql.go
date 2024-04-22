@@ -13,7 +13,7 @@ const (
 	maxOpenConns = 10
 )
 
-// Config includes info about postgres DB we want to connect to
+// PostgresConfig includes info about postgres DB we want to connect to
 type PostgresConfig struct {
 	DBHost     string
 	DBPort     string

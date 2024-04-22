@@ -34,12 +34,7 @@ func (u *Usecase) GetTree(rootID int) (*models.DirTree, error) {
 		dirIDs = append(dirIDs, dir.ID)
 	}
 
-	notes, err := u.notesRepo.ListByDirIds(dirIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	return models.ToTree(rootID, dirs, notes), nil
+	return models.ToTree(rootID, dirs), nil
 }
 
 func (u *Usecase) Create(name string, parentDirID int) (*models.Dir, error) {

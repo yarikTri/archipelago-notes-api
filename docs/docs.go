@@ -206,7 +206,10 @@ const docTemplate = `{
         },
         "/api/notes": {
             "get": {
-                "description": "Get all notes",
+                "description": "Get all notes user has access to",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -284,7 +287,7 @@ const docTemplate = `{
                 "summary": "Get note",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Note ID",
                         "name": "noteID",
                         "in": "path",
@@ -322,7 +325,7 @@ const docTemplate = `{
                 "summary": "Update note",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Note ID",
                         "name": "noteID",
                         "in": "path",
@@ -366,7 +369,7 @@ const docTemplate = `{
                 "summary": "Delete note",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Note ID",
                         "name": "noteID",
                         "in": "path",
@@ -376,6 +379,96 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "Note deleted"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/notes/{noteID}/access/{userID}": {
+            "post": {
+                "description": "Set access to note to user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notes"
+                ],
+                "summary": "Set Access",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "noteID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User to set access ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Note info",
+                        "name": "access",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.SetAccessRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Note deleted"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/users/": {
+            "get": {
+                "description": "Search users by query",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Search users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Query of search",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Found users",
+                        "schema": {
+                            "$ref": "#/definitions/http.SearchUsersResponse"
+                        }
                     },
                     "400": {
                         "description": "Incorrect input",
@@ -400,7 +493,7 @@ const docTemplate = `{
                 "summary": "Get user",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "userID",
                         "in": "path",
@@ -434,7 +527,7 @@ const docTemplate = `{
                 "summary": "Set root dir id",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "User ID",
                         "name": "userID",
                         "in": "path",
@@ -504,6 +597,28 @@ const docTemplate = `{
                 }
             }
         },
+        "http.SearchUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UserTransfer"
+                    }
+                }
+            }
+        },
+        "http.SetAccessRequest": {
+            "type": "object",
+            "properties": {
+                "access": {
+                    "type": "string"
+                },
+                "with_invitation": {
+                    "type": "boolean"
+                }
+            }
+        },
         "http.UpdateDirRequest": {
             "type": "object",
             "properties": {
@@ -522,6 +637,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "automerge_url": {
+                    "type": "string"
+                },
+                "default_access": {
                     "type": "string"
                 },
                 "dir_id": {
@@ -563,19 +681,25 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "notes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.NoteTransfer"
-                    }
                 }
             }
         },
         "models.NoteTransfer": {
             "type": "object",
             "properties": {
+                "allowed_methods": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "automerge_url": {
+                    "type": "string"
+                },
+                "creator_id": {
+                    "type": "string"
+                },
+                "default_access": {
                     "type": "string"
                 },
                 "dir_id": {
@@ -592,10 +716,10 @@ const docTemplate = `{
         "models.UserTransfer": {
             "type": "object",
             "properties": {
-                "id": {
+                "email": {
                     "type": "string"
                 },
-                "login": {
+                "id": {
                     "type": "string"
                 },
                 "name": {
@@ -603,6 +727,9 @@ const docTemplate = `{
                 },
                 "root_dir_id": {
                     "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         }

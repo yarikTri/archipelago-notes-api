@@ -30,6 +30,7 @@ func InitRoutes(
 	notes.POST("", notesHandler.Create)
 	notes.POST("/:id", notesHandler.Update)
 	notes.DELETE("/:id", notesHandler.Delete)
+	notes.POST("/access/:userID", notesHandler.SetAccess)
 
 	dirs := api.Group("/dirs")
 	dirs.GET("/:id", dirsHandler.Get)
@@ -40,7 +41,8 @@ func InitRoutes(
 
 	users := api.Group("/users")
 	users.GET("/:id", usersHandler.Get)
-	users.POST("/:userID/root_dir/:rootDirID", usersHandler.Get)
+	users.GET("", usersHandler.Search)
+	users.POST("/:userID/root_dir/:rootDirID", usersHandler.SetRootDirID)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
