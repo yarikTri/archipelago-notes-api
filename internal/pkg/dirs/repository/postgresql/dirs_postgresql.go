@@ -57,16 +57,28 @@ func (p *PostgreSQL) GetSubTreeDirsByID(dirID int) ([]*models.Dir, error) {
 }
 
 func (p *PostgreSQL) Create(parentDirID int, name string) (*models.Dir, error) {
-	query := fmt.Sprint(
-		`INSERT INTO dir (name, path)
-			VALUES ($1, (SELECT path FROM dir WHERE id = $2))
-			RETURNING id, name, SUBPATH(path, 0, -1) as subpath`,
-	)
+	var query string
 
 	var id int
 	var createdName string
 	var path string
-	row := p.db.QueryRow(query, name, parentDirID)
+	var row *sql.Row
+	if parentDirID == 0 {
+		query = fmt.Sprint(
+			`INSERT INTO dir (name)
+			VALUES ($1)
+			RETURNING id, name, SUBPATH(path, 0, -1) as subpath`,
+		)
+		row = p.db.QueryRow(query, name, parentDirID)
+	} else {
+		query = fmt.Sprint(
+			`INSERT INTO dir (name, path)
+			VALUES ($1, (SELECT path FROM dir WHERE id = $2))
+			RETURNING id, name, SUBPATH(path, 0, -1) as subpath`,
+		)
+		row = p.db.QueryRow(query, name, parentDirID)
+	}
+
 	if err := row.Scan(&id, &createdName, &path); err != nil {
 		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
