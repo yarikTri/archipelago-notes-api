@@ -69,7 +69,7 @@ func (p *PostgreSQL) Create(parentDirID int, name string) (*models.Dir, error) {
 			VALUES ($1)
 			RETURNING id, name, SUBPATH(path, 0, -1) as subpath`,
 		)
-		row = p.db.QueryRow(query, name, parentDirID)
+		row = p.db.QueryRow(query, name)
 	} else {
 		query = fmt.Sprint(
 			`INSERT INTO dir (name, path)
