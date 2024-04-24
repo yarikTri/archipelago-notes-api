@@ -2,7 +2,7 @@ package init
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/yarikTri/archipelago-notes-api/cmd/api/clients/email"
+	"github.com/yarikTri/archipelago-notes-api/internal/clients/invitations/email"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"

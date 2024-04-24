@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gofrs/uuid/v5"
-	"github.com/yarikTri/archipelago-notes-api/cmd/api/clients/email"
+	"github.com/yarikTri/archipelago-notes-api/internal/clients/invitations/email"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/notes"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/users"

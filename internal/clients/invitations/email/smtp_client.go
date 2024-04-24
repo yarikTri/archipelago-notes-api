@@ -13,15 +13,15 @@ const (
 	DirInvitationType
 )
 
-func (vt *InvitationType) String() string {
+func (vt *InvitationType) StringRussianTo() string {
 	switch *vt {
 	case NoteInvitationType:
-		return "note"
+		return "заметку"
 	case DirInvitationType:
-		return "directory"
+		return "папку"
 	}
 
-	return "note"
+	return "заметку"
 }
 
 func (vt *InvitationType) toLink(id string) string {
@@ -64,14 +64,14 @@ func NewSmtpInvitationClient() *SmtpInvitationClient {
 
 func (s *SmtpInvitationClient) SendInvitation(to string, visitType InvitationType, id string) error {
 	msg := fmt.Sprintf(
-		"Subject: Invitation to the %s\n"+
+		"Subject: Приглашение в %s\n"+
 			"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"+
-			"Hi! Archipelago team here!<br/>"+
-			"You received an invitation to the %s<br/>"+
-			"Tap the link below:<br/>"+
+			"Привет! Это команда Archipelago!<br/>"+
+			"Ты получил приглашение в %s<br/>"+
+			"Перейти в неё можно по ссылке снизу:<br/>"+
 			"<br/>%s<br/><br/>"+
-			"Any questions? Contact us in telegram: @yarik_tri",
-		visitType.String(), visitType.String(), visitType.toLink(id),
+			"Есть вопросы? Свяжись с нами в телеграме: @yarik_tri или @rbeketov",
+		visitType.StringRussianTo(), visitType.StringRussianTo(), visitType.toLink(id),
 	)
 
 	return smtp.SendMail(s.Endpoint, s.Auth, s.From, []string{to}, []byte(msg))
