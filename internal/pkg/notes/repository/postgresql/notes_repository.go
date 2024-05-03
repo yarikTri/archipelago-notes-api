@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/gofrs/uuid/v5"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -203,4 +204,48 @@ func (p *PostgreSQL) SetUserAccess(noteID uuid.UUID, userID uuid.UUID, access mo
 	}
 
 	return nil
+}
+
+func (p *PostgreSQL) AttachNoteToSummary(summID, noteID uuid.UUID) error {
+	query := fmt.Sprint(
+		`INSERT INTO summ_to_note (summ_id, note_id)
+		VALUES ($1, $2);`,
+	)
+	if _, err := p.db.Exec(query, summID, noteID); err != nil {
+		return fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+
+	return nil
+}
+
+func (p *PostgreSQL) DettachNoteFromSummary(summID, noteID uuid.UUID) error {
+	query := fmt.Sprint(
+		`delete from summ_to_note where summ_id = $1 AND note_id = $2`,
+	)
+	if _, err := p.db.Exec(query, summID, noteID); err != nil {
+		return fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+
+	return nil
+}
+
+func (p *PostgreSQL) GetSummaryListByNote(noteID uuid.UUID) ([]models.SummaryIDStatus, error) {
+	query := fmt.Sprint(
+		`SELECT summ.id, summ.active
+		FROM summ_to_note
+			INNER JOIN summ ON summ_to_note.summ_id = summ.id
+		WHERE summ_to_note.note_id = $1;`,
+	)
+
+	var notesFromQuery []*models.SummaryIDStatus
+	if err := p.db.Select(&notesFromQuery, query, noteID); err != nil {
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+
+	notes := make([]models.SummaryIDStatus, len(notesFromQuery))
+	for i, notePtr := range notesFromQuery {
+		notes[i] = *notePtr
+	}
+
+	return notes, nil
 }

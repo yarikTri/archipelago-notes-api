@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"fmt"
+
 	valid "github.com/asaskevich/govalidator"
 	"github.com/gofrs/uuid/v5"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
@@ -62,4 +63,13 @@ type SetAccessRequest struct {
 func (sar *SetAccessRequest) validate() error {
 	_, err := valid.ValidateStruct(sar)
 	return err
+}
+
+type ListSummaryResponse struct {
+	NonActiveSummaryIds []string `json:"non_active_summary_ids"`
+	ActiveSummaryIds    []string `json:"active_summary_ids"`
+}
+
+type IsOwnerResponse struct {
+	IsOwner bool `json:"is_owner"`
 }
