@@ -33,7 +33,7 @@ func InitRoutes(
 	notes.POST("", notesHandler.Create)
 	notes.POST("/:id", notesHandler.Update)
 	notes.DELETE("/:id", notesHandler.Delete)
-	notes.POST("/access/:userID", notesHandler.SetAccess)
+	notes.POST("/:id/access/:userID", notesHandler.SetAccess)
 	notes.GET("/:id/is_owner/:userID", notesHandler.CheckOwner)
 	notes.POST("/:id/attach_summ/:summID", notesHandler.AttachNoteToSummary)
 	notes.POST("/:id/detach_summ/:summID", notesHandler.DetachNoteFromSummary)
