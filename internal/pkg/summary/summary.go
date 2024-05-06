@@ -10,6 +10,7 @@ type Usecase interface {
 	UpdateSummaryTextRole(ID uuid.UUID, textWithRole, role string) error
 	FinishSummary(ID uuid.UUID) error
 	GetSummary(ID uuid.UUID) (*models.Summary, error)
+	GetActiveSummaries() ([]models.Summary, error)
 }
 
 type Repository interface {
@@ -17,4 +18,5 @@ type Repository interface {
 	UpdateSummaryTextRole(ID uuid.UUID, textWithRole, role string) error
 	FinishSummary(ID uuid.UUID) error
 	GetSummary(ID uuid.UUID) (*models.Summary, error)
+	GetActiveSummaries() ([]models.Summary, error)
 }

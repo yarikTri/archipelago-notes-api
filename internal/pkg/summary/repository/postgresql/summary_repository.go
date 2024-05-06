@@ -82,3 +82,23 @@ func (p *PostgreSQL) GetSummary(ID uuid.UUID) (*models.Summary, error) {
 
 	return &summary, nil
 }
+
+func (p *PostgreSQL) GetActiveSummaries() ([]models.Summary, error) {
+	query := fmt.Sprint(
+		`SELECT id, text, active, text_with_role, role, platform, started_at, detalization
+			FROM summ
+			WHERE active = true`,
+	)
+
+	var summariesFromQuery []*models.Summary
+	if err := p.db.Select(&summariesFromQuery, query); err != nil {
+		return nil, fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+
+	summaries := make([]models.Summary, len(summariesFromQuery))
+	for i, sumPtr := range summariesFromQuery {
+		summaries[i] = *sumPtr
+	}
+
+	return summaries, nil
+}

@@ -56,6 +56,7 @@ func InitRoutes(
 	summary.GET("/finish/:id", summaryHandler.FinishSummary)
 	summary.POST("/save", summaryHandler.SaveSummaryText)
 	summary.POST("/update_text_role", summaryHandler.UpdateSummaryTextRole)
+	summary.GET("/active", summaryHandler.GetActiveSummaries)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 

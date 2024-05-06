@@ -23,6 +23,7 @@ func NewHandler(nu summary.Usecase, l logger.Logger) *Handler {
 	}
 }
 
+// TODO: add token for microservice communication
 func (h *Handler) SaveSummaryText(c *gin.Context) {
 	type SaveSummaryRequest struct {
 		ID           string `json:"id" valid:"required"`
@@ -59,6 +60,7 @@ func (h *Handler) SaveSummaryText(c *gin.Context) {
 	c.JSON(http.StatusOK, summ.ToTransfer())
 }
 
+// TODO: add token for microservice communication
 func (h *Handler) UpdateSummaryTextRole(c *gin.Context) {
 	type UpdateSummaryTextRoleRequest struct {
 		ID           string `json:"id" valid:"required"`
@@ -85,6 +87,7 @@ func (h *Handler) UpdateSummaryTextRole(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// TODO: add token for microservice communication
 func (h *Handler) FinishSummary(c *gin.Context) {
 	id, err := uuid.FromString(c.Param("id"))
 	if err != nil {
@@ -118,4 +121,21 @@ func (h *Handler) GetSummary(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, summ.ToTransfer())
+}
+
+// TODO: add token for microservice communication
+func (h *Handler) GetActiveSummaries(c *gin.Context) {
+	summaries, err := h.sumUsecase.GetActiveSummaries()
+	if err != nil {
+		h.logger.Errorf("Error while getting summary: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	summaryTransferList := make([]models.SummaryTransfer, len(summaries))
+	for i, summary := range summaries {
+		summaryTransferList[i] = *summary.ToTransfer()
+	}
+
+	c.JSON(http.StatusOK, summaryTransferList)
 }

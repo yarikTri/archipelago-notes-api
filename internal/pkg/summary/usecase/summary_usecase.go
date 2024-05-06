@@ -29,6 +29,10 @@ func (u *Usecase) GetSummary(ID uuid.UUID) (*models.Summary, error) {
 	return u.repo.GetSummary(ID)
 }
 
+func (u *Usecase) GetActiveSummaries() ([]models.Summary, error) {
+	return u.repo.GetActiveSummaries()
+}
+
 func (u *Usecase) FinishSummary(ID uuid.UUID) error {
 	return u.repo.FinishSummary(ID)
 }
