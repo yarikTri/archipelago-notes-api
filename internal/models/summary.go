@@ -50,6 +50,7 @@ type Summary struct {
 	Platform     string       `db:"platform"`
 	StartedAt    time.Time    `db:"started_at"`
 	Detalization Detalization `db:"detalization"`
+	Name         string       `db:"name"`
 }
 
 type SummaryIDStatus struct {
@@ -67,6 +68,7 @@ func (s *Summary) ToTransfer() *SummaryTransfer {
 		Platform:     s.Platform,
 		StartedAt:    s.StartedAt,
 		Detalization: s.Detalization.String(),
+		Name:         s.Name,
 	}
 }
 
@@ -79,4 +81,5 @@ type SummaryTransfer struct {
 	Platform     string    `json:"platform"`
 	StartedAt    time.Time `json:"started_at"`
 	Detalization string    `json:"detalization"`
+	Name         string    `json:"name"`
 }

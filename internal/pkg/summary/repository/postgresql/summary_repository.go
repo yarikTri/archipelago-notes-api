@@ -66,7 +66,7 @@ func (p *PostgreSQL) FinishSummary(ID uuid.UUID) error {
 
 func (p *PostgreSQL) GetSummary(ID uuid.UUID) (*models.Summary, error) {
 	query := fmt.Sprint(
-		`SELECT id, text, active, text_with_role, role, platform, started_at, detalization
+		`SELECT id, text, active, text_with_role, role, platform, started_at, detalization, name
 			FROM summ
 			WHERE id = $1`,
 	)
@@ -85,7 +85,7 @@ func (p *PostgreSQL) GetSummary(ID uuid.UUID) (*models.Summary, error) {
 
 func (p *PostgreSQL) GetActiveSummaries() ([]models.Summary, error) {
 	query := fmt.Sprint(
-		`SELECT id, text, active, text_with_role, role, platform, started_at, detalization
+		`SELECT id, text, active, text_with_role, role, platform, started_at, detalization, name
 			FROM summ
 			WHERE active = true`,
 	)
