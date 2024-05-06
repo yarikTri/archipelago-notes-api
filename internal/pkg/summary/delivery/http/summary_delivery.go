@@ -75,6 +75,7 @@ func (h *Handler) UpdateSummaryTextRole(c *gin.Context) {
 	if err != nil {
 		h.logger.Errorf("Failed to cast id to uuid %s: %w", id, err)
 		c.JSON(http.StatusBadRequest, err)
+		return
 	}
 
 	err = h.sumUsecase.UpdateSummaryTextRole(id, req.TextWithRole, req.Role)
@@ -138,4 +139,36 @@ func (h *Handler) GetActiveSummaries(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, summaryTransferList)
+}
+
+// TODO: check permissions by user
+func (h *Handler) UpdateName(c *gin.Context) {
+	type UpdateSummaryNameRequest struct {
+		ID   string `json:"id" valid:"required"`
+		Name string `json:"name" valid:"required"`
+	}
+
+	var req UpdateSummaryNameRequest
+	c.BindJSON(&req)
+
+	if _, err := valid.ValidateStruct(req); err != nil {
+		h.logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	id, err := uuid.FromString(req.ID)
+	if err != nil {
+		h.logger.Errorf("Failed to cast id to uuid %s: %w", id, err)
+		c.JSON(http.StatusBadRequest, err)
+	}
+
+	// TODO: return not found
+	if err := h.sumUsecase.UpdateName(id, req.Name); err != nil {
+		h.logger.Errorf("Error while finishing summary: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

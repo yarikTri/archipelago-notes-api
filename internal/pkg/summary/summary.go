@@ -11,6 +11,7 @@ type Usecase interface {
 	FinishSummary(ID uuid.UUID) error
 	GetSummary(ID uuid.UUID) (*models.Summary, error)
 	GetActiveSummaries() ([]models.Summary, error)
+	UpdateName(ID uuid.UUID, name string) error
 }
 
 type Repository interface {
@@ -19,4 +20,5 @@ type Repository interface {
 	FinishSummary(ID uuid.UUID) error
 	GetSummary(ID uuid.UUID) (*models.Summary, error)
 	GetActiveSummaries() ([]models.Summary, error)
+	UpdateName(ID uuid.UUID, name string) error
 }

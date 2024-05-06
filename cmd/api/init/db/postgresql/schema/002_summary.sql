@@ -6,7 +6,8 @@ CREATE TABLE summ (
 	active BOOLEAN,
 	platform VARCHAR(30),
 	started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-	detalization INT
+	detalization INT,
+	name TEXT DEFAULT '',
 );
 
 CREATE TABLE IF NOT EXISTS summ_to_note (

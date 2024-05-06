@@ -36,3 +36,7 @@ func (u *Usecase) GetActiveSummaries() ([]models.Summary, error) {
 func (u *Usecase) FinishSummary(ID uuid.UUID) error {
 	return u.repo.FinishSummary(ID)
 }
+
+func (u *Usecase) UpdateName(ID uuid.UUID, name string) error {
+	return u.repo.UpdateName(ID, name)
+}

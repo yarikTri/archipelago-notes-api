@@ -102,3 +102,16 @@ func (p *PostgreSQL) GetActiveSummaries() ([]models.Summary, error) {
 
 	return summaries, nil
 }
+
+func (p *PostgreSQL) UpdateName(ID uuid.UUID, name string) error {
+	query := fmt.Sprint(
+		`UPDATE summ
+		SET name = $2
+		WHERE id = $1;`,
+	)
+	if _, err := p.db.Exec(query, ID, name); err != nil {
+		return fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+
+	return nil
+}
