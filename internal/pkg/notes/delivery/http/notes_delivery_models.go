@@ -57,7 +57,7 @@ type ListNotesResponse struct {
 
 type SetAccessRequest struct {
 	Access         string `json:"access" valid:"required"`
-	WithInvitation bool   `json:"with_invitation" valid:"required"`
+	WithInvitation bool   `json:"with_invitation"`
 }
 
 func (sar *SetAccessRequest) validate() error {
