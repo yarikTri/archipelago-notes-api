@@ -37,7 +37,7 @@ var methodsAccessMap = map[methodName][]models.NoteAccess{
 	updateMethodName:         {models.WriteNoteAccess, models.ModifyNoteAccess, models.ManageAccessNoteAccess},
 	deleteMethodName:         {models.ModifyNoteAccess, models.ManageAccessNoteAccess},
 	setAccessMethodName:      {models.ManageAccessNoteAccess},
-	attachSummaryMethodName:  {models.ModifyNoteAccess, models.ManageAccessNoteAccess},
+	attachSummaryMethodName:  {models.WriteNoteAccess, models.ModifyNoteAccess, models.ManageAccessNoteAccess},
 	getSummaryListMethodName: {models.ReadNoteAccess, models.WriteNoteAccess, models.ModifyNoteAccess, models.ManageAccessNoteAccess},
 }
 
