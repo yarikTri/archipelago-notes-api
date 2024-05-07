@@ -195,7 +195,8 @@ func (p *PostgreSQL) SetUserAccess(noteID uuid.UUID, userID uuid.UUID, access mo
 	query := fmt.Sprint(
 		`INSERT INTO note_access
 		(note_id, user_id, access)
-		VALUES ($1, $2, $3)`,
+		VALUES ($1, $2, $3)
+		ON CONFLICT (note_id, user_id) DO UPDATE SET access = EXCLUDED.access;`,
 	)
 
 	if _, err := p.db.Exec(query, noteID.String(), userID.String(), access.String()); err != nil {
