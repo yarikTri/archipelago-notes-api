@@ -34,7 +34,7 @@ func (mn *methodName) String() string {
 
 var methodsAccessMap = map[methodName][]models.NoteAccess{
 	getMethodName:            {models.ReadNoteAccess, models.WriteNoteAccess, models.ModifyNoteAccess, models.ManageAccessNoteAccess},
-	updateMethodName:         {models.ModifyNoteAccess, models.ManageAccessNoteAccess},
+	updateMethodName:         {models.WriteNoteAccess, models.ModifyNoteAccess, models.ManageAccessNoteAccess},
 	deleteMethodName:         {models.ModifyNoteAccess, models.ManageAccessNoteAccess},
 	setAccessMethodName:      {models.ManageAccessNoteAccess},
 	attachSummaryMethodName:  {models.ModifyNoteAccess, models.ManageAccessNoteAccess},

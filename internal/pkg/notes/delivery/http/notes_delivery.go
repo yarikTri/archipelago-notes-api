@@ -227,6 +227,11 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 
+	access := h.checkAccess(c, id, deleteMethodName)
+	if access == nil {
+		return
+	}
+
 	if err := h.notesUsecase.DeleteByID(id); err != nil {
 		h.logger.Errorf("Error: %w", err)
 		c.JSON(http.StatusInternalServerError, err)
