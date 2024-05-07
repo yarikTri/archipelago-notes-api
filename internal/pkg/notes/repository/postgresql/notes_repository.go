@@ -198,8 +198,7 @@ func (p *PostgreSQL) SetUserAccess(noteID uuid.UUID, userID uuid.UUID, access mo
 		VALUES ($1, $2, $3)`,
 	)
 
-	row := p.db.QueryRow(query, noteID.String(), userID.String(), access.String())
-	if err := row.Scan(&access); err != nil {
+	if _, err := p.db.Exec(query, noteID.String(), userID.String(), access.String()); err != nil {
 		return fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 
