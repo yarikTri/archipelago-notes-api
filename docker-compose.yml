@@ -46,7 +46,7 @@ services:
     ports:
       - "${POSTGRESQL_PORT}:${POSTGRESQL_PORT}"
     volumes:
-      - ./cmd/api/init/db/postgresql/schema/:/docker-entrypoint-initdb.d
+      - ./cmd/common/init/db/postgresql/schema/:/docker-entrypoint-initdb.d
       - ../data:/var/lib/postgresql/data
     command: ["postgres"] # "-c", "logging_collector=on", "-c", "log_statement=all"]
     networks:
