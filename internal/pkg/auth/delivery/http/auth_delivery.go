@@ -4,20 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	commonAuth "github.com/yarikTri/archipelago-notes-api/internal/common/http/auth"
+	commonHttp "github.com/yarikTri/archipelago-notes-api/internal/common/http/constants"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/auth"
 	"net/http"
-	"net/url"
 )
-
-const sessionIdCookieName = "auth_token"
-
-func getSessionID(r *http.Request) (string, error) {
-	cookie, err := r.Cookie(sessionIdCookieName)
-	if err != nil {
-		return "", err
-	}
-	return url.QueryUnescape(cookie.Value)
-}
 
 type Handler struct {
 	authUsecase auth.Usecase
@@ -33,7 +23,7 @@ func NewHandler(au auth.Usecase, l logger.Logger) *Handler {
 
 // CheckSession ..
 func (h *Handler) CheckSession(c *gin.Context) {
-	sessionID, err := getSessionID(c.Request)
+	sessionID, err := commonAuth.GetSessionID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Forbidden")
 		return
@@ -66,9 +56,7 @@ type SignUpResponse struct {
 // SignUp ..
 func (h *Handler) SignUp(c *gin.Context) {
 	var signUpInfo SignUpRequest
-	c.BindJSON(&signUpInfo)
-
-	if c.Writer.Status() == 400 {
+	if err := c.BindJSON(&signUpInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Invalid sign up data")
 		return
 	}
@@ -100,7 +88,10 @@ type LoginResponse struct {
 // Login ..
 func (h *Handler) Login(c *gin.Context) {
 	var credentials LoginRequest
-	c.BindJSON(&credentials)
+	if err := c.BindJSON(&credentials); err != nil {
+		c.JSON(http.StatusBadRequest, "Invalid sign up data")
+		return
+	}
 
 	sessionID, userID, expiration, err := h.authUsecase.Login(credentials.Email, credentials.Password)
 	if err != nil {
@@ -109,13 +100,13 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(sessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", true, true)
+	c.SetCookie(commonHttp.SessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", true, true)
 	c.JSON(http.StatusOK, LoginResponse{UserID: userID.String()})
 }
 
 // Logout ..
 func (h *Handler) Logout(c *gin.Context) {
-	sessionID, err := getSessionID(c.Request)
+	sessionID, err := commonAuth.GetSessionID(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Forbidden")
 		return
@@ -127,5 +118,5 @@ func (h *Handler) Logout(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(sessionIdCookieName, "", -1, "", "", true, true)
+	c.SetCookie(commonHttp.SessionIdCookieName, "", -1, "", "", true, true)
 }
