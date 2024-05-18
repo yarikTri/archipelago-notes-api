@@ -8,7 +8,7 @@ import (
 type Usecase interface {
 	GetUserIDBySessionID(sessionID string) (uuid.UUID, error)
 	SignUp(email, name, password string) (uuid.UUID, error)
-	Login(email, password string) (string, time.Duration, error)
+	Login(email, password string) (string, uuid.UUID, time.Duration, error)
 	Logout(sessionID string) error
 }
 

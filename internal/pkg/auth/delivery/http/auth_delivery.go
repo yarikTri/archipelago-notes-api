@@ -102,7 +102,7 @@ func (h *Handler) Login(c *gin.Context) {
 	var credentials LoginRequest
 	c.BindJSON(&credentials)
 
-	sessionID, expiration, err := h.authUsecase.Login(credentials.Email, credentials.Password)
+	sessionID, userID, expiration, err := h.authUsecase.Login(credentials.Email, credentials.Password)
 	if err != nil {
 		h.logger.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, "Error while login")
@@ -110,6 +110,7 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	c.SetCookie(sessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", true, true)
+	c.JSON(http.StatusOK, LoginResponse{UserID: userID.String()})
 }
 
 // Logout ..

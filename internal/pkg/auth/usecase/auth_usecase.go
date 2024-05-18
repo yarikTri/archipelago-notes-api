@@ -46,18 +46,18 @@ func (u *Usecase) SignUp(email, name, password string) (uuid.UUID, error) {
 	return u.usersRepo.CreateUser(email, name, u.getPasswordHash(password))
 }
 
-func (u *Usecase) Login(email, password string) (string, time.Duration, error) {
+func (u *Usecase) Login(email, password string) (string, uuid.UUID, time.Duration, error) {
 	userID, password, err := u.usersRepo.GetUserIDAndPasswordByEmail(email)
 	if err != nil {
-		return "", 0, err
+		return "", uuid.Max, 0, err
 	}
 
 	sessionID := u.generateSessionID(sessionIDLength)
 	if err := u.sessionsRepo.CreateSession(sessionID, userID, sessionTTL); err != nil {
-		return "", 0, err
+		return "", uuid.Max, 0, err
 	}
 
-	return sessionID, sessionTTL, nil
+	return sessionID, userID, sessionTTL, nil
 }
 
 func (u *Usecase) Logout(sessionID string) error {
