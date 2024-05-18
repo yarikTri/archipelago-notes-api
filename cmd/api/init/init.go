@@ -27,16 +27,16 @@ import (
 )
 
 func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
-	emailInvitationClient := email.NewSmtpInvitationClient()
+	emailClient := email.NewEmailClient()
 
 	notesRepo := notesRepository.NewPostgreSQL(sqlDBClient)
 	dirsRepo := dirsRepository.NewPostgreSQL(sqlDBClient)
 	usersRepo := usersRepository.NewPostgreSQL(sqlDBClient)
 	summRepo := summaryRepository.NewPostgreSQL(sqlDBClient)
 
-	notesUsecase := notesUsecase.NewUsecase(notesRepo, usersRepo, emailInvitationClient)
+	notesUsecase := notesUsecase.NewUsecase(notesRepo, usersRepo, emailClient)
 	dirsUsecase := dirsUsecase.NewUsecase(dirsRepo, notesRepo)
-	usersUsecase := usersUsecase.NewUsecase(usersRepo)
+	usersUsecase := usersUsecase.NewUsecase(usersRepo, emailClient)
 	summaryUsecase := summaryUsecase.NewUsecase(summRepo)
 
 	notesHandler := notesHandler.NewHandler(notesUsecase, logger)

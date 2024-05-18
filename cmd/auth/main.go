@@ -11,20 +11,19 @@ import (
 	"github.com/joho/godotenv" // load environment
 
 	flog "github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
-	app "github.com/yarikTri/archipelago-notes-api/cmd/api/init"
-	"github.com/yarikTri/archipelago-notes-api/cmd/api/init/config"
-	"github.com/yarikTri/archipelago-notes-api/cmd/api/init/server"
-	"github.com/yarikTri/archipelago-notes-api/cmd/common/init/db/postgresql"
+	app "github.com/yarikTri/archipelago-notes-api/cmd/auth/init"
+	"github.com/yarikTri/archipelago-notes-api/cmd/auth/init/config"
+	"github.com/yarikTri/archipelago-notes-api/cmd/auth/init/server"
 )
 
-// @title		Archipelago Notes API
+// @title		Archipelago Notes Auth API
 // @version		1.0.1
-// @description	Notes API
+// @description	Notes Auth API
 
 // @contact.name   Yaroslav Kuzmin
 // @contact.email  yarik1448kuzmin@gmail.com
 
-// @host localhost:8080
+// @host localhost:8888
 // @schemes https http
 // @BasePath /
 
@@ -38,20 +37,15 @@ func main() {
 		log.Fatalf("logger can not be defined: %v\n", err)
 	}
 
-	db, err := postgresql.InitPostgresDB()
-	if err != nil {
-		flogger.Errorf("error while connecting to database: %v", err)
-		return
-	}
-
-	router, err := app.Init(db, flogger)
+	router, err := app.Init(flogger)
 	if err != nil {
 		flogger.Errorf("error while launching routes: %v", err)
 		return
 	}
 
 	var srv server.Server
-	if err := srv.Init(os.Getenv(config.ApiListenParamName), router); err != nil {
+	endpoint := os.Getenv(config.AuthListenParamName)
+	if err := srv.Init(endpoint, router); err != nil {
 		flogger.Errorf("error while launching server: %v", err)
 	}
 
@@ -64,7 +58,7 @@ func main() {
 	flogger.Info("trying to launch server")
 
 	timer := time.AfterFunc(1*time.Second, func() {
-		flogger.Infof("server launched at %s", os.Getenv(config.ApiListenParamName))
+		flogger.Infof("server launched at %s", endpoint)
 	})
 	defer timer.Stop()
 

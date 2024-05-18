@@ -50,6 +50,8 @@ func InitRoutes(
 	users.GET("/:id", usersHandler.Get)
 	users.GET("", usersHandler.Search)
 	users.POST("/:userID/root_dir/:rootDirID", usersHandler.SetRootDirID)
+	users.POST("/:userID/send_email_confirmation", usersHandler.SendEmailConfirmation)
+	users.POST("/:userID/confirm_email", usersHandler.ConfirmEmail)
 
 	summary := api.Group("/summary")
 	summary.GET("/get/:id", summaryHandler.GetSummary)

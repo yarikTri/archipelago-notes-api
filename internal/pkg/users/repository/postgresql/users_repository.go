@@ -24,10 +24,11 @@ func NewPostgreSQL(db *sqlx.DB) *PostgreSQL {
 
 func (p *PostgreSQL) GetByID(userID uuid.UUID) (*models.User, error) {
 	query := fmt.Sprint(
-		`SELECT u.id, u.email, u.name, urd.root_dir_id as root_dir_id
+		`SELECT u.id, u.email, u.email_confirmed, u.name, urd.root_dir_id as root_dir_id
 			FROM "user" u
-				INNER JOIN user_root_dir urd ON u.id = urd.user_id
-			WHERE u.id = $1`,
+				LEFT JOIN user_root_dir urd ON u.id = urd.user_id
+			WHERE u.id = $1
+			LIMIT 1`,
 	)
 
 	var user models.User
@@ -72,4 +73,15 @@ func (p *PostgreSQL) SetRootDirByID(userID uuid.UUID, rootID int) error {
 
 	_, err := p.db.Exec(query, userID.String(), rootID)
 	return err
+}
+
+func (p *PostgreSQL) ConfirmEmail(userID uuid.UUID) error {
+	query := fmt.Sprint(
+		`UPDATE "user" SET email_confirmed = true WHERE id = $1`,
+	)
+
+	if _, err := p.db.Exec(query, userID.String()); err != nil {
+		return fmt.Errorf("(repo) failed to exec query: %s", err)
+	}
+	return nil
 }

@@ -110,3 +110,55 @@ func (h *Handler) SetRootDirID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, "")
 }
+
+// SendEmailConfirmation
+// @Summary		Send email confirmation
+// @Tags		Users
+// @Description	Send user's email confirmation
+// @Param		userID path string true 								"User ID"
+// @Success		200			{object}	string							"Mail sent"
+// @Failure		400			{object}	error							"Incorrect input"
+// @Failure		500			{object}	error							"Server error"
+// @Router		/api/users/{userID}/send_email_confirmation [post]
+func (h *Handler) SendEmailConfirmation(c *gin.Context) {
+	userID, err := uuid.FromString(c.Param("userID"))
+	if err != nil {
+		h.logger.Infof("Invalid user id '%s'", userID)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.usersUsecase.SendEmailConfirmation(userID); err != nil {
+		h.logger.Errorf("Error: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, []byte{})
+}
+
+// ConfirmEmail
+// @Summary		Confirm email
+// @Tags		Users
+// @Description	Confirm user's email
+// @Param		userID path string true 								"User ID"
+// @Success		200			{object}	string							"Email confirmed"
+// @Failure		400			{object}	error							"Incorrect input"
+// @Failure		500			{object}	error							"Server error"
+// @Router		/api/users/{userID}/confirm_email [post]
+func (h *Handler) ConfirmEmail(c *gin.Context) {
+	userID, err := uuid.FromString(c.Param("userID"))
+	if err != nil {
+		h.logger.Infof("Invalid user id '%s'", userID)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.usersUsecase.ConfirmEmail(userID); err != nil {
+		h.logger.Errorf("Error: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, "")
+}

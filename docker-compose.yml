@@ -1,6 +1,37 @@
 version: '3.8'
 
 services:
+  api:
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - LISTEN_PORT=${API_LISTEN_PORT}
+    ports:
+      - "${API_LISTEN_PORT}:${API_LISTEN_PORT}"
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+    networks:
+      - net
+
+  auth:
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    environment:
+      - LISTEN_PORT=${AUTH_LISTEN_PORT}
+    ports:
+      - "${AUTH_LISTEN_PORT}:${AUTH_LISTEN_PORT}"
+    build:
+      context: .
+      dockerfile: auth.Dockerfile
+    networks:
+      - net
+
   db:
     container_name: db
     image: postgres:14
@@ -13,8 +44,31 @@ services:
       POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
       PGDATA: "/var/lib/postgresql/data/pgdata"
     ports:
-      - "5436:5432"
+      - "${POSTGRESQL_PORT}:${POSTGRESQL_PORT}"
     volumes:
       - ./cmd/api/init/db/postgresql/schema/:/docker-entrypoint-initdb.d
       - ../data:/var/lib/postgresql/data
     command: ["postgres"] # "-c", "logging_collector=on", "-c", "log_statement=all"]
+    networks:
+      - net
+    hostname: db
+
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - net
+    hostname: redis
+
+networks:
+  net:
+    name: shared-network
+
+volumes:
+  redis-data:
+    driver: local

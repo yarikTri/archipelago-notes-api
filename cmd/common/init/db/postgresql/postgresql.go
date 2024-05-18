@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	maxIdleConns = 10
-	maxOpenConns = 10
+	maxIdleConns      = 10
+	maxOpenConns      = 10
+	maxConnectRetries = 10
 )
 
 // PostgresConfig includes info about postgres DB we want to connect to
@@ -67,15 +68,6 @@ func InitPostgresDB() (*sqlx.DB, error) {
 
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetMaxOpenConns(maxOpenConns)
-
-	err = db.Ping()
-	if err != nil {
-		errClose := db.Close()
-		if errClose != nil {
-			return nil, fmt.Errorf("can't close postgresql (%w) after failed ping: %w", errClose, err)
-		}
-		return nil, err
-	}
 
 	return db, nil
 }
