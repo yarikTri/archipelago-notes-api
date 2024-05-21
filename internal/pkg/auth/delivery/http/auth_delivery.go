@@ -1,12 +1,13 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	commonAuth "github.com/yarikTri/archipelago-notes-api/internal/common/http/auth"
 	commonHttp "github.com/yarikTri/archipelago-notes-api/internal/common/http/constants"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/auth"
-	"net/http"
 )
 
 type Handler struct {
@@ -100,7 +101,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(commonHttp.SessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", true, true)
+	c.SetCookie(commonHttp.SessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", false, true)
 	c.JSON(http.StatusOK, LoginResponse{UserID: userID.String()})
 }
 
