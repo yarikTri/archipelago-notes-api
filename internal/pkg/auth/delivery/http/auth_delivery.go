@@ -119,5 +119,5 @@ func (h *Handler) Logout(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(commonHttp.SessionIdCookieName, "", -1, "", "", true, true)
+	c.SetCookie(commonHttp.SessionIdCookieName, "", -1, "", "", false, true)
 }
