@@ -8,6 +8,7 @@ services:
       - .env
     environment:
       - LISTEN_PORT=${API_LISTEN_PORT}
+    restart: always
     ports:
       - "${API_LISTEN_PORT}:${API_LISTEN_PORT}"
     build:
@@ -22,6 +23,7 @@ services:
       - redis
     env_file:
       - .env
+    restart: always
     environment:
       - LISTEN_PORT=${AUTH_LISTEN_PORT}
     ports:
