@@ -97,7 +97,7 @@ func (h *Handler) Login(c *gin.Context) {
 	sessionID, userID, expiration, err := h.authUsecase.Login(credentials.Email, credentials.Password)
 	if err != nil {
 		h.logger.Error(err.Error())
-		c.JSON(http.StatusInternalServerError, "Error while login")
+		c.JSON(http.StatusUnauthorized, "Error while login")
 		return
 	}
 
