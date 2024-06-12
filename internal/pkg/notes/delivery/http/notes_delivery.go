@@ -42,7 +42,7 @@ func (h *Handler) checkAccess(c *gin.Context, noteID uuid.UUID, method methodNam
 
 	access, err := h.notesUsecase.GetUserAccess(noteID, userID)
 	if errors.Is(err, sql.ErrNoRows) {
-		accessForbidden(userID.String(), noteID.String())
+		c.JSON(http.StatusNotFound, "Note not found")
 		return nil
 	}
 	if err != nil {
