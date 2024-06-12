@@ -2,6 +2,7 @@ package http
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -40,7 +41,7 @@ func (h *Handler) checkAccess(c *gin.Context, noteID uuid.UUID, method methodNam
 	}
 
 	access, err := h.notesUsecase.GetUserAccess(noteID, userID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		accessForbidden(userID.String(), noteID.String())
 		return nil
 	}
