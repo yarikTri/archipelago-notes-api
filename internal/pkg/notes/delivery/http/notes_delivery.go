@@ -1,6 +1,7 @@
 package http
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -26,6 +27,11 @@ func NewHandler(nu notes.Usecase, l logger.Logger) *Handler {
 }
 
 func (h *Handler) checkAccess(c *gin.Context, noteID uuid.UUID, method methodName) *models.NoteAccess {
+	accessForbidden := func(userID, noteID string) {
+		h.logger.Infof("Access forbidden for user %s, note %s, method %s", userID, noteID, method)
+		c.JSON(http.StatusForbidden, "")
+	}
+
 	userID, err := auth.GetUserId(c)
 	if err != nil {
 		h.logger.Infof("Unathorized request for note %s, method %s", noteID.String(), method)
@@ -34,6 +40,10 @@ func (h *Handler) checkAccess(c *gin.Context, noteID uuid.UUID, method methodNam
 	}
 
 	access, err := h.notesUsecase.GetUserAccess(noteID, userID)
+	if err == sql.ErrNoRows {
+		accessForbidden(userID.String(), noteID.String())
+		return nil
+	}
 	if err != nil {
 		h.logger.Errorf("Error while check access for user with id %s: %w", userID.String(), err)
 		c.JSON(http.StatusInternalServerError, "Can't check access")
@@ -46,8 +56,7 @@ func (h *Handler) checkAccess(c *gin.Context, noteID uuid.UUID, method methodNam
 		}
 	}
 
-	h.logger.Infof("Access forbidden for user %s, note %s, method %s", userID.String(), noteID.String(), method)
-	c.JSON(http.StatusForbidden, "")
+	accessForbidden(userID.String(), noteID.String())
 	return nil
 }
 
