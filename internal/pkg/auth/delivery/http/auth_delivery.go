@@ -67,13 +67,14 @@ func (h *Handler) SignUp(c *gin.Context) {
 		return
 	}
 
-	userID, err := h.authUsecase.SignUp(signUpInfo.Email, signUpInfo.Email, signUpInfo.Password)
+	sessionID, userID, expiration, err := h.authUsecase.SignUp(signUpInfo.Email, signUpInfo.Email, signUpInfo.Password)
 	if err != nil {
 		h.logger.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, "Error while sign up")
 		return
 	}
 
+	c.SetCookie(commonHttp.SessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", true, true)
 	c.JSON(http.StatusOK, SignUpResponse{UserID: userID.String()})
 }
 
@@ -120,4 +121,5 @@ func (h *Handler) Logout(c *gin.Context) {
 	}
 
 	c.SetCookie(commonHttp.SessionIdCookieName, "", -1, "", "", true, true)
+	c.JSON(http.StatusOK, "OK")
 }

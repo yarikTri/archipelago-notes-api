@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/gofrs/uuid/v5"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/yarikTri/archipelago-notes-api/internal/common/repository"
 )
 
 // UsersRepository implements auth.UsersRepository
@@ -56,4 +58,25 @@ func (ur *UsersRepository) CreateUser(email, name, passwordHash string) (uuid.UU
 		return uuid.Max, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 	return uuid.FromString(userID)
+}
+
+func (ur *UsersRepository) DeleteUser(userID uuid.UUID) error {
+	query := fmt.Sprint(
+		`DELETE FROM user WHERE id = $1`,
+	)
+
+	resExec, err := ur.db.Exec(query, userID)
+	if err != nil {
+		return fmt.Errorf("(repo) failed to exec query: %w", err)
+	}
+	deleted, err := resExec.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("(repo) failed to check RowsAffected: %w", err)
+	}
+
+	if deleted == 0 {
+		return fmt.Errorf("(repo): %w", &repository.NotFoundError{ID: userID})
+	}
+
+	return nil
 }

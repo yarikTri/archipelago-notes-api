@@ -1,13 +1,14 @@
 package auth
 
 import (
-	"github.com/gofrs/uuid/v5"
 	"time"
+
+	"github.com/gofrs/uuid/v5"
 )
 
 type Usecase interface {
 	GetUserIDBySessionID(sessionID string) (uuid.UUID, error)
-	SignUp(email, name, password string) (uuid.UUID, error)
+	SignUp(email, name, password string) (string, uuid.UUID, time.Duration, error)
 	Login(email, password string) (string, uuid.UUID, time.Duration, error)
 	Logout(sessionID string) error
 }
@@ -21,4 +22,5 @@ type SessionsRepository interface {
 type UsersRepository interface {
 	GetUserIDAndPasswordByEmail(email string) (uuid.UUID, string, error)
 	CreateUser(email, name, passwordHash string) (uuid.UUID, error)
+	DeleteUser(userID uuid.UUID) error
 }
