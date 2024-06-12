@@ -67,7 +67,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 		return
 	}
 
-	sessionID, userID, expiration, err := h.authUsecase.SignUp(signUpInfo.Email, signUpInfo.Email, signUpInfo.Password)
+	sessionID, userID, expiration, err := h.authUsecase.SignUp(signUpInfo.Email, signUpInfo.Name, signUpInfo.Password)
 	if err != nil {
 		h.logger.Error(err.Error())
 		c.JSON(http.StatusInternalServerError, "Error while sign up")
