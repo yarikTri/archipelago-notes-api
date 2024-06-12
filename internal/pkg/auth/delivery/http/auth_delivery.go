@@ -101,7 +101,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(commonHttp.SessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", false, true)
+	c.SetCookie(commonHttp.SessionIdCookieName, sessionID, int(expiration.Seconds()), "", "", true, true)
 	c.JSON(http.StatusOK, LoginResponse{UserID: userID.String()})
 }
 
@@ -119,5 +119,5 @@ func (h *Handler) Logout(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(commonHttp.SessionIdCookieName, "", -1, "", "", false, true)
+	c.SetCookie(commonHttp.SessionIdCookieName, "", -1, "", "", true, true)
 }
