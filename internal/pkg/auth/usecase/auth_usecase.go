@@ -72,11 +72,7 @@ func (u *Usecase) Login(email, password string) (string, uuid.UUID, time.Duratio
 		return "", uuid.Max, 0, err
 	}
 
-	gotPasswordHash := u.getPasswordHash(password)
-
-	if passwordHash != gotPasswordHash {
-		fmt.Printf("password hash: %s", passwordHash)
-		fmt.Printf("got password hash: %s", gotPasswordHash)
+	if err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
 		return "", uuid.Max, 0, fmt.Errorf("passwords dont match")
 	}
 
