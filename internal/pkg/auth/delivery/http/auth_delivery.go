@@ -98,7 +98,7 @@ func (h *Handler) Login(c *gin.Context) {
 	sessionID, userID, expiration, err := h.authUsecase.Login(credentials.Email, credentials.Password)
 	if err != nil {
 		h.logger.Error(err.Error())
-		c.JSON(http.StatusUnauthorized, "Not found user")
+		c.JSON(http.StatusUnauthorized, map[string]string{"error": "Not found user"})
 		return
 	}
 
