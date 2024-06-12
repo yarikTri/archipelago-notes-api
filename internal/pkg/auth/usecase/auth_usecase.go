@@ -75,6 +75,8 @@ func (u *Usecase) Login(email, password string) (string, uuid.UUID, time.Duratio
 	gotPasswordHash := u.getPasswordHash(password)
 
 	if passwordHash != gotPasswordHash {
+		fmt.Printf("password hash: %s", passwordHash)
+		fmt.Printf("got password hash: %s", gotPasswordHash)
 		return "", uuid.Max, 0, fmt.Errorf("passwords dont match")
 	}
 
