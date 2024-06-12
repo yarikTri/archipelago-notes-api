@@ -30,7 +30,7 @@ func NewHandler(nu notes.Usecase, l logger.Logger) *Handler {
 func (h *Handler) checkAccess(c *gin.Context, noteID uuid.UUID, method methodName) *models.NoteAccess {
 	accessForbidden := func(userID, noteID string) {
 		h.logger.Infof("Access forbidden for user %s, note %s, method %s", userID, noteID, method)
-		c.JSON(http.StatusForbidden, "")
+		c.JSON(http.StatusForbidden, "Forbidden")
 	}
 
 	userID, err := auth.GetUserId(c)
