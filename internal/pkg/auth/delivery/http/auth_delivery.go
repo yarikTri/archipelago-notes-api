@@ -72,7 +72,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 	sessionID, userID, expiration, err := h.authUsecase.SignUp(signUpInfo.Email, signUpInfo.Name, signUpInfo.Password)
 	if err != nil {
 		h.logger.Error(err.Error())
-		var consistentError pq.Error
+		var consistentError *pq.Error
 		if errors.As(err, &consistentError) && consistentError.Code == "23505" {
 			c.JSON(http.StatusBadRequest, "User already exists")
 			return
