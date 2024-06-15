@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/lib/pq"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/jmoiron/sqlx"
@@ -55,6 +56,12 @@ func (ur *UsersRepository) CreateUser(email, name, passwordHash string) (uuid.UU
 
 	var userID string
 	if err := ur.db.QueryRow(query, email, name, passwordHash).Scan(&userID); err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if ok && pqErr.Code == "23505" {
+			// 23505 is the code for unique_violation in PostgreSQL
+			return uuid.Max, fmt.Errorf("(repo) user with this data already exists: %w", err)
+		}
+
 		return uuid.Max, fmt.Errorf("(repo) failed to exec query: %w", err)
 	}
 	return uuid.FromString(userID)
