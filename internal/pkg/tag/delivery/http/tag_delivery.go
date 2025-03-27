@@ -25,6 +25,17 @@ func NewHandler(tu tag.Usecase, l logger.Logger) *Handler {
 	}
 }
 
+// CreateAndLinkTag
+// @Summary		Create and link tag to note
+// @Tags		Tags
+// @Description	Create a new tag and link it to a note, or link existing tag if it exists
+// @Accept		json
+// @Produce     json
+// @Param		tagInfo	body		CreateAndLinkTagRequest		true	"Tag info"
+// @Success		201			{object}	models.Tag		"Tag created and linked"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/create [post]
 func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 	type CreateAndLinkTagRequest struct {
 		Name   string `json:"name" valid:"required"`
@@ -61,6 +72,17 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 	c.JSON(http.StatusCreated, tag)
 }
 
+// UnlinkTagFromNote
+// @Summary		Unlink tag from note
+// @Tags		Tags
+// @Description	Remove the link between a tag and a note, delete tag if it has no more links
+// @Accept		json
+// @Produce     json
+// @Param		tagInfo	body		UnlinkTagRequest		true	"Tag and note IDs"
+// @Success		200								"Tag unlinked"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/unlink [post]
 func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
 	type UnlinkTagRequest struct {
 		TagID  string `json:"tag_id" valid:"required"`

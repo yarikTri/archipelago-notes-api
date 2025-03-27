@@ -23,25 +23,12 @@ func (u *Usecase) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, 
 	return u.repo.CreateAndLinkTag(name, noteID)
 }
 
-// Placeholder implementations for other interface methods
-func (u *Usecase) GetTag(ID uuid.UUID) (*models.Tag, error) {
-	return nil, nil
-}
-
-func (u *Usecase) GetAllTags() ([]models.Tag, error) {
-	return nil, nil
-}
-
 func (u *Usecase) UpdateTag(ID uuid.UUID, name string) error {
 	if name == "" {
 		return fmt.Errorf("(usecase) tag name cannot be empty")
 	}
 
 	return u.repo.UpdateTag(ID, name)
-}
-
-func (u *Usecase) DeleteTag(ID uuid.UUID) error {
-	return nil
 }
 
 func (u *Usecase) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {

@@ -129,15 +129,6 @@ func (p *PostgreSQL) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error 
 	return nil
 }
 
-// Placeholder implementations for other interface methods
-func (p *PostgreSQL) GetTag(ID uuid.UUID) (*models.Tag, error) {
-	return nil, nil
-}
-
-func (p *PostgreSQL) GetAllTags() ([]models.Tag, error) {
-	return nil, nil
-}
-
 func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string) error {
 	tx, err := p.db.Begin()
 	if err != nil {
@@ -194,10 +185,6 @@ func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string) error {
 		return fmt.Errorf("(repo) failed to commit transaction: %w", err)
 	}
 
-	return nil
-}
-
-func (p *PostgreSQL) DeleteTag(ID uuid.UUID) error {
 	return nil
 }
 
