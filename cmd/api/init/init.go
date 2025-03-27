@@ -17,6 +17,10 @@ import (
 	notesRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/repository/postgresql"
 	notesUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/usecase"
 
+	tagHandler "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/delivery/http"
+	tagRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/repository/postgresql"
+	tagUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/usecase"
+
 	usersHandler "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/delivery/http"
 	usersRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/repository/postgresql"
 	usersUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/usecase"
@@ -33,21 +37,25 @@ func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
 	dirsRepo := dirsRepository.NewPostgreSQL(sqlDBClient)
 	usersRepo := usersRepository.NewPostgreSQL(sqlDBClient)
 	summRepo := summaryRepository.NewPostgreSQL(sqlDBClient)
+	tagRepo := tagRepository.NewPostgreSQL(sqlDBClient)
 
 	notesUsecase := notesUsecase.NewUsecase(notesRepo, usersRepo, emailClient)
 	dirsUsecase := dirsUsecase.NewUsecase(dirsRepo, notesRepo)
 	usersUsecase := usersUsecase.NewUsecase(usersRepo, emailClient)
 	summaryUsecase := summaryUsecase.NewUsecase(summRepo)
+	tagUsecase := tagUsecase.NewUsecase(tagRepo)
 
 	notesHandler := notesHandler.NewHandler(notesUsecase, logger)
 	dirsHandler := dirsHandler.NewHandler(dirsUsecase, logger)
 	usersHandler := usersHandler.NewHandler(usersUsecase, logger)
 	summaryHandler := summaryHandler.NewHandler(summaryUsecase, logger)
+	tagHandler := tagHandler.NewHandler(tagUsecase, logger)
 
 	return router.InitRoutes(
 		notesHandler,
 		dirsHandler,
 		usersHandler,
 		summaryHandler,
+		tagHandler,
 	), nil
 }
