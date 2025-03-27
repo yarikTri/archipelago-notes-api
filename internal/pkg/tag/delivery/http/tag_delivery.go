@@ -1,16 +1,14 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 
 	valid "github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/gofrs/uuid/v5"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag"
-	"github.com/yarikTri/archipelago-notes-api/internal/repository"
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/errors"
 )
 
 type Handler struct {
@@ -65,7 +63,16 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 	tag, err := h.tagUsecase.CreateAndLinkTag(req.Name, noteID)
 	if err != nil {
 		h.logger.Errorf("Error while creating and linking tag: %w", err)
-		c.JSON(http.StatusInternalServerError, err)
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.TagNameEmptyError:
+			c.JSON(http.StatusBadRequest, e.Error())
+		case *errors.TagNameExistsError:
+			c.JSON(http.StatusConflict, e.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
 		return
 	}
 
@@ -118,7 +125,16 @@ func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
 
 	if err := h.tagUsecase.UnlinkTagFromNote(tagID, noteID); err != nil {
 		h.logger.Errorf("Error while unlinking tag from note: %w", err)
-		c.JSON(http.StatusInternalServerError, err)
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		case *errors.TagLinkNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
 		return
 	}
 
@@ -163,11 +179,13 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 		h.logger.Errorf("Error while updating tag: %w", err)
 
 		// Handle specific error cases
-		switch {
-		case err.Error() == fmt.Sprintf("(repo) tag not found: %v", &repository.NotFoundError{ID: id}):
-			c.JSON(http.StatusNotFound, "Tag not found")
-		case strings.Contains(err.Error(), "tag with name"):
-			c.JSON(http.StatusConflict, err.Error())
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		case *errors.TagNameExistsError:
+			c.JSON(http.StatusConflict, e.Error())
+		case *errors.TagNameEmptyError:
+			c.JSON(http.StatusBadRequest, e.Error())
 		default:
 			c.JSON(http.StatusInternalServerError, "Internal server error")
 		}
@@ -221,9 +239,11 @@ func (h *Handler) UpdateTagForNote(c *gin.Context) {
 		h.logger.Errorf("Error while updating tag: %w", err)
 
 		// Handle specific error cases
-		switch {
-		case err.Error() == fmt.Sprintf("(repo) tag not found: %v", &repository.NotFoundError{ID: tagID}):
-			c.JSON(http.StatusNotFound, "Tag not found")
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		case *errors.TagNameEmptyError:
+			c.JSON(http.StatusBadRequest, e.Error())
 		default:
 			c.JSON(http.StatusInternalServerError, "Internal server error")
 		}
@@ -257,9 +277,9 @@ func (h *Handler) GetNotesByTag(c *gin.Context) {
 		h.logger.Errorf("Error while getting notes by tag: %w", err)
 
 		// Handle specific error cases
-		switch {
-		case err.Error() == fmt.Sprintf("(repo) tag not found: %v", &repository.NotFoundError{ID: tagID}):
-			c.JSON(http.StatusNotFound, "Tag not found")
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
 		default:
 			c.JSON(http.StatusInternalServerError, "Internal server error")
 		}

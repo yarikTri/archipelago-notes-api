@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
-	"github.com/yarikTri/archipelago-notes-api/internal/repository"
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/errors"
 )
 
 // PostgreSQL implements tag.Repository
@@ -51,7 +51,7 @@ func (p *PostgreSQL) getTagByID(tx *sql.Tx, id uuid.UUID) (*models.Tag, error) {
 		WHERE tag_id = $1`, id).Scan(&tag.ID, &tag.Name)
 
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("(repo) tag not found: %w", &repository.NotFoundError{ID: id})
+		return nil, &errors.TagNotFoundError{ID: id}
 	}
 	if err != nil {
 		return nil, fmt.Errorf("(repo) failed to check existing tag: %w", err)
@@ -151,13 +151,31 @@ func (p *PostgreSQL) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Ta
 
 func (p *PostgreSQL) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {
 	return p.withTransaction(func(tx *sql.Tx) error {
+		// Check if tag exists first
+		_, err := p.getTagByID(tx, tagID)
+		if err != nil {
+			return err
+		}
+
 		// Remove the tag-note relation
-		_, err := tx.Exec(`
+		result, err := tx.Exec(`
 			DELETE FROM tag_to_note
 			WHERE tag_id = $1 AND note_id = $2`,
 			tagID, noteID)
 		if err != nil {
 			return fmt.Errorf("(repo) failed to unlink tag from note: %w", err)
+		}
+
+		// Check if any rows were affected
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("(repo) failed to get rows affected: %w", err)
+		}
+		if rowsAffected == 0 {
+			return &errors.TagLinkNotFoundError{
+				TagID:  tagID,
+				NoteID: noteID,
+			}
 		}
 
 		// Check if there are any remaining relations for this tag
@@ -200,7 +218,10 @@ func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string) error {
 			return err
 		}
 		if conflictingTag != nil {
-			return fmt.Errorf("(repo) tag with name '%s' already exists (ID: %s)", name, conflictingTag.ID)
+			return &errors.TagNameExistsError{
+				Name: name,
+				ID:   conflictingTag.ID,
+			}
 		}
 
 		// Update tag name
@@ -301,7 +322,7 @@ func (p *PostgreSQL) GetNotesByTag(tagID uuid.UUID) ([]models.Note, error) {
 		WHERE tag_id = $1`, tagID)
 
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("(repo) tag not found: %w", &repository.NotFoundError{ID: tagID})
+		return nil, &errors.TagNotFoundError{ID: tagID}
 	}
 	if err != nil {
 		return nil, fmt.Errorf("(repo) failed to check tag existence: %w", err)

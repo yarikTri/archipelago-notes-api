@@ -1,11 +1,10 @@
 package usecase
 
 import (
-	"fmt"
-
 	"github.com/gofrs/uuid/v5"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag"
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/errors"
 )
 
 // Usecase implements tag.Usecase
@@ -25,7 +24,7 @@ func (u *Usecase) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, 
 
 func (u *Usecase) UpdateTag(ID uuid.UUID, name string) error {
 	if name == "" {
-		return fmt.Errorf("(usecase) tag name cannot be empty")
+		return &errors.TagNameEmptyError{}
 	}
 
 	return u.repo.UpdateTag(ID, name)
@@ -37,7 +36,7 @@ func (u *Usecase) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {
 
 func (u *Usecase) UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) error {
 	if newName == "" {
-		return fmt.Errorf("(usecase) tag name cannot be empty")
+		return &errors.TagNameEmptyError{}
 	}
 
 	return u.repo.UpdateTagForNote(tagID, noteID, newName)
