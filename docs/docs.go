@@ -444,6 +444,395 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/notes/{noteID}/tags": {
+            "get": {
+                "description": "Get all tags linked to a specific note",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get tags by note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "noteID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Tag"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags": {
+            "post": {
+                "description": "Update tag by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update tag",
+                "parameters": [
+                    {
+                        "description": "Tag info",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag updated"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Tag name already exists",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/create": {
+            "post": {
+                "description": "Create a new tag and link it to a note, or link existing tag if it exists",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Create and link tag to note",
+                "parameters": [
+                    {
+                        "description": "Tag info",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.CreateAndLinkTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tag created and linked",
+                        "schema": {
+                            "$ref": "#/definitions/models.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/link": {
+            "post": {
+                "description": "Create a link between two tags",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Link two tags together",
+                "parameters": [
+                    {
+                        "description": "Tag IDs",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.LinkTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags linked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Tags already linked",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/note": {
+            "post": {
+                "description": "Update tag name for a specific note",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update tag for note",
+                "parameters": [
+                    {
+                        "description": "Tag info",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateTagForNoteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag updated"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/unlink": {
+            "post": {
+                "description": "Remove the link between a tag and a note, delete tag if it has no more links",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Unlink tag from note",
+                "parameters": [
+                    {
+                        "description": "Tag and note IDs",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UnlinkTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag unlinked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/unlink-tags": {
+            "post": {
+                "description": "Remove the link between two tags",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Unlink two tags",
+                "parameters": [
+                    {
+                        "description": "Tag IDs",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UnlinkTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags unlinked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/{tagID}/linked": {
+            "get": {
+                "description": "Get all tags linked to a specific tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get linked tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Linked tags",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Tag"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/{tagID}/notes": {
+            "get": {
+                "description": "Get all notes linked to a specific tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get notes by tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notes",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Note"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/users/": {
             "get": {
                 "description": "Search users by query",
@@ -518,6 +907,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/users/{userID}/confirm_email": {
+            "post": {
+                "description": "Confirm user's email",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Confirm email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email confirmed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/users/{userID}/root_dir/{rootDirID}": {
             "post": {
                 "description": "Set root dir id by user id",
@@ -558,9 +981,54 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/users/{userID}/send_email_confirmation": {
+            "post": {
+                "description": "Send user's email confirmation",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Send email confirmation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mail sent",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "http.CreateAndLinkTagRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "note_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.CreateDirRequest": {
             "type": "object",
             "properties": {
@@ -582,6 +1050,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.LinkTagsRequest": {
+            "type": "object",
+            "properties": {
+                "tag1_id": {
+                    "type": "string"
+                },
+                "tag2_id": {
                     "type": "string"
                 }
             }
@@ -619,6 +1098,28 @@ const docTemplate = `{
                 }
             }
         },
+        "http.UnlinkTagRequest": {
+            "type": "object",
+            "properties": {
+                "note_id": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.UnlinkTagsRequest": {
+            "type": "object",
+            "properties": {
+                "tag1_id": {
+                    "type": "string"
+                },
+                "tag2_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.UpdateDirRequest": {
             "type": "object",
             "properties": {
@@ -649,6 +1150,31 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.UpdateTagForNoteRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "note_id": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.UpdateTagRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -684,6 +1210,32 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Note": {
+            "type": "object",
+            "properties": {
+                "access": {
+                    "type": "string"
+                },
+                "automergeURL": {
+                    "type": "string"
+                },
+                "creatorID": {
+                    "type": "string"
+                },
+                "defaultAccess": {
+                    "type": "string"
+                },
+                "dirID": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.NoteTransfer": {
             "type": "object",
             "properties": {
@@ -713,11 +1265,28 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Tag": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UserTransfer": {
             "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
+                },
+                "email_confirmed": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "string"
@@ -727,9 +1296,6 @@ const docTemplate = `{
                 },
                 "root_dir_id": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         }

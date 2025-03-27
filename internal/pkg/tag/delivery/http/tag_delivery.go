@@ -35,11 +35,6 @@ func NewHandler(tu tag.Usecase, l logger.Logger) *Handler {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/create [post]
 func (h *Handler) CreateAndLinkTag(c *gin.Context) {
-	type CreateAndLinkTagRequest struct {
-		Name   string `json:"name" valid:"required"`
-		NoteID string `json:"note_id" valid:"required"`
-	}
-
 	var req CreateAndLinkTagRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -91,11 +86,6 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/unlink [post]
 func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
-	type UnlinkTagRequest struct {
-		TagID  string `json:"tag_id" valid:"required"`
-		NoteID string `json:"note_id" valid:"required"`
-	}
-
 	var req UnlinkTagRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -331,11 +321,6 @@ func (h *Handler) GetTagsByNote(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/link [post]
 func (h *Handler) LinkTags(c *gin.Context) {
-	type LinkTagsRequest struct {
-		Tag1ID string `json:"tag1_id" valid:"required"`
-		Tag2ID string `json:"tag2_id" valid:"required"`
-	}
-
 	var req LinkTagsRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -394,11 +379,6 @@ func (h *Handler) LinkTags(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/unlink-tags [post]
 func (h *Handler) UnlinkTags(c *gin.Context) {
-	type UnlinkTagsRequest struct {
-		Tag1ID string `json:"tag1_id" valid:"required"`
-		Tag2ID string `json:"tag2_id" valid:"required"`
-	}
-
 	var req UnlinkTagsRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
