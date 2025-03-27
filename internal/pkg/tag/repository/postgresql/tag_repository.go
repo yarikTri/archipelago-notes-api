@@ -359,3 +359,113 @@ func (p *PostgreSQL) GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error) {
 
 	return tags, nil
 }
+
+func (p *PostgreSQL) LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
+	return p.withTransaction(func(tx *sql.Tx) error {
+		// Check if both tags exist
+		_, err := p.getTagByID(tx, tag1ID)
+		if err != nil {
+			return err
+		}
+
+		_, err = p.getTagByID(tx, tag2ID)
+		if err != nil {
+			return err
+		}
+
+		// Try to create the link
+		result, err := tx.Exec(`
+			INSERT INTO tag_to_tag (tag_1_id, tag_2_id)
+			VALUES ($1, $2)
+			ON CONFLICT (tag_1_id, tag_2_id) DO NOTHING`,
+			tag1ID, tag2ID)
+		if err != nil {
+			return fmt.Errorf("(repo) failed to link tags: %w", err)
+		}
+
+		// Check if any rows were affected
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("(repo) failed to get rows affected: %w", err)
+		}
+		if rowsAffected == 0 {
+			return &errors.TagLinkExistsError{
+				Tag1ID: tag1ID,
+				Tag2ID: tag2ID,
+			}
+		}
+
+		return nil
+	})
+}
+
+func (p *PostgreSQL) UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
+	return p.withTransaction(func(tx *sql.Tx) error {
+		// Check if both tags exist
+		_, err := p.getTagByID(tx, tag1ID)
+		if err != nil {
+			return err
+		}
+
+		_, err = p.getTagByID(tx, tag2ID)
+		if err != nil {
+			return err
+		}
+
+		// Remove the tag-to-tag relation
+		result, err := tx.Exec(`
+			DELETE FROM tag_to_tag
+			WHERE (tag_1_id = $1 AND tag_2_id = $2)
+			OR (tag_1_id = $2 AND tag_2_id = $1)`,
+			tag1ID, tag2ID)
+		if err != nil {
+			return fmt.Errorf("(repo) failed to unlink tags: %w", err)
+		}
+
+		// Check if any rows were affected
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("(repo) failed to get rows affected: %w", err)
+		}
+		if rowsAffected == 0 {
+			return &errors.TagToTagLinkNotFoundError{
+				Tag1ID: tag1ID,
+				Tag2ID: tag2ID,
+			}
+		}
+
+		return nil
+	})
+}
+
+func (p *PostgreSQL) GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error) {
+	// Check if tag exists first
+	var tag models.Tag
+	err := p.db.Get(&tag, `
+		SELECT tag_id, name
+		FROM tag
+		WHERE tag_id = $1`, tagID)
+
+	if err == sql.ErrNoRows {
+		return nil, &errors.TagNotFoundError{ID: tagID}
+	}
+	if err != nil {
+		return nil, fmt.Errorf("(repo) failed to check tag existence: %w", err)
+	}
+
+	// Get all linked tags
+	var tags []models.Tag
+	err = p.db.Select(&tags, `
+		SELECT t.tag_id, t.name
+		FROM tag t
+		JOIN tag_to_tag ttt ON (t.tag_id = ttt.tag_1_id OR t.tag_id = ttt.tag_2_id)
+		WHERE (ttt.tag_1_id = $1 OR ttt.tag_2_id = $1)
+		AND t.tag_id != $1
+		ORDER BY t.name`, tagID)
+
+	if err != nil {
+		return nil, fmt.Errorf("(repo) failed to get linked tags: %w", err)
+	}
+
+	return tags, nil
+}

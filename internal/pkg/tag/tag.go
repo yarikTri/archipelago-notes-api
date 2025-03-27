@@ -12,6 +12,9 @@ type Usecase interface {
 	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) error
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
 	GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error)
+	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
+	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
+	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
 }
 
 type Repository interface {
@@ -21,4 +24,7 @@ type Repository interface {
 	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) error
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
 	GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error)
+	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
+	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
+	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
 }

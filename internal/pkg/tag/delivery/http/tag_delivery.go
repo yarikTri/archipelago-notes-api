@@ -316,3 +316,166 @@ func (h *Handler) GetTagsByNote(c *gin.Context) {
 
 	c.JSON(http.StatusOK, tags)
 }
+
+// LinkTags
+// @Summary		Link two tags together
+// @Tags		Tags
+// @Description	Create a link between two tags
+// @Accept		json
+// @Produce     json
+// @Param		tagInfo	body		LinkTagsRequest		true	"Tag IDs"
+// @Success		200								"Tags linked"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		409			{object}	error				"Tags already linked"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/link [post]
+func (h *Handler) LinkTags(c *gin.Context) {
+	type LinkTagsRequest struct {
+		Tag1ID string `json:"tag1_id" valid:"required"`
+		Tag2ID string `json:"tag2_id" valid:"required"`
+	}
+
+	var req LinkTagsRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request format")
+		return
+	}
+
+	if _, err := valid.ValidateStruct(req); err != nil {
+		h.logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	tag1ID, err := uuid.FromString(req.Tag1ID)
+	if err != nil {
+		h.logger.Errorf("Failed to parse tag1 ID: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid tag1 ID format")
+		return
+	}
+
+	tag2ID, err := uuid.FromString(req.Tag2ID)
+	if err != nil {
+		h.logger.Errorf("Failed to parse tag2 ID: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid tag2 ID format")
+		return
+	}
+
+	if err := h.tagUsecase.LinkTags(tag1ID, tag2ID); err != nil {
+		h.logger.Errorf("Error while linking tags: %w", err)
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		case *errors.TagLinkExistsError:
+			c.JSON(http.StatusConflict, e.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// UnlinkTags
+// @Summary		Unlink two tags
+// @Tags		Tags
+// @Description	Remove the link between two tags
+// @Accept		json
+// @Produce     json
+// @Param		tagInfo	body		UnlinkTagsRequest		true	"Tag IDs"
+// @Success		200								"Tags unlinked"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/unlink-tags [post]
+func (h *Handler) UnlinkTags(c *gin.Context) {
+	type UnlinkTagsRequest struct {
+		Tag1ID string `json:"tag1_id" valid:"required"`
+		Tag2ID string `json:"tag2_id" valid:"required"`
+	}
+
+	var req UnlinkTagsRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request format")
+		return
+	}
+
+	if _, err := valid.ValidateStruct(req); err != nil {
+		h.logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	tag1ID, err := uuid.FromString(req.Tag1ID)
+	if err != nil {
+		h.logger.Errorf("Failed to parse tag1 ID: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid tag1 ID format")
+		return
+	}
+
+	tag2ID, err := uuid.FromString(req.Tag2ID)
+	if err != nil {
+		h.logger.Errorf("Failed to parse tag2 ID: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid tag2 ID format")
+		return
+	}
+
+	if err := h.tagUsecase.UnlinkTags(tag1ID, tag2ID); err != nil {
+		h.logger.Errorf("Error while unlinking tags: %w", err)
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		case *errors.TagToTagLinkNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// GetLinkedTags
+// @Summary		Get linked tags
+// @Tags		Tags
+// @Description	Get all tags linked to a specific tag
+// @Produce     json
+// @Param		tagID path string true 						"Tag ID"
+// @Success		200			{object}	[]models.Tag		"Linked tags"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/{tagID}/linked [get]
+func (h *Handler) GetLinkedTags(c *gin.Context) {
+	tagID, err := uuid.FromString(c.Param("tagID"))
+	if err != nil {
+		h.logger.Infof("Invalid tag id '%s'", c.Param("tagID"))
+		c.JSON(http.StatusBadRequest, "Invalid tag ID format")
+		return
+	}
+
+	tags, err := h.tagUsecase.GetLinkedTags(tagID)
+	if err != nil {
+		h.logger.Errorf("Error while getting linked tags: %w", err)
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, tags)
+}

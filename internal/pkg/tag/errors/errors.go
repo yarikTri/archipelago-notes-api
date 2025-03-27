@@ -41,3 +41,23 @@ type TagLinkNotFoundError struct {
 func (e *TagLinkNotFoundError) Error() string {
 	return fmt.Sprintf("tag-note link not found: tag %v, note %v", e.TagID, e.NoteID)
 }
+
+// TagLinkExistsError represents an error when a tag-to-tag link already exists
+type TagLinkExistsError struct {
+	Tag1ID uuid.UUID
+	Tag2ID uuid.UUID
+}
+
+func (e *TagLinkExistsError) Error() string {
+	return fmt.Sprintf("tags are already linked: %v and %v", e.Tag1ID, e.Tag2ID)
+}
+
+// TagToTagLinkNotFoundError represents an error when a tag-to-tag link is not found
+type TagToTagLinkNotFoundError struct {
+	Tag1ID uuid.UUID
+	Tag2ID uuid.UUID
+}
+
+func (e *TagToTagLinkNotFoundError) Error() string {
+	return fmt.Sprintf("tag-to-tag link not found: %v and %v", e.Tag1ID, e.Tag2ID)
+}

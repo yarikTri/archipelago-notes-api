@@ -49,3 +49,15 @@ func (u *Usecase) GetNotesByTag(tagID uuid.UUID) ([]models.Note, error) {
 func (u *Usecase) GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error) {
 	return u.repo.GetTagsByNote(noteID)
 }
+
+func (u *Usecase) LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
+	return u.repo.LinkTags(tag1ID, tag2ID)
+}
+
+func (u *Usecase) UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
+	return u.repo.UnlinkTags(tag1ID, tag2ID)
+}
+
+func (u *Usecase) GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error) {
+	return u.repo.GetLinkedTags(tagID)
+}
