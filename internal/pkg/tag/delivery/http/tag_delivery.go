@@ -1,0 +1,276 @@
+package http
+
+import (
+	"fmt"
+	"net/http"
+	"strings"
+
+	valid "github.com/asaskevich/govalidator"
+	"github.com/gin-gonic/gin"
+	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
+	"github.com/gofrs/uuid/v5"
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag"
+	"github.com/yarikTri/archipelago-notes-api/internal/repository"
+)
+
+type Handler struct {
+	tagUsecase tag.Usecase
+	logger     logger.Logger
+}
+
+func NewHandler(tu tag.Usecase, l logger.Logger) *Handler {
+	return &Handler{
+		tagUsecase: tu,
+		logger:     l,
+	}
+}
+
+func (h *Handler) CreateAndLinkTag(c *gin.Context) {
+	type CreateAndLinkTagRequest struct {
+		Name   string `json:"name" valid:"required"`
+		NoteID string `json:"note_id" valid:"required"`
+	}
+
+	var req CreateAndLinkTagRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	if _, err := valid.ValidateStruct(req); err != nil {
+		h.logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	noteID, err := uuid.FromString(req.NoteID)
+	if err != nil {
+		h.logger.Errorf("Failed to parse note ID: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid note ID format")
+		return
+	}
+
+	tag, err := h.tagUsecase.CreateAndLinkTag(req.Name, noteID)
+	if err != nil {
+		h.logger.Errorf("Error while creating and linking tag: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, tag)
+}
+
+func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
+	type UnlinkTagRequest struct {
+		TagID  string `json:"tag_id" valid:"required"`
+		NoteID string `json:"note_id" valid:"required"`
+	}
+
+	var req UnlinkTagRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	if _, err := valid.ValidateStruct(req); err != nil {
+		h.logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	tagID, err := uuid.FromString(req.TagID)
+	if err != nil {
+		h.logger.Errorf("Failed to parse tag ID: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid tag ID format")
+		return
+	}
+
+	noteID, err := uuid.FromString(req.NoteID)
+	if err != nil {
+		h.logger.Errorf("Failed to parse note ID: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid note ID format")
+		return
+	}
+
+	if err := h.tagUsecase.UnlinkTagFromNote(tagID, noteID); err != nil {
+		h.logger.Errorf("Error while unlinking tag from note: %w", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// UpdateTag
+// @Summary		Update tag
+// @Tags		Tags
+// @Description	Update tag by ID
+// @Accept		json
+// @Produce     json
+// @Param		tagInfo	body		UpdateTagRequest		true	"Tag info"
+// @Success		200								"Tag updated"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		409			{object}	error				"Tag name already exists"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags [post]
+func (h *Handler) UpdateTag(c *gin.Context) {
+	var req UpdateTagRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request format")
+		return
+	}
+
+	if err := req.validate(); err != nil {
+		h.logger.Infof("Invalid update tag request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request data")
+		return
+	}
+
+	id, err := uuid.FromString(req.ID)
+	if err != nil {
+		h.logger.Infof("Invalid tag id '%s'", req.ID)
+		c.JSON(http.StatusBadRequest, "Invalid tag ID format")
+		return
+	}
+
+	if err := h.tagUsecase.UpdateTag(id, req.Name); err != nil {
+		h.logger.Errorf("Error while updating tag: %w", err)
+
+		// Handle specific error cases
+		switch {
+		case err.Error() == fmt.Sprintf("(repo) tag not found: %v", &repository.NotFoundError{ID: id}):
+			c.JSON(http.StatusNotFound, "Tag not found")
+		case strings.Contains(err.Error(), "tag with name"):
+			c.JSON(http.StatusConflict, err.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// UpdateTagForNote
+// @Summary		Update tag for note
+// @Tags		Tags
+// @Description	Update tag name for a specific note
+// @Accept		json
+// @Produce     json
+// @Param		tagInfo	body		UpdateTagForNoteRequest		true	"Tag info"
+// @Success		200								"Tag updated"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/note [post]
+func (h *Handler) UpdateTagForNote(c *gin.Context) {
+	var req UpdateTagForNoteRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request format")
+		return
+	}
+
+	if err := req.validate(); err != nil {
+		h.logger.Infof("Invalid update tag request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request data")
+		return
+	}
+
+	tagID, err := uuid.FromString(req.TagID)
+	if err != nil {
+		h.logger.Infof("Invalid tag id '%s'", req.TagID)
+		c.JSON(http.StatusBadRequest, "Invalid tag ID format")
+		return
+	}
+
+	noteID, err := uuid.FromString(req.NoteID)
+	if err != nil {
+		h.logger.Infof("Invalid note id '%s'", req.NoteID)
+		c.JSON(http.StatusBadRequest, "Invalid note ID format")
+		return
+	}
+
+	if err := h.tagUsecase.UpdateTagForNote(tagID, noteID, req.Name); err != nil {
+		h.logger.Errorf("Error while updating tag: %w", err)
+
+		// Handle specific error cases
+		switch {
+		case err.Error() == fmt.Sprintf("(repo) tag not found: %v", &repository.NotFoundError{ID: tagID}):
+			c.JSON(http.StatusNotFound, "Tag not found")
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+// GetNotesByTag
+// @Summary		Get notes by tag
+// @Tags		Tags
+// @Description	Get all notes linked to a specific tag
+// @Produce     json
+// @Param		tagID path string true 						"Tag ID"
+// @Success		200			{object}	[]models.Note		"Notes"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/{tagID}/notes [get]
+func (h *Handler) GetNotesByTag(c *gin.Context) {
+	tagID, err := uuid.FromString(c.Param("tagID"))
+	if err != nil {
+		h.logger.Infof("Invalid tag id '%s'", c.Param("tagID"))
+		c.JSON(http.StatusBadRequest, "Invalid tag ID format")
+		return
+	}
+
+	notes, err := h.tagUsecase.GetNotesByTag(tagID)
+	if err != nil {
+		h.logger.Errorf("Error while getting notes by tag: %w", err)
+
+		// Handle specific error cases
+		switch {
+		case err.Error() == fmt.Sprintf("(repo) tag not found: %v", &repository.NotFoundError{ID: tagID}):
+			c.JSON(http.StatusNotFound, "Tag not found")
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, notes)
+}
+
+// GetTagsByNote
+// @Summary		Get tags by note
+// @Tags		Tags
+// @Description	Get all tags linked to a specific note
+// @Produce     json
+// @Param		noteID path string true 						"Note ID"
+// @Success		200			{object}	[]models.Tag		"Tags"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/notes/{noteID}/tags [get]
+func (h *Handler) GetTagsByNote(c *gin.Context) {
+	noteID, err := uuid.FromString(c.Param("noteID"))
+	if err != nil {
+		h.logger.Infof("Invalid note id '%s'", c.Param("noteID"))
+		c.JSON(http.StatusBadRequest, "Invalid note ID format")
+		return
+	}
+
+	tags, err := h.tagUsecase.GetTagsByNote(noteID)
+	if err != nil {
+		h.logger.Errorf("Error while getting tags by note: %w", err)
+		c.JSON(http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	c.JSON(http.StatusOK, tags)
+}
