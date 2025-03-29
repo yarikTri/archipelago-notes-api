@@ -135,7 +135,7 @@ func (h *Handler) List(c *gin.Context) {
 // @Accept		json
 // @Produce     json
 // @Param		noteInfo	body		CreateNoteRequest		true	"Note info"
-// @Success		200			{object}	models.NoteTransfer				"Note created"
+// @Success		201			{object}	models.NoteTransfer				"Note created"
 // @Failure		400			{object}	error							"Incorrect input"
 // @Failure		500			{object}	error							"Server error"
 // @Router		/api/notes [post]
@@ -163,7 +163,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, createdNote.ToTransfer(getAllowedMethods(models.ManageAccessNoteAccess)))
+	c.JSON(http.StatusCreated, createdNote.ToTransfer(getAllowedMethods(models.ManageAccessNoteAccess)))
 }
 
 // Update

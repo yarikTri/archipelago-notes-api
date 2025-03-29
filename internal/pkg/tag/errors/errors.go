@@ -6,6 +6,15 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
+// NoteNotFoundError represents an error when a note is not found
+type NoteNotFoundError struct {
+	ID uuid.UUID
+}
+
+func (e *NoteNotFoundError) Error() string {
+	return fmt.Sprintf("note not found: %v", e.ID)
+}
+
 // TagNotFoundError represents an error when a tag is not found
 type TagNotFoundError struct {
 	ID uuid.UUID

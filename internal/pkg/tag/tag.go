@@ -8,8 +8,8 @@ import (
 type Usecase interface {
 	CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error)
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
-	UpdateTag(ID uuid.UUID, name string) error
-	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) error
+	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
+	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
 	GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error)
 	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
@@ -20,8 +20,8 @@ type Usecase interface {
 type Repository interface {
 	CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error)
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
-	UpdateTag(ID uuid.UUID, name string) error
-	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) error
+	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
+	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
 	GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error)
 	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error

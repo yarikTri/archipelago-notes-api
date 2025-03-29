@@ -2,9 +2,10 @@ package init
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/yarikTri/archipelago-notes-api/cmd/auth/init/db/redis"
 	"github.com/yarikTri/archipelago-notes-api/cmd/common/init/db/postgresql"
-	"net/http"
 
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/yarikTri/archipelago-notes-api/cmd/auth/init/router"

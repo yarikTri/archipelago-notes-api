@@ -1,6 +1,6 @@
 CREATE TABLE tag (
     tag_id UUID PRIMARY KEY,
-    name TEXT PRIMARY KEY,
+    name TEXT UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS tag_to_note (

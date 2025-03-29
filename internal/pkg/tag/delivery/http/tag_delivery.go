@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/gofrs/uuid/v5"
+	"github.com/yarikTri/archipelago-notes-api/internal/models"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/errors"
 )
@@ -35,6 +36,9 @@ func NewHandler(tu tag.Usecase, l logger.Logger) *Handler {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/create [post]
 func (h *Handler) CreateAndLinkTag(c *gin.Context) {
+
+	// Method returns 200 if tag for link already exists!!!
+
 	var req CreateAndLinkTagRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -59,12 +63,16 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 	if err != nil {
 		h.logger.Errorf("Error while creating and linking tag: %w", err)
 
+		// TODO: handle already exists.
+
 		// Handle specific error cases
 		switch e := err.(type) {
 		case *errors.TagNameEmptyError:
 			c.JSON(http.StatusBadRequest, e.Error())
 		case *errors.TagNameExistsError:
 			c.JSON(http.StatusConflict, e.Error())
+		case *errors.NoteNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
 		default:
 			c.JSON(http.StatusInternalServerError, "Internal server error")
 		}
@@ -143,7 +151,7 @@ func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
 // @Failure		404			{object}	error				"Tag not found"
 // @Failure		409			{object}	error				"Tag name already exists"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/api/tags [post]
+// @Router		/api/tags [put]
 func (h *Handler) UpdateTag(c *gin.Context) {
 	var req UpdateTagRequest
 	if err := c.BindJSON(&req); err != nil {
@@ -158,14 +166,15 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 		return
 	}
 
-	id, err := uuid.FromString(req.ID)
+	id, err := uuid.FromString(req.TagID)
 	if err != nil {
-		h.logger.Infof("Invalid tag id '%s'", req.ID)
+		h.logger.Infof("Invalid tag id '%s'", req.TagID)
 		c.JSON(http.StatusBadRequest, "Invalid tag ID format")
 		return
 	}
 
-	if err := h.tagUsecase.UpdateTag(id, req.Name); err != nil {
+	updatedTag, err := h.tagUsecase.UpdateTag(id, req.Name)
+	if err != nil {
 		h.logger.Errorf("Error while updating tag: %w", err)
 
 		// Handle specific error cases
@@ -182,7 +191,7 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, updatedTag)
 }
 
 // UpdateTagForNote
@@ -196,7 +205,7 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		404			{object}	error				"Tag not found"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/api/tags/note [post]
+// @Router		/api/tags/note [put]
 func (h *Handler) UpdateTagForNote(c *gin.Context) {
 	var req UpdateTagForNoteRequest
 	if err := c.BindJSON(&req); err != nil {
@@ -225,7 +234,8 @@ func (h *Handler) UpdateTagForNote(c *gin.Context) {
 		return
 	}
 
-	if err := h.tagUsecase.UpdateTagForNote(tagID, noteID, req.Name); err != nil {
+	updatedTag, err := h.tagUsecase.UpdateTagForNote(tagID, noteID, req.Name)
+	if err != nil {
 		h.logger.Errorf("Error while updating tag: %w", err)
 
 		// Handle specific error cases
@@ -240,7 +250,7 @@ func (h *Handler) UpdateTagForNote(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, updatedTag)
 }
 
 // GetNotesByTag
@@ -249,7 +259,7 @@ func (h *Handler) UpdateTagForNote(c *gin.Context) {
 // @Description	Get all notes linked to a specific tag
 // @Produce     json
 // @Param		tagID path string true 						"Tag ID"
-// @Success		200			{object}	[]models.Note		"Notes"
+// @Success		200			{object}	[]models.NoteTransfer		"Notes"
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		404			{object}	error				"Tag not found"
 // @Failure		500			{object}	error				"Server error"
@@ -276,7 +286,13 @@ func (h *Handler) GetNotesByTag(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, notes)
+	// Convert notes to transfers
+	noteTransfers := make([]*models.NoteTransfer, len(notes))
+	for i, note := range notes {
+		noteTransfers[i] = note.ToTransfer([]string{"r"}) // Default to read access
+	}
+
+	c.JSON(http.StatusOK, noteTransfers)
 }
 
 // GetTagsByNote
@@ -290,9 +306,16 @@ func (h *Handler) GetNotesByTag(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/notes/{noteID}/tags [get]
 func (h *Handler) GetTagsByNote(c *gin.Context) {
-	noteID, err := uuid.FromString(c.Param("noteID"))
-	if err != nil {
+	id := c.Param("noteID")
+	if id == "" {
 		h.logger.Infof("Invalid note id '%s'", c.Param("noteID"))
+		c.JSON(http.StatusBadRequest, "Invalid note ID format")
+		return
+	}
+
+	noteID, err := uuid.FromString(id)
+	if err != nil {
+		h.logger.Infof("Invalid note id '%s': %w", c.Param("noteID"), err)
 		c.JSON(http.StatusBadRequest, "Invalid note ID format")
 		return
 	}
@@ -300,7 +323,14 @@ func (h *Handler) GetTagsByNote(c *gin.Context) {
 	tags, err := h.tagUsecase.GetTagsByNote(noteID)
 	if err != nil {
 		h.logger.Errorf("Error while getting tags by note: %w", err)
-		c.JSON(http.StatusInternalServerError, "Internal server error")
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.NoteNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
 		return
 	}
 
@@ -329,21 +359,21 @@ func (h *Handler) LinkTags(c *gin.Context) {
 	}
 
 	if _, err := valid.ValidateStruct(req); err != nil {
-		h.logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err)
+		h.logger.Infof("Invalid link tags request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request data")
 		return
 	}
 
 	tag1ID, err := uuid.FromString(req.Tag1ID)
 	if err != nil {
-		h.logger.Errorf("Failed to parse tag1 ID: %w", err)
+		h.logger.Infof("Invalid tag1 id '%s'", req.Tag1ID)
 		c.JSON(http.StatusBadRequest, "Invalid tag1 ID format")
 		return
 	}
 
 	tag2ID, err := uuid.FromString(req.Tag2ID)
 	if err != nil {
-		h.logger.Errorf("Failed to parse tag2 ID: %w", err)
+		h.logger.Infof("Invalid tag2 id '%s'", req.Tag2ID)
 		c.JSON(http.StatusBadRequest, "Invalid tag2 ID format")
 		return
 	}
@@ -372,14 +402,14 @@ func (h *Handler) LinkTags(c *gin.Context) {
 // @Description	Remove the link between two tags
 // @Accept		json
 // @Produce     json
-// @Param		tagInfo	body		UnlinkTagsRequest		true	"Tag IDs"
+// @Param		tagInfo	body		LinkTagsRequest		true	"Tag IDs"
 // @Success		200								"Tags unlinked"
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		404			{object}	error				"Tag not found"
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/unlink-tags [post]
 func (h *Handler) UnlinkTags(c *gin.Context) {
-	var req UnlinkTagsRequest
+	var req LinkTagsRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
 		c.JSON(http.StatusBadRequest, "Invalid request format")
@@ -387,21 +417,21 @@ func (h *Handler) UnlinkTags(c *gin.Context) {
 	}
 
 	if _, err := valid.ValidateStruct(req); err != nil {
-		h.logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err)
+		h.logger.Infof("Invalid unlink tags request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request data")
 		return
 	}
 
 	tag1ID, err := uuid.FromString(req.Tag1ID)
 	if err != nil {
-		h.logger.Errorf("Failed to parse tag1 ID: %w", err)
+		h.logger.Infof("Invalid tag1 id '%s'", req.Tag1ID)
 		c.JSON(http.StatusBadRequest, "Invalid tag1 ID format")
 		return
 	}
 
 	tag2ID, err := uuid.FromString(req.Tag2ID)
 	if err != nil {
-		h.logger.Errorf("Failed to parse tag2 ID: %w", err)
+		h.logger.Infof("Invalid tag2 id '%s'", req.Tag2ID)
 		c.JSON(http.StatusBadRequest, "Invalid tag2 ID format")
 		return
 	}
@@ -413,7 +443,7 @@ func (h *Handler) UnlinkTags(c *gin.Context) {
 		switch e := err.(type) {
 		case *errors.TagNotFoundError:
 			c.JSON(http.StatusNotFound, e.Error())
-		case *errors.TagToTagLinkNotFoundError:
+		case *errors.TagLinkNotFoundError:
 			c.JSON(http.StatusNotFound, e.Error())
 		default:
 			c.JSON(http.StatusInternalServerError, "Internal server error")

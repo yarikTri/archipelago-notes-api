@@ -2,8 +2,10 @@ package http
 
 import (
 	"errors"
-	"github.com/lib/pq"
 	"net/http"
+	"os"
+
+	"github.com/lib/pq"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
@@ -129,4 +131,28 @@ func (h *Handler) Logout(c *gin.Context) {
 
 	c.SetCookie(commonHttp.SessionIdCookieName, "", -1, "", "", true, true)
 	c.JSON(http.StatusOK, "OK")
+}
+
+// ClearAllSessions ..
+func (h *Handler) ClearAllSessions(c *gin.Context) {
+	adminPassword := c.GetHeader(commonHttp.AdminPasswordHeader)
+	if adminPassword == "" {
+		h.logger.Error("Admin password header is missing")
+		c.JSON(http.StatusUnauthorized, "Admin password is required")
+		return
+	}
+
+	if adminPassword != os.Getenv("ADMIN_PASSWORD") {
+		h.logger.Error("Invalid admin password provided")
+		c.JSON(http.StatusForbidden, "Invalid admin password")
+		return
+	}
+
+	if err := h.authUsecase.ClearAllSessions(); err != nil {
+		h.logger.Error(err.Error())
+		c.JSON(http.StatusInternalServerError, "Error while clearing sessions")
+		return
+	}
+
+	c.JSON(http.StatusOK, "All sessions cleared successfully")
 }

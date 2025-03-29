@@ -256,7 +256,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Note created",
                         "schema": {
                             "$ref": "#/definitions/models.NoteTransfer"
@@ -483,7 +483,7 @@
             }
         },
         "/api/tags": {
-            "post": {
+            "put": {
                 "description": "Update tag by ID",
                 "consumes": [
                     "application/json"
@@ -619,7 +619,7 @@
             }
         },
         "/api/tags/note": {
-            "post": {
+            "put": {
                 "description": "Update tag name for a specific note",
                 "consumes": [
                     "application/json"

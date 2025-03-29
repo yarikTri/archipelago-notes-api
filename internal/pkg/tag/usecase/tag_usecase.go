@@ -22,9 +22,9 @@ func (u *Usecase) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, 
 	return u.repo.CreateAndLinkTag(name, noteID)
 }
 
-func (u *Usecase) UpdateTag(ID uuid.UUID, name string) error {
+func (u *Usecase) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
 	if name == "" {
-		return &errors.TagNameEmptyError{}
+		return nil, &errors.TagNameEmptyError{}
 	}
 
 	return u.repo.UpdateTag(ID, name)
@@ -34,9 +34,9 @@ func (u *Usecase) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {
 	return u.repo.UnlinkTagFromNote(tagID, noteID)
 }
 
-func (u *Usecase) UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) error {
+func (u *Usecase) UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error) {
 	if newName == "" {
-		return &errors.TagNameEmptyError{}
+		return nil, &errors.TagNameEmptyError{}
 	}
 
 	return u.repo.UpdateTagForNote(tagID, noteID, newName)

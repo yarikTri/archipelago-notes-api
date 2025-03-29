@@ -29,8 +29,8 @@ type UnlinkTagsRequest struct {
 }
 
 type UpdateTagRequest struct {
-	ID   string `json:"id" valid:"required"`
-	Name string `json:"name" valid:"required"`
+	TagID string `json:"tag_id" valid:"required"`
+	Name  string `json:"name" valid:"required"`
 }
 
 func (utr *UpdateTagRequest) validate() error {
