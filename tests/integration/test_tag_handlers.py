@@ -508,3 +508,91 @@ def test_tag_operations_after_user_switch(api_client, second_user_client, test_t
     # Second user deletes their temporary tag
     response = second_user_client.post(f"{second_user_client.base_url}/api/tags/delete", json={"tag_id": temp_tag_id_2})
     assert response.status_code == 200
+
+## NEW TESTS
+
+def test_user_cannot_view_tags_from_other_users_notes(api_client, second_user_client, test_note, second_user_note):
+    """Test that users cannot view tags linked to other users' notes"""
+    # Second user creates a tag
+    tag_data = {"name": "second-user-tag", "note_id": second_user_note}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/create", json=tag_data)
+    assert response.status_code == 201
+    second_user_tag_id = response.json()["tag_id"]
+    
+    # First user tries to view tags linked to second user's note
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{second_user_note}")
+    assert response.status_code == 403, "First user should not be able to view tags from second user's note"
+    
+    # Verify second user can still view their own note's tags
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/note/{second_user_note}")
+    assert response.status_code == 200
+    tags = response.json()
+    assert len(tags) == 1
+    assert tags[0]["tag_id"] == second_user_tag_id
+
+
+def test_user_cannot_view_linked_tags_from_other_users_tags(api_client, second_user_client, test_note, second_user_note):
+    """Test that users cannot view tags linked to other users' tags"""
+    # Second user creates two tags and links them
+    tag1_data = {"name": "second-user-tag1", "note_id": second_user_note}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/create", json=tag1_data)
+    assert response.status_code == 201
+    second_user_tag1_id = response.json()["tag_id"]
+    
+    tag2_data = {"name": "second-user-tag2", "note_id": second_user_note}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/create", json=tag2_data)
+    assert response.status_code == 201
+    second_user_tag2_id = response.json()["tag_id"]
+    
+    # Second user links the tags
+    link_data = {"tag1_id": second_user_tag1_id, "tag2_id": second_user_tag2_id}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/link", json=link_data)
+    assert response.status_code == 200
+    
+    # First user tries to view linked tags from second user's tag
+    response = api_client.get(f"{api_client.base_url}/api/tags/{second_user_tag1_id}/linked")
+    assert response.status_code == 403, "First user should not be able to view linked tags from second user's tag"
+    
+    # Verify second user can still view their own linked tags
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/{second_user_tag1_id}/linked")
+    assert response.status_code == 200
+    linked_tags = response.json()
+    assert len(linked_tags) == 1
+    assert linked_tags[0]["tag_id"] == second_user_tag2_id
+
+
+
+def test_tag_unlinking_isolation_between_users(api_client, second_user_client, test_note, second_user_note):
+    """Test that tag unlinking operations are isolated between users"""
+    # First user creates a tag
+    tag1_data = {"name": "first-user-tag", "note_id": test_note}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag1_data)
+    assert response.status_code == 201
+    first_user_tag_id = response.json()["tag_id"]
+    
+    # Second user creates a tag
+    tag2_data = {"name": "second-user-tag", "note_id": second_user_note}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/create", json=tag2_data)
+    assert response.status_code == 201
+    second_user_tag_id = response.json()["tag_id"]
+    
+    # First user tries to unlink second user's tag from a note
+    unlink_data = {"tag_id": second_user_tag_id, "note_id": test_note}
+    response = api_client.post(f"{api_client.base_url}/api/tags/unlink", json=unlink_data)
+    assert response.status_code == 404, "First user should not be able to unlink second user's tag"
+    
+    # Second user tries to unlink first user's tag from a note
+    unlink_data = {"tag_id": first_user_tag_id, "note_id": second_user_note}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/unlink", json=unlink_data)
+    assert response.status_code == 404, "Second user should not be able to unlink first user's tag"
+    
+    # Verify links still exist
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/note/{second_user_note}")
+    assert response.status_code == 200
+    tags = response.json()
+    assert any(tag["tag_id"] == second_user_tag_id for tag in tags)
+    
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
+    assert response.status_code == 200
+    tags = response.json()
+    assert any(tag["tag_id"] == first_user_tag_id for tag in tags)
