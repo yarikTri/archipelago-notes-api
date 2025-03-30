@@ -509,23 +509,60 @@ func (p *PostgreSQL) GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error) {
 		return nil, fmt.Errorf("(repo) failed to check tag existence: %w", err)
 	}
 
-	// Get all linked tags
 	var tags []models.Tag
 	err = p.db.Select(&tags, `
 		SELECT t.tag_id, t.name
 		FROM tag t
-		JOIN tag_to_tag ttt ON (t.tag_id = ttt.tag_1_id OR t.tag_id = ttt.tag_2_id)
+		JOIN tag_to_tag ttt ON (ttt.tag_1_id = t.tag_id OR ttt.tag_2_id = t.tag_id)
 		WHERE (ttt.tag_1_id = $1 OR ttt.tag_2_id = $1)
-		AND t.tag_id != $1
-		ORDER BY t.name`, tagID)
-
+		AND t.tag_id != $1`, tagID)
 	if err != nil {
 		return nil, fmt.Errorf("(repo) failed to get linked tags: %w", err)
 	}
-
 	if tags == nil {
 		tags = []models.Tag{}
 	}
-
 	return tags, nil
+}
+
+// DeleteTag deletes a tag and all its relations
+func (p *PostgreSQL) DeleteTag(tagID uuid.UUID) error {
+	err := p.withTransaction(func(tx *sql.Tx) error {
+		// Check if tag exists
+		_, err := p.getTagByID(tx, tagID)
+		if err != nil {
+			return err
+		}
+
+		// Delete all tag-to-note relations
+		_, err = tx.Exec(`
+			DELETE FROM tag_to_note
+			WHERE tag_id = $1`, tagID)
+		if err != nil {
+			return fmt.Errorf("(repo) failed to delete tag-to-note relations: %w", err)
+		}
+
+		// Delete all tag-to-tag relations
+		_, err = tx.Exec(`
+			DELETE FROM tag_to_tag
+			WHERE tag_1_id = $1 OR tag_2_id = $1`, tagID)
+		if err != nil {
+			return fmt.Errorf("(repo) failed to delete tag-to-tag relations: %w", err)
+		}
+
+		// Delete the tag itself
+		_, err = tx.Exec(`
+			DELETE FROM tag
+			WHERE tag_id = $1`, tagID)
+		if err != nil {
+			return fmt.Errorf("(repo) failed to delete tag: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

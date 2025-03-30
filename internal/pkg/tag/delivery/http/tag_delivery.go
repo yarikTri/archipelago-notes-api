@@ -464,3 +464,52 @@ func (h *Handler) GetLinkedTags(c *gin.Context) {
 
 	c.JSON(http.StatusOK, tags)
 }
+
+// DeleteTag
+// @Summary		Delete tag
+// @Tags		Tags
+// @Description	Delete a tag and all its relations (notes and linked tags)
+// @Accept		json
+// @Produce     json
+// @Param		tagInfo	body		DeleteTagRequest		true	"Tag ID"
+// @Success		200								"Tag deleted"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/delete [post]
+func (h *Handler) DeleteTag(c *gin.Context) {
+	var req DeleteTagRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request format")
+		return
+	}
+
+	if err := req.validate(); err != nil {
+		h.logger.Infof("Invalid delete tag request: %w", err)
+		c.JSON(http.StatusBadRequest, "Invalid request data")
+		return
+	}
+
+	tagID, err := uuid.FromString(req.TagID)
+	if err != nil {
+		h.logger.Infof("Invalid tag id '%s'", req.TagID)
+		c.JSON(http.StatusBadRequest, "Invalid tag ID format")
+		return
+	}
+
+	if err := h.tagUsecase.DeleteTag(tagID); err != nil {
+		h.logger.Errorf("Error while deleting tag: %w", err)
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, e.Error())
+		default:
+			c.JSON(http.StatusInternalServerError, "Internal server error")
+		}
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

@@ -424,3 +424,160 @@ def test_get_tags_for_note_with_no_tags(api_client, root_dir):
     response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note_id}")
     assert response.status_code == 200, response.text
     assert response.json() == []
+
+
+def test_delete_tag(api_client, test_tag, test_note):
+    """Test deleting a tag completely"""
+    # Create another tag and link it to test_tag
+    tag_data = {"name": "second-tag", "note_id": test_note}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+    assert response.status_code == 201
+    second_tag_id = response.json()["tag_id"]
+
+    # Link tags
+    link_data = {"tag1_id": test_tag, "tag2_id": second_tag_id}
+    response = api_client.post(f"{api_client.base_url}/api/tags/link", json=link_data)
+    assert response.status_code == 200
+
+    # Delete the tag
+    response = api_client.post(f"{api_client.base_url}/api/tags/delete", json={"tag_id": test_tag})
+    assert response.status_code == 200
+
+    # Verify tag is deleted from note
+    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{test_note}")
+    assert response.status_code == 200
+    tags = response.json()
+    assert not any(tag["tag_id"] == test_tag for tag in tags)
+
+    # Verify tag is deleted from linked tags
+    response = api_client.get(f"{api_client.base_url}/api/tags/{second_tag_id}/linked")
+    assert response.status_code == 200
+    linked_tags = response.json()
+    assert not any(tag["tag_id"] == test_tag for tag in linked_tags)
+
+    # Verify tag doesn't exist anymore
+    response = api_client.get(f"{api_client.base_url}/api/tags/{test_tag}/notes")
+    assert response.status_code == 404
+
+
+def test_delete_non_existent_tag(api_client):
+    """Test deleting a non-existent tag"""
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/delete",
+        json={"tag_id": str(uuid.uuid4())}
+    )
+    assert response.status_code == 404
+
+
+def test_delete_tag_invalid_request(api_client):
+    """Test deleting a tag with invalid request format"""
+    # Test with missing tag_id
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/delete",
+        json={}
+    )
+    assert response.status_code == 400
+
+    # Test with invalid tag_id format
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/delete",
+        json={"tag_id": "invalid-uuid"}
+    )
+    assert response.status_code == 400
+
+
+def test_delete_tag_with_multiple_relations(api_client, root_dir):
+    """Test deleting a tag that has multiple relations"""
+    # Create multiple notes
+    note1_id = create_note(api_client, "Note 1", "automerge-url-1", root_dir)
+    note2_id = create_note(api_client, "Note 2", "automerge-url-2", root_dir)
+    note3_id = create_note(api_client, "Note 3", "automerge-url-3", root_dir)
+
+    # Create and link a tag to all notes
+    tag_data = {"name": "multi-note-tag", "note_id": note1_id}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+    assert response.status_code == 201
+    tag_id = response.json()["tag_id"]
+
+    # Link the same tag to other notes
+    tag_data["note_id"] = note2_id
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+    assert response.status_code == 201
+
+    tag_data["note_id"] = note3_id
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+    assert response.status_code == 201
+
+    # Create and link another tag
+    second_tag_data = {"name": "second-tag", "note_id": note1_id}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=second_tag_data)
+    assert response.status_code == 201
+    second_tag_id = response.json()["tag_id"]
+
+    # Link the tags together
+    link_data = {"tag1_id": tag_id, "tag2_id": second_tag_id}
+    response = api_client.post(f"{api_client.base_url}/api/tags/link", json=link_data)
+    assert response.status_code == 200
+
+    # Delete the first tag
+    response = api_client.post(f"{api_client.base_url}/api/tags/delete", json={"tag_id": tag_id})
+    assert response.status_code == 200
+
+    # Verify tag is deleted from all notes
+    for note_id in [note1_id, note2_id, note3_id]:
+        response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note_id}")
+        assert response.status_code == 200
+        tags = response.json()
+        assert not any(tag["tag_id"] == tag_id for tag in tags)
+
+    # Verify tag is deleted from linked tag
+    response = api_client.get(f"{api_client.base_url}/api/tags/{second_tag_id}/linked")
+    assert response.status_code == 200
+    linked_tags = response.json()
+    assert not any(tag["tag_id"] == tag_id for tag in linked_tags)
+
+    # Verify tag doesn't exist anymore
+    response = api_client.get(f"{api_client.base_url}/api/tags/{tag_id}/notes")
+    assert response.status_code == 404
+
+
+def test_delete_tag_cascade_effects(api_client, root_dir):
+    """Test that deleting a tag doesn't affect other tags or notes"""
+    # Create two notes
+    note1_id = create_note(api_client, "Note 1", "automerge-url-1", root_dir)
+    note2_id = create_note(api_client, "Note 2", "automerge-url-2", root_dir)
+
+    # Create and link two different tags to the first note
+    tag1_data = {"name": "tag1", "note_id": note1_id}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag1_data)
+    assert response.status_code == 201
+    tag1_id = response.json()["tag_id"]
+
+    tag2_data = {"name": "tag2", "note_id": note1_id}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag2_data)
+    assert response.status_code == 201
+    tag2_id = response.json()["tag_id"]
+
+    # Create and link a tag to the second note
+    tag3_data = {"name": "tag3", "note_id": note2_id}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag3_data)
+    assert response.status_code == 201
+    tag3_id = response.json()["tag_id"]
+
+    # Delete tag1
+    response = api_client.post(f"{api_client.base_url}/api/tags/delete", json={"tag_id": tag1_id})
+    assert response.status_code == 200
+
+    # Verify tag1 is deleted from note1
+    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
+    assert response.status_code == 200
+    tags = response.json()
+    assert not any(tag["tag_id"] == tag1_id for tag in tags)
+    assert any(tag["tag_id"] == tag2_id for tag in tags)
+
+    # Verify note2 and its tag are unaffected
+    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
+    assert response.status_code == 200
+    tags = response.json()
+    assert len(tags) == 1
+    assert tags[0]["tag_id"] == tag3_id

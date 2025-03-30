@@ -15,6 +15,7 @@ type Usecase interface {
 	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
+	DeleteTag(tagID uuid.UUID) error
 }
 
 type Repository interface {
@@ -27,4 +28,5 @@ type Repository interface {
 	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
+	DeleteTag(tagID uuid.UUID) error
 }

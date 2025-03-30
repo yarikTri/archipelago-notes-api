@@ -74,6 +74,7 @@ func InitRoutes(
 	tags.POST("/link", tagHandler.LinkTags)
 	tags.POST("/unlink-tags", tagHandler.UnlinkTags)
 	tags.GET("/:tagID/linked", tagHandler.GetLinkedTags)
+	tags.POST("/delete", tagHandler.DeleteTag)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 

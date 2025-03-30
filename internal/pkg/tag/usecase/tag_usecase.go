@@ -61,3 +61,7 @@ func (u *Usecase) UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
 func (u *Usecase) GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error) {
 	return u.repo.GetLinkedTags(tagID)
 }
+
+func (u *Usecase) DeleteTag(tagID uuid.UUID) error {
+	return u.repo.DeleteTag(tagID)
+}

@@ -48,3 +48,13 @@ func (utr *UpdateTagForNoteRequest) validate() error {
 	_, err := valid.ValidateStruct(utr)
 	return err
 }
+
+// DeleteTagRequest represents the request body for deleting a tag
+type DeleteTagRequest struct {
+	TagID string `json:"tag_id" valid:"required"`
+}
+
+func (dtr *DeleteTagRequest) validate() error {
+	_, err := valid.ValidateStruct(dtr)
+	return err
+}
