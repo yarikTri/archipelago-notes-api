@@ -596,3 +596,93 @@ def test_tag_unlinking_isolation_between_users(api_client, second_user_client, t
     assert response.status_code == 200
     tags = response.json()
     assert any(tag["tag_id"] == first_user_tag_id for tag in tags)
+
+
+def test_tag_same_name_isolation_between_users(api_client, second_user_client, test_note, second_user_note):
+    """Test that users can only see their own tags with the same name from their own notes"""
+    # Create a tag with the same name for both users
+    shared_tag_name = "shared-tag-name"
+    
+    # First user creates their tag
+    tag1_data = {"name": shared_tag_name, "note_id": test_note}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag1_data)
+    assert response.status_code == 201
+    first_user_tag_id = response.json()["tag_id"]
+    
+    # Second user creates their tag with the same name
+    tag2_data = {"name": shared_tag_name, "note_id": second_user_note}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/create", json=tag2_data)
+    assert response.status_code == 201
+    second_user_tag_id = response.json()["tag_id"]
+    
+    # Verify the tags have different IDs
+    assert first_user_tag_id != second_user_tag_id, "Tags with same name for different users should have different IDs"
+    
+    # First user checks their note's tags
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
+    assert response.status_code == 200
+    first_user_tags = response.json()
+    assert len(first_user_tags) == 1, "First user should see exactly one tag"
+    assert first_user_tags[0]["tag_id"] == first_user_tag_id, "First user should see their own tag"
+    assert first_user_tags[0]["name"] == shared_tag_name, "First user's tag should have the correct name"
+    
+    # Second user checks their note's tags
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/note/{second_user_note}")
+    assert response.status_code == 200
+    second_user_tags = response.json()
+    assert len(second_user_tags) == 1, "Second user should see exactly one tag"
+    assert second_user_tags[0]["tag_id"] == second_user_tag_id, "Second user should see their own tag"
+    assert second_user_tags[0]["name"] == shared_tag_name, "Second user's tag should have the correct name"
+    
+
+
+def test_tag_same_name_deletion_isolation(api_client, second_user_client, test_note, second_user_note):
+    """Test that deleting one user's tag doesn't affect another user's tag with the same name"""
+    # Create a tag with the same name for both users
+    shared_tag_name = "shared-tag-name"
+    
+    # First user creates their tag
+    tag1_data = {"name": shared_tag_name, "note_id": test_note}
+    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag1_data)
+    assert response.status_code == 201
+    first_user_tag_id = response.json()["tag_id"]
+    
+    # Second user creates their tag with the same name
+    tag2_data = {"name": shared_tag_name, "note_id": second_user_note}
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/create", json=tag2_data)
+    assert response.status_code == 201
+    second_user_tag_id = response.json()["tag_id"]
+    
+    # Verify both tags exist initially
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
+    assert response.status_code == 200
+    first_user_tags = response.json()
+    assert len(first_user_tags) == 1, "First user should have one tag"
+    
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/note/{second_user_note}")
+    assert response.status_code == 200
+    second_user_tags = response.json()
+    assert len(second_user_tags) == 1, "Second user should have one tag"
+    
+    # First user deletes their tag
+    response = api_client.post(f"{api_client.base_url}/api/tags/delete", json={"tag_id": first_user_tag_id})
+    assert response.status_code == 200, "First user should be able to delete their tag"
+    
+    # Verify first user's tag is deleted
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
+    assert response.status_code == 200
+    first_user_tags = response.json()
+    assert len(first_user_tags) == 0, "First user's tag should be deleted"
+    
+    # Verify second user's tag still exists
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/note/{second_user_note}")
+    assert response.status_code == 200
+    second_user_tags = response.json()
+    assert len(second_user_tags) == 1, "Second user's tag should still exist"
+    assert second_user_tags[0]["tag_id"] == second_user_tag_id, "Second user's tag ID should be unchanged"
+    assert second_user_tags[0]["name"] == shared_tag_name, "Second user's tag name should be unchanged"
+    
+    # Verify first user cannot delete second user's tag
+    response = api_client.post(f"{api_client.base_url}/api/tags/delete", json={"tag_id": second_user_tag_id})
+    assert response.status_code == 403, "First user should not be able to delete second user's tag"
+
