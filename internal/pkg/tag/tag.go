@@ -17,9 +17,10 @@ type Usecase interface {
 	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
 	DeleteTag(tagID uuid.UUID) error
+	SuggestTags(text string) ([]string, error)
 }
 
-type Repository interface {
+type TagRepository interface {
 	CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error)
 	LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
@@ -31,4 +32,8 @@ type Repository interface {
 	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
 	DeleteTag(tagID uuid.UUID) error
+}
+
+type TagSuggesterRepository interface {
+	SuggestTags(text string) ([]string, error)
 }

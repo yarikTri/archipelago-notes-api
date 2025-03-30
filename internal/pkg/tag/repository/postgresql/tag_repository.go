@@ -11,7 +11,7 @@ import (
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/errors"
 )
 
-// PostgreSQL implements tag.Repository
+// PostgreSQL implements tag.TagRepository
 type PostgreSQL struct {
 	db *sqlx.DB
 }

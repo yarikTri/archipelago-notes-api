@@ -710,3 +710,40 @@ func (h *Handler) LinkExistingTag(c *gin.Context) {
 
 	c.Status(http.StatusCreated)
 }
+
+type suggestTagsRequest struct {
+	Text string `json:"text" binding:"required"`
+}
+
+type suggestTagsResponse struct {
+	Tags []string `json:"tags"`
+}
+
+// SuggestTags godoc
+// @Summary Suggest tags for given text
+// @Description Generate tag suggestions using LLM
+// @Tags tags
+// @Accept json
+// @Produce json
+// @Param request body suggestTagsRequest true "Text to generate tags for"
+// @Success 200 {object} suggestTagsResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/tags/suggest [post]
+func (h *Handler) SuggestTags(c *gin.Context) {
+	var req suggestTagsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tags, err := h.tagUsecase.SuggestTags(req.Text)
+	if err != nil {
+		h.logger.Errorf("Failed to generate tags: %w", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate tags"})
+		return
+	}
+
+	c.JSON(http.StatusOK, suggestTagsResponse{Tags: tags})
+}

@@ -2,8 +2,10 @@ package init
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/yarikTri/archipelago-notes-api/internal/clients"
 	"github.com/yarikTri/archipelago-notes-api/internal/clients/invitations/email"
 
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
@@ -18,6 +20,7 @@ import (
 	notesUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/usecase"
 
 	tagHandler "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/delivery/http"
+	tagSuggester "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/repository/ollama"
 	tagRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/repository/postgresql"
 	tagUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/usecase"
 
@@ -32,6 +35,8 @@ import (
 
 func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
 	emailClient := email.NewEmailClient()
+	openAiClient := clients.NewOpenAiClient(os.Getenv("OPENAI_URL"))
+	tagSuggesterRepo := tagSuggester.NewTagSuggester(openAiClient)
 
 	notesRepo := notesRepository.NewPostgreSQL(sqlDBClient)
 	dirsRepo := dirsRepository.NewPostgreSQL(sqlDBClient)
@@ -43,7 +48,7 @@ func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
 	dirsUsecase := dirsUsecase.NewUsecase(dirsRepo, notesRepo)
 	usersUsecase := usersUsecase.NewUsecase(usersRepo, emailClient)
 	summaryUsecase := summaryUsecase.NewUsecase(summRepo)
-	tagUsecase := tagUsecase.NewUsecase(tagRepo)
+	tagUsecase := tagUsecase.NewUsecase(tagRepo, tagSuggesterRepo)
 
 	notesHandler := notesHandler.NewHandler(notesUsecase, logger)
 	dirsHandler := dirsHandler.NewHandler(dirsUsecase, logger)
