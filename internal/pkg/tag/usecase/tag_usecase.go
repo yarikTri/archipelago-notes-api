@@ -22,6 +22,10 @@ func (u *Usecase) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, 
 	return u.repo.CreateAndLinkTag(name, noteID)
 }
 
+func (u *Usecase) LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error {
+	return u.repo.LinkExistingTag(tagID, noteID)
+}
+
 func (u *Usecase) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
 	if name == "" {
 		return nil, &errors.TagNameEmptyError{}

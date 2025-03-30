@@ -5,22 +5,37 @@ from conftest import create_note
 
 
 def test_create_and_link_tag(api_client, test_note):
-    """Test creating and linking a tag to a note"""
+    """Test creating a new tag and linking it to a note"""
     # Test successful creation
     tag_data = {"name": "test-tag", "note_id": test_note}
-    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/create", 
+        json=tag_data
+    )
     assert response.status_code == 201, response.text
     assert "tag_id" in response.json()
     assert "name" in response.json()
     assert response.json()["name"] == "test-tag"
+    tag_id = response.json()["tag_id"]
+    
+    # Verify tag is linked to the note
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
+    assert response.status_code == 200, response.text
+    tags = response.json()
+    assert any(tag["tag_id"] == tag_id for tag in tags), "Tag should be linked to the note"
 
-    # Test invalid request
-    invalid_data = {
-        "name": "",  # Empty name
-        "note_id": test_note,
-    }
+    # Test creating a tag with same name for the same note (should fail)
     response = api_client.post(
-        f"{api_client.base_url}/api/tags/create", json=invalid_data
+        f"{api_client.base_url}/api/tags/create", 
+        json=tag_data
+    )
+    assert response.status_code == 409, "Creating a tag with the same name for the same note should fail"
+    
+    # Test invalid request - empty name
+    invalid_data = {"name": "", "note_id": test_note}
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/create", 
+        json=invalid_data
     )
     assert response.status_code == 400, response.text
 
@@ -51,7 +66,7 @@ def test_unlink_tag_from_note(api_client, test_tag, test_note):
 
     # Verify tag is unlinked
     print(test_note)
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{test_note}")
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
     assert response.status_code == 200, response.text
     print(response.text)
     tags = response.json()
@@ -84,7 +99,7 @@ def test_get_notes_by_tag(api_client, test_tag, test_note):
 
 def test_get_tags_by_note(api_client, test_tag, test_note):
     """Test getting tags by note"""
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{test_note}")
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
     assert response.status_code == 200
     tags = response.json()
     assert len(tags) == 1
@@ -159,7 +174,7 @@ def test_unlink_non_linked_tag(api_client, test_tag, root_dir):
 def test_get_tags_for_note_with_no_tags(api_client, root_dir):
     """Test getting tags for a note with no tags"""
     note_id = create_note(api_client, "Note Without Tags", "automerge-url", root_dir)
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note_id}")
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{note_id}")
     assert response.status_code == 200, response.text
     assert response.json() == []
 
@@ -182,7 +197,7 @@ def test_delete_tag(api_client, test_tag, test_note):
     assert response.status_code == 200
 
     # Verify tag is deleted from note
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{test_note}")
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
     assert response.status_code == 200
     tags = response.json()
     assert not any(tag["tag_id"] == test_tag for tag in tags)
@@ -263,7 +278,7 @@ def test_delete_tag_with_multiple_relations(api_client, root_dir):
 
     # Verify tag is deleted from all notes
     for note_id in [note1_id, note2_id, note3_id]:
-        response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note_id}")
+        response = api_client.get(f"{api_client.base_url}/api/tags/note/{note_id}")
         assert response.status_code == 200
         tags = response.json()
         assert not any(tag["tag_id"] == tag_id for tag in tags)
@@ -307,56 +322,122 @@ def test_delete_tag_cascade_effects(api_client, root_dir):
     assert response.status_code == 200
 
     # Verify tag1 is deleted from note1
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{note1_id}")
     assert response.status_code == 200
     tags = response.json()
     assert not any(tag["tag_id"] == tag1_id for tag in tags)
     assert any(tag["tag_id"] == tag2_id for tag in tags)
 
     # Verify note2 and its tag are unaffected
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{note2_id}")
     assert response.status_code == 200
     tags = response.json()
     assert len(tags) == 1
     assert tags[0]["tag_id"] == tag3_id
 
 @pytest.mark.xfail
-def test_tag_isolation_between_users(api_client, second_user_client, test_tag, second_user_tag):
-    """Test that users can only see their own tags"""
-    # First user should not be able to see second user's tag
-    response = api_client.get(f"{api_client.base_url}/api/tags/{second_user_tag}/notes")
-    assert response.status_code == 404, "First user should not be able to see second user's tag"
-
-    # Second user should not be able to see first user's tag
-    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/{test_tag}/notes")
+def test_tag_isolation_between_users(api_client, second_user_client, test_note, second_user_note):
+    """Test that users cannot see or modify other users' tags"""
+    # First user creates a tag
+    tag_data = {"name": "isolated-tag", "note_id": test_note}
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/create", 
+        json=tag_data
+    )
+    assert response.status_code == 201
+    first_user_tag_id = response.json()["tag_id"]
+    
+    # Second user cannot see the first user's tag
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/{first_user_tag_id}/notes")
     assert response.status_code == 404, "Second user should not be able to see first user's tag"
+    
+    # Second user creates a tag with the same name
+    tag_data = {"name": "isolated-tag", "note_id": second_user_note}
+    response = second_user_client.post(
+        f"{second_user_client.base_url}/api/tags/create", 
+        json=tag_data
+    )
+    assert response.status_code == 201
+    second_user_tag_id = response.json()["tag_id"]
+    assert first_user_tag_id != second_user_tag_id, "Tags with same name for different users should have different IDs"
+    
+    # Second user cannot link first user's tag to their note
+    response = second_user_client.post(
+        f"{second_user_client.base_url}/api/tags/{first_user_tag_id}/link/{second_user_note}"
+    )
+    assert response.status_code == 404, "Second user should not be able to link first user's tag"
+    
+    # First user cannot link their tag to second user's note
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/{first_user_tag_id}/link/{second_user_note}"
+    )
+    assert response.status_code == 403, "First user should not be able to link to second user's note"
 
 @pytest.mark.xfail
-def test_tag_deletion_isolation(api_client, second_user_client, test_tag, second_user_tag):
-    """Test that users can only delete their own tags"""
-    # First user tries to delete second user's tag
+def test_tag_deletion_isolation(api_client, second_user_client, test_note, second_user_note):
+    """Test that users cannot delete other users' tags"""
+    # First user creates a tag
+    tag_data = {"name": "delete-isolation-tag", "note_id": test_note}
     response = api_client.post(
-        f"{api_client.base_url}/api/tags/delete", json={"tag_id": second_user_tag}
+        f"{api_client.base_url}/api/tags/create",
+        json=tag_data
     )
-    assert response.status_code == 404, "First user should not be able to delete second user's tag"
+    assert response.status_code == 201
+    first_user_tag_id = response.json()["tag_id"]
 
-    # Second user tries to delete first user's tag
-    response = second_user_client.post(
-        f"{second_user_client.base_url}/api/tags/delete", json={"tag_id": test_tag}
-    )
+    # Second user cannot delete first user's tag
+    response = second_user_client.post(f"{second_user_client.base_url}/api/tags/delete", json={"tag_id": first_user_tag_id})
+    print(response.text)
     assert response.status_code == 404, "Second user should not be able to delete first user's tag"
 
-    # Second user deletes their own tag (should work)
-    response = second_user_client.post(
-        f"{second_user_client.base_url}/api/tags/delete", json={"tag_id": second_user_tag}
-    )
-    assert response.status_code == 200, "Second user should be able to delete their own tag"
+    # Verify first user's tag still exists
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
+    assert response.status_code == 200
+    tags = response.json()
+    assert any(tag["tag_id"] == first_user_tag_id for tag in tags), "First user's tag should still exist"
 
-    # First user deletes their own tag (should work)
+
+def test_user_cannot_link_tag_to_other_users_note(api_client, second_user_client, test_note, second_user_note):
+    """Test that users cannot link tags to other users' notes"""
+    # First user creates a tag
+    tag_data = {"name": "cross-linking-tag", "note_id": test_note}
     response = api_client.post(
-        f"{api_client.base_url}/api/tags/delete", json={"tag_id": test_tag}
+        f"{api_client.base_url}/api/tags/create", 
+        json=tag_data
     )
-    assert response.status_code == 200, "First user should be able to delete their own tag"
+    assert response.status_code == 201
+    tag_id = response.json()["tag_id"]
+    
+    # First user cannot link their tag to second user's note
+    response = api_client.post(f"{api_client.base_url}/api/tags/{tag_id}/link/{second_user_note}")
+    assert response.status_code == 403, "First user should not be able to link their tag to second user's note"
+
+
+def test_link_existing_tag(api_client, test_tag, root_dir):
+    """Test linking an existing tag to a different note"""
+    # Create a second note
+    note2_id = create_note(api_client, "Second Note", "automerge-url-2", root_dir)
+    
+    # Link the existing tag to the second note
+    response = api_client.post(f"{api_client.base_url}/api/tags/{test_tag}/link/{note2_id}")
+    assert response.status_code == 201, response.text
+    
+    # Verify tag is linked to both notes
+    response = api_client.get(f"{api_client.base_url}/api/tags/{test_tag}/notes")
+    assert response.status_code == 200, response.text
+    notes = response.json()
+    assert len(notes) == 2, "Tag should be linked to two notes"
+    note_ids = [note["id"] for note in notes]
+    assert note2_id in note_ids, "Tag should be linked to the second note"
+    
+    # Try linking the same tag to the same note again (should fail)
+    response = api_client.post(f"{api_client.base_url}/api/tags/{test_tag}/link/{note2_id}")
+    assert response.status_code == 409, "Linking the same tag to the same note again should fail"
+    
+    # Test with non-existent tag ID
+    non_existent_tag_id = str(uuid.uuid4())
+    response = api_client.post(f"{api_client.base_url}/api/tags/{non_existent_tag_id}/link/{note2_id}")
+    assert response.status_code == 404, "Linking a non-existent tag should fail"
 
 
 def test_tag_with_same_name_for_different_users(api_client, second_user_client, test_note, second_user_note):
@@ -380,13 +461,13 @@ def test_tag_with_same_name_for_different_users(api_client, second_user_client, 
     assert first_user_tag_id != second_user_tag_id, "Tags with same name for different users should have different IDs"
     
     # Verify first user can see their tag
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{test_note}")
+    response = api_client.get(f"{api_client.base_url}/api/tags/note/{test_note}")
     assert response.status_code == 200
     tags = response.json()
     assert any(tag["name"] == tag_name for tag in tags), "First user should see their tag"
     
     # Verify second user can see their tag
-    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/notes/{second_user_note}")
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/note/{second_user_note}")
     assert response.status_code == 200
     tags = response.json()
     assert any(tag["name"] == tag_name for tag in tags), "Second user should see their tag"
@@ -419,7 +500,7 @@ def test_tag_operations_after_user_switch(api_client, second_user_client, test_t
     assert response.status_code == 200
     
     # Second user verifies their tag still exists
-    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/notes/{second_user_note}")
+    response = second_user_client.get(f"{second_user_client.base_url}/api/tags/note/{second_user_note}")
     assert response.status_code == 200
     tags = response.json()
     assert any(tag["tag_id"] == temp_tag_id_2 for tag in tags), "Second user's tag should still exist"

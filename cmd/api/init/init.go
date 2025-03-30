@@ -49,7 +49,7 @@ func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
 	dirsHandler := dirsHandler.NewHandler(dirsUsecase, logger)
 	usersHandler := usersHandler.NewHandler(usersUsecase, logger)
 	summaryHandler := summaryHandler.NewHandler(summaryUsecase, logger)
-	tagHandler := tagHandler.NewHandler(tagUsecase, logger)
+	tagHandler := tagHandler.NewHandler(tagUsecase, notesUsecase, logger)
 
 	return router.InitRoutes(
 		notesHandler,

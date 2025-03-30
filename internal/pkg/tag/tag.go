@@ -7,6 +7,7 @@ import (
 
 type Usecase interface {
 	CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error)
+	LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
 	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
 	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
@@ -20,6 +21,7 @@ type Usecase interface {
 
 type Repository interface {
 	CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error)
+	LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
 	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
 	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)

@@ -67,14 +67,13 @@ func InitRoutes(
 	tags := api.Group("/tags")
 	tags.POST("/create", tagHandler.CreateAndLinkTag)
 	tags.POST("/unlink", tagHandler.UnlinkTagFromNote)
-	// tags.PUT("", tagHandler.UpdateTag)
-	//tags.PUT("/note", tagHandler.UpdateTagForNote)
-	tags.GET("/:tagID/notes", tagHandler.GetNotesByTag)
-	tags.GET("/notes/:noteID", tagHandler.GetTagsByNote)
 	tags.POST("/link", tagHandler.LinkTags)
 	tags.POST("/unlink-tags", tagHandler.UnlinkTags)
-	tags.GET("/:tagID/linked", tagHandler.GetLinkedTags)
 	tags.POST("/delete", tagHandler.DeleteTag)
+	tags.GET("/note/:note_id", tagHandler.GetTagsByNote)
+	tags.GET("/:tag_id/notes", tagHandler.GetNotesByTag)
+	tags.GET("/:tag_id/linked", tagHandler.GetLinkedTags)
+	tags.POST("/:tag_id/link/:note_id", tagHandler.LinkExistingTag)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
