@@ -497,7 +497,12 @@ func (h *Handler) GetLinkedTags(c *gin.Context) {
 	notes, err := h.tagUsecase.GetNotesByTag(tagID)
 	if err != nil {
 		h.logger.Errorf("Error while getting notes for tag: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
@@ -589,7 +594,12 @@ func (h *Handler) DeleteTag(c *gin.Context) {
 	notes, err := h.tagUsecase.GetNotesByTag(tagID)
 	if err != nil {
 		h.logger.Errorf("Error while getting notes for tag: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 

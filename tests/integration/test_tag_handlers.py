@@ -154,7 +154,7 @@ def test_get_linked_tags(api_client, test_tag, test_note):
     assert linked_tags[0]["tag_id"] == second_tag_id
 
 
-def test_get_linked_tags_not_found(api_client):
+def test_get_linked_tags_not_found(api_client, test_user):
     """Test getting linked tags for non-existent tag"""
     response = api_client.get(f"{api_client.base_url}/api/tags/{uuid.uuid4()}/linked")
     assert response.status_code == 404
@@ -213,7 +213,7 @@ def test_delete_tag(api_client, test_tag, test_note):
     assert response.status_code == 404
 
 
-def test_delete_non_existent_tag(api_client):
+def test_delete_non_existent_tag(api_client, test_user):
     """Test deleting a non-existent tag"""
     response = api_client.post(
         f"{api_client.base_url}/api/tags/delete",

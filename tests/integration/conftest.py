@@ -147,7 +147,7 @@ def cleanup_database(db_connection, auth_base_url):
     clean_pg_database(db_connection)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 def test_user(api_client, auth_base_url):
     """Create a test user and return its ID"""
     print("STARTING TEST USER")
