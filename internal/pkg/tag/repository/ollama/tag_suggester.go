@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/yarikTri/archipelago-notes-api/internal/clients"
+	"github.com/yarikTri/archipelago-notes-api/internal/clients/llm"
 )
 
 type TagSuggesterPort interface {
@@ -12,10 +12,10 @@ type TagSuggesterPort interface {
 }
 
 type TagSuggester struct {
-	openAiClient *clients.OpenAiClient
+	openAiClient *llm.OpenAiClient
 }
 
-func NewTagSuggester(openAiClient *clients.OpenAiClient) *TagSuggester {
+func NewTagSuggester(openAiClient *llm.OpenAiClient) *TagSuggester {
 	return &TagSuggester{
 		openAiClient: openAiClient,
 	}

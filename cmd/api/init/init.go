@@ -2,11 +2,10 @@ package init
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/yarikTri/archipelago-notes-api/internal/clients"
 	"github.com/yarikTri/archipelago-notes-api/internal/clients/invitations/email"
+	"github.com/yarikTri/archipelago-notes-api/internal/clients/llm"
 
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/yarikTri/archipelago-notes-api/cmd/api/init/router"
@@ -33,9 +32,9 @@ import (
 	summaryUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/summary/usecase"
 )
 
-func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
+func Init(sqlDBClient *sqlx.DB, openAiUrl string, logger logger.Logger) (http.Handler, error) {
 	emailClient := email.NewEmailClient()
-	openAiClient := clients.NewOpenAiClient(os.Getenv("OPENAI_URL"))
+	openAiClient := llm.NewOpenAiClient(openAiUrl)
 	tagSuggesterRepo := tagSuggester.NewTagSuggester(openAiClient)
 
 	notesRepo := notesRepository.NewPostgreSQL(sqlDBClient)

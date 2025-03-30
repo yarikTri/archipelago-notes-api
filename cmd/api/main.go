@@ -44,7 +44,13 @@ func main() {
 		return
 	}
 
-	router, err := app.Init(db, flogger)
+	openAiUrl := os.Getenv(config.OpenAIUrlParamName)
+	if openAiUrl == "" {
+		flogger.Errorf("OPENAI_URL is not set")
+		return
+	}
+
+	router, err := app.Init(db, openAiUrl, flogger)
 	if err != nil {
 		flogger.Errorf("error while launching routes: %v", err)
 		return
