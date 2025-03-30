@@ -258,7 +258,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "Note created",
                         "schema": {
                             "$ref": "#/definitions/models.NoteTransfer"
@@ -484,9 +484,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/tags": {
+        "/api/notes/{note_id}/tags/{tag_id}": {
             "post": {
-                "description": "Update tag by ID",
+                "description": "Link an existing tag to a note",
                 "consumes": [
                     "application/json"
                 ],
@@ -496,32 +496,41 @@ const docTemplate = `{
                 "tags": [
                     "Tags"
                 ],
-                "summary": "Update tag",
+                "summary": "Link existing tag to note",
                 "parameters": [
                     {
-                        "description": "Tag info",
-                        "name": "tagInfo",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.UpdateTagRequest"
-                        }
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "note_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tag_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Tag updated"
+                    "201": {
+                        "description": "Tag linked"
                     },
                     "400": {
                         "description": "Incorrect input",
                         "schema": {}
                     },
+                    "403": {
+                        "description": "Access denied",
+                        "schema": {}
+                    },
                     "404": {
-                        "description": "Tag not found",
+                        "description": "Tag or note not found",
                         "schema": {}
                     },
                     "409": {
-                        "description": "Tag name already exists",
+                        "description": "Tag already linked",
                         "schema": {}
                     },
                     "500": {
@@ -573,6 +582,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/tags/delete": {
+            "post": {
+                "description": "Delete a tag and all its relations (notes and linked tags)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Delete tag",
+                "parameters": [
+                    {
+                        "description": "Tag ID",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.DeleteTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag deleted"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/tags/link": {
             "post": {
                 "description": "Create a link between two tags",
@@ -611,49 +663,6 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Tags already linked",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/api/tags/note": {
-            "post": {
-                "description": "Update tag name for a specific note",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tags"
-                ],
-                "summary": "Update tag for note",
-                "parameters": [
-                    {
-                        "description": "Tag info",
-                        "name": "tagInfo",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.UpdateTagForNoteRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Tag updated"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "404": {
-                        "description": "Tag not found",
                         "schema": {}
                     },
                     "500": {
@@ -722,7 +731,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.UnlinkTagsRequest"
+                            "$ref": "#/definitions/http.LinkTagsRequest"
                         }
                     }
                 ],
@@ -814,7 +823,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Note"
+                                "$ref": "#/definitions/models.NoteTransfer"
                             }
                         }
                     },
@@ -1054,6 +1063,14 @@ const docTemplate = `{
                 }
             }
         },
+        "http.DeleteTagRequest": {
+            "type": "object",
+            "properties": {
+                "tag_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.LinkTagsRequest": {
             "type": "object",
             "properties": {
@@ -1109,17 +1126,6 @@ const docTemplate = `{
                 }
             }
         },
-        "http.UnlinkTagsRequest": {
-            "type": "object",
-            "properties": {
-                "tag1_id": {
-                    "type": "string"
-                },
-                "tag2_id": {
-                    "type": "string"
-                }
-            }
-        },
         "http.UpdateDirRequest": {
             "type": "object",
             "properties": {
@@ -1154,31 +1160,6 @@ const docTemplate = `{
                 }
             }
         },
-        "http.UpdateTagForNoteRequest": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "note_id": {
-                    "type": "string"
-                },
-                "tag_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.UpdateTagRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "models.Dir": {
             "type": "object",
             "properties": {
@@ -1206,32 +1187,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Note": {
-            "type": "object",
-            "properties": {
-                "access": {
-                    "type": "string"
-                },
-                "automergeURL": {
-                    "type": "string"
-                },
-                "creatorID": {
-                    "type": "string"
-                },
-                "defaultAccess": {
-                    "type": "string"
-                },
-                "dirID": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "title": {
                     "type": "string"
                 }
             }
@@ -1268,13 +1223,10 @@ const docTemplate = `{
         "models.Tag": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
                 "name": {
+                    "type": "string"
+                },
+                "tag_id": {
                     "type": "string"
                 }
             }

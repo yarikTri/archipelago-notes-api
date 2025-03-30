@@ -23,6 +23,11 @@ definitions:
       title:
         type: string
     type: object
+  http.DeleteTagRequest:
+    properties:
+      tag_id:
+        type: string
+    type: object
   http.LinkTagsRequest:
     properties:
       tag1_id:
@@ -58,13 +63,6 @@ definitions:
       tag_id:
         type: string
     type: object
-  http.UnlinkTagsRequest:
-    properties:
-      tag1_id:
-        type: string
-      tag2_id:
-        type: string
-    type: object
   http.UpdateDirRequest:
     properties:
       id:
@@ -87,22 +85,6 @@ definitions:
       title:
         type: string
     type: object
-  http.UpdateTagForNoteRequest:
-    properties:
-      name:
-        type: string
-      note_id:
-        type: string
-      tag_id:
-        type: string
-    type: object
-  http.UpdateTagRequest:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-    type: object
   models.Dir:
     properties:
       id:
@@ -121,23 +103,6 @@ definitions:
       id:
         type: integer
       name:
-        type: string
-    type: object
-  models.Note:
-    properties:
-      access:
-        type: string
-      automergeURL:
-        type: string
-      creatorID:
-        type: string
-      defaultAccess:
-        type: string
-      dirID:
-        type: integer
-      id:
-        type: string
-      title:
         type: string
     type: object
   models.NoteTransfer:
@@ -161,11 +126,9 @@ definitions:
     type: object
   models.Tag:
     properties:
-      createdAt:
-        type: string
-      id:
-        type: string
       name:
+        type: string
+      tag_id:
         type: string
     type: object
   models.UserTransfer:
@@ -351,7 +314,7 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        "201":
           description: Note created
           schema:
             $ref: '#/definitions/models.NoteTransfer'
@@ -364,6 +327,45 @@ paths:
       summary: Create note
       tags:
       - Notes
+  /api/notes/{note_id}/tags/{tag_id}:
+    post:
+      consumes:
+      - application/json
+      description: Link an existing tag to a note
+      parameters:
+      - description: Note ID
+        in: path
+        name: note_id
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tag_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Tag linked
+        "400":
+          description: Incorrect input
+          schema: {}
+        "403":
+          description: Access denied
+          schema: {}
+        "404":
+          description: Tag or note not found
+          schema: {}
+        "409":
+          description: Tag already linked
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Link existing tag to note
+      tags:
+      - Tags
   /api/notes/{noteID}:
     delete:
       description: Delete note by ID
@@ -506,38 +508,6 @@ paths:
       summary: Get tags by note
       tags:
       - Tags
-  /api/tags:
-    post:
-      consumes:
-      - application/json
-      description: Update tag by ID
-      parameters:
-      - description: Tag info
-        in: body
-        name: tagInfo
-        required: true
-        schema:
-          $ref: '#/definitions/http.UpdateTagRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Tag updated
-        "400":
-          description: Incorrect input
-          schema: {}
-        "404":
-          description: Tag not found
-          schema: {}
-        "409":
-          description: Tag name already exists
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Update tag
-      tags:
-      - Tags
   /api/tags/{tagID}/linked:
     get:
       description: Get all tags linked to a specific tag
@@ -584,7 +554,7 @@ paths:
           description: Notes
           schema:
             items:
-              $ref: '#/definitions/models.Note'
+              $ref: '#/definitions/models.NoteTransfer'
             type: array
         "400":
           description: Incorrect input
@@ -627,6 +597,35 @@ paths:
       summary: Create and link tag to note
       tags:
       - Tags
+  /api/tags/delete:
+    post:
+      consumes:
+      - application/json
+      description: Delete a tag and all its relations (notes and linked tags)
+      parameters:
+      - description: Tag ID
+        in: body
+        name: tagInfo
+        required: true
+        schema:
+          $ref: '#/definitions/http.DeleteTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tag deleted
+        "400":
+          description: Incorrect input
+          schema: {}
+        "404":
+          description: Tag not found
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Delete tag
+      tags:
+      - Tags
   /api/tags/link:
     post:
       consumes:
@@ -657,35 +656,6 @@ paths:
           description: Server error
           schema: {}
       summary: Link two tags together
-      tags:
-      - Tags
-  /api/tags/note:
-    post:
-      consumes:
-      - application/json
-      description: Update tag name for a specific note
-      parameters:
-      - description: Tag info
-        in: body
-        name: tagInfo
-        required: true
-        schema:
-          $ref: '#/definitions/http.UpdateTagForNoteRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Tag updated
-        "400":
-          description: Incorrect input
-          schema: {}
-        "404":
-          description: Tag not found
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: Update tag for note
       tags:
       - Tags
   /api/tags/unlink:
@@ -726,7 +696,7 @@ paths:
         name: tagInfo
         required: true
         schema:
-          $ref: '#/definitions/http.UnlinkTagsRequest'
+          $ref: '#/definitions/http.LinkTagsRequest'
       produces:
       - application/json
       responses:
