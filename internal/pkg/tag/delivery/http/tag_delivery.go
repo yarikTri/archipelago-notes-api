@@ -742,7 +742,7 @@ func (h *Handler) SuggestTags(c *gin.Context) {
 	tags, err := h.tagUsecase.SuggestTags(req.Text, req.TagsNum)
 	if err != nil {
 		h.logger.Errorf("Failed to generate tags: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate tags"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate tags: %v", err)})
 		return
 	}
 
