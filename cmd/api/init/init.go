@@ -32,10 +32,11 @@ import (
 	summaryUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/summary/usecase"
 )
 
-func Init(sqlDBClient *sqlx.DB, openAiUrl string, logger logger.Logger) (http.Handler, error) {
+func Init(sqlDBClient *sqlx.DB, logger logger.Logger, openAiUrl string, tagSuggesterModel string, defaultGenerateTagNum int) (http.Handler, error) {
 	emailClient := email.NewEmailClient()
 	openAiClient := llm.NewOpenAiClient(openAiUrl)
-	tagSuggesterRepo := tagSuggester.NewTagSuggester(openAiClient)
+
+	tagSuggesterRepo := tagSuggester.NewTagSuggester(openAiClient, defaultGenerateTagNum, tagSuggesterModel)
 
 	notesRepo := notesRepository.NewPostgreSQL(sqlDBClient)
 	dirsRepo := dirsRepository.NewPostgreSQL(sqlDBClient)

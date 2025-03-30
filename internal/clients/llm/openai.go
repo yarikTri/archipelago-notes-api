@@ -15,6 +15,7 @@ type GenerateRequest struct {
 	Model  string `json:"model"`
 	Prompt string `json:"prompt"`
 	Stream bool   `json:"stream"`
+	System string `json:"system"`
 }
 
 type GenerateResponse struct {
@@ -27,11 +28,12 @@ func NewOpenAiClient(baseURL string) *OpenAiClient {
 	}
 }
 
-func (c *OpenAiClient) Generate(prompt string) (string, error) {
+func (c *OpenAiClient) Generate(model string, prompt string, stream bool, system string) (string, error) {
 	reqBody := GenerateRequest{
-		Model:  "mistral", // You can make this configurable if needed
+		Model:  model,
 		Prompt: prompt,
-		Stream: false,
+		Stream: stream,
+		System: system,
 	}
 
 	jsonData, err := json.Marshal(reqBody)

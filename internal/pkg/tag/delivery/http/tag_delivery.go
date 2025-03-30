@@ -712,7 +712,8 @@ func (h *Handler) LinkExistingTag(c *gin.Context) {
 }
 
 type suggestTagsRequest struct {
-	Text string `json:"text" binding:"required"`
+	Text    string `json:"text" binding:"required"`
+	TagsNum *int   `json:"tags_num"`
 }
 
 type suggestTagsResponse struct {
@@ -738,7 +739,7 @@ func (h *Handler) SuggestTags(c *gin.Context) {
 		return
 	}
 
-	tags, err := h.tagUsecase.SuggestTags(req.Text)
+	tags, err := h.tagUsecase.SuggestTags(req.Text, req.TagsNum)
 	if err != nil {
 		h.logger.Errorf("Failed to generate tags: %w", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate tags"})

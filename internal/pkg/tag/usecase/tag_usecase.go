@@ -72,6 +72,6 @@ func (u *Usecase) DeleteTag(tagID uuid.UUID) error {
 	return u.tagRepo.DeleteTag(tagID)
 }
 
-func (u *Usecase) SuggestTags(text string) ([]string, error) {
-	return u.suggesterRepo.SuggestTags(text)
+func (u *Usecase) SuggestTags(text string, tagsNum *int) ([]string, error) {
+	return u.suggesterRepo.SuggestTags(text, tagsNum)
 }

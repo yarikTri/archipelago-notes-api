@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -50,7 +51,19 @@ func main() {
 		return
 	}
 
-	router, err := app.Init(db, openAiUrl, flogger)
+	tagSuggesterModel := os.Getenv(config.TagSuggesterModelParamName)
+	if tagSuggesterModel == "" {
+		flogger.Errorf("TAG_SUGGESTER_MODEL is not set")
+		return
+	}
+
+	defaultGenerateTagNum, err := strconv.Atoi(os.Getenv(config.DefaultGenerateTagNumParamName))
+	if err != nil {
+		flogger.Errorf("error while converting %s to int: %v", config.DefaultGenerateTagNumParamName, err)
+		return
+	}
+
+	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum)
 	if err != nil {
 		flogger.Errorf("error while launching routes: %v", err)
 		return

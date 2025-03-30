@@ -17,7 +17,7 @@ type Usecase interface {
 	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
 	DeleteTag(tagID uuid.UUID) error
-	SuggestTags(text string) ([]string, error)
+	SuggestTags(text string, tagsNum *int) ([]string, error)
 }
 
 type TagRepository interface {
@@ -35,5 +35,5 @@ type TagRepository interface {
 }
 
 type TagSuggesterRepository interface {
-	SuggestTags(text string) ([]string, error)
+	SuggestTags(text string, tagsNum *int) ([]string, error)
 }
