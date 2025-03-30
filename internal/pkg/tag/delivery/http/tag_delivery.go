@@ -139,19 +139,6 @@ func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// UpdateTag
-// @Summary		Update tag
-// @Tags		Tags
-// @Description	Update tag by ID
-// @Accept		json
-// @Produce     json
-// @Param		tagInfo	body		UpdateTagRequest		true	"Tag info"
-// @Success		200								"Tag updated"
-// @Failure		400			{object}	error				"Incorrect input"
-// @Failure		404			{object}	error				"Tag not found"
-// @Failure		409			{object}	error				"Tag name already exists"
-// @Failure		500			{object}	error				"Server error"
-// @Router		/api/tags [put]
 func (h *Handler) UpdateTag(c *gin.Context) {
 	var req UpdateTagRequest
 	if err := c.BindJSON(&req); err != nil {
@@ -194,18 +181,6 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedTag)
 }
 
-// UpdateTagForNote
-// @Summary		Update tag for note
-// @Tags		Tags
-// @Description	Update tag name for a specific note
-// @Accept		json
-// @Produce     json
-// @Param		tagInfo	body		UpdateTagForNoteRequest		true	"Tag info"
-// @Success		200								"Tag updated"
-// @Failure		400			{object}	error				"Incorrect input"
-// @Failure		404			{object}	error				"Tag not found"
-// @Failure		500			{object}	error				"Server error"
-// @Router		/api/tags/note [put]
 func (h *Handler) UpdateTagForNote(c *gin.Context) {
 	var req UpdateTagForNoteRequest
 	if err := c.BindJSON(&req); err != nil {

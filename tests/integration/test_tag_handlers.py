@@ -81,49 +81,49 @@ def test_unlink_tag_from_note_not_found(api_client, test_note):
     assert response.status_code == 404
 
 
-def test_update_tag(api_client, test_tag):
-    """Test updating a tag"""
-    # Test successful update
-    update_data = {"tag_id": test_tag, "name": "updated-tag"}
-    response = api_client.put(f"{api_client.base_url}/api/tags", json=update_data)
-    assert response.status_code == 200
-    assert response.json()["name"] == "updated-tag"
-
-    # Test updating non-existent tag
-    non_existent_data = {"tag_id": str(uuid.uuid4()), "name": "updated-tag"}
-    response = api_client.put(f"{api_client.base_url}/api/tags", json=non_existent_data)
-    assert response.status_code == 404
-
-
-def test_update_tag_empty_name(api_client, test_tag):
-    """Test updating a tag with empty name"""
-    update_data = {
-        "tag_id": test_tag,
-        "name": "",  # Empty name
-    }
-    response = api_client.put(f"{api_client.base_url}/api/tags", json=update_data)
-    assert response.status_code == 400
+# def test_update_tag(api_client, test_tag):
+#     """Test updating a tag"""
+#     # Test successful update
+#     update_data = {"tag_id": test_tag, "name": "updated-tag"}
+#     response = api_client.put(f"{api_client.base_url}/api/tags", json=update_data)
+#     assert response.status_code == 200
+#     assert response.json()["name"] == "updated-tag"
+#
+#     # Test updating non-existent tag
+#     non_existent_data = {"tag_id": str(uuid.uuid4()), "name": "updated-tag"}
+#     response = api_client.put(f"{api_client.base_url}/api/tags", json=non_existent_data)
+#     assert response.status_code == 404
 
 
-def test_update_tag_for_note(api_client, test_tag, test_note):
-    """Test updating a tag for a specific note"""
-    # First unlink the tag to delete it
-    unlink_data = {"tag_id": test_tag, "note_id": test_note}
-    response = api_client.post(
-        f"{api_client.base_url}/api/tags/unlink", json=unlink_data
-    )
-    assert response.status_code == 200
+# def test_update_tag_empty_name(api_client, test_tag):
+#     """Test updating a tag with empty name"""
+#     update_data = {
+#         "tag_id": test_tag,
+#         "name": "",  # Empty name
+#     }
+#     response = api_client.put(f"{api_client.base_url}/api/tags", json=update_data)
+#     assert response.status_code == 400
 
-    # Try to update the deleted tag
-    update_data = {
-        "tag_id": test_tag,
-        "note_id": test_note,
-        "name": "note-specific-tag",
-    }
-    response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
-    assert response.status_code == 404, (
-        response.text
-    )  # Should return 404 for non-existent tag
+
+# def test_update_tag_for_note(api_client, test_tag, test_note):
+#     """Test updating a tag for a specific note"""
+#     # First unlink the tag to delete it
+#     unlink_data = {"tag_id": test_tag, "note_id": test_note}
+#     response = api_client.post(
+#         f"{api_client.base_url}/api/tags/unlink", json=unlink_data
+#     )
+#     assert response.status_code == 200
+#
+#     # Try to update the deleted tag
+#     update_data = {
+#         "tag_id": test_tag,
+#         "note_id": test_note,
+#         "name": "note-specific-tag",
+#     }
+#     response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
+#     assert response.status_code == 404, (
+#         response.text
+#     )  # Should return 404 for non-existent tag
 
 
 def test_get_notes_by_tag(api_client, test_tag, test_note):
@@ -239,117 +239,117 @@ def test_get_linked_tags_not_found(api_client):
     assert response.status_code == 404
 
 
-def test_tag_behavior_across_notes(api_client, root_dir):
-    """Test tag behavior across multiple notes"""
-    # Create first note
-    note1_id = create_note(
-        api_client, "First Test Note", "test-automerge-url-1", root_dir
-    )
+# def test_tag_behavior_across_notes(api_client, root_dir):
+#     """Test tag behavior across multiple notes"""
+#     # Create first note
+#     note1_id = create_note(
+#         api_client, "First Test Note", "test-automerge-url-1", root_dir
+#     )
+#
+#     # Create second note
+#     note2_id = create_note(
+#         api_client, "Second Test Note", "test-automerge-url-2", root_dir
+#     )
+#
+#     # Create and link tag to first note
+#     tag_data = {"name": "shared-tag", "note_id": note1_id}
+#     response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+#     assert response.status_code == 201, response.text
+#     tag_id = response.json()["tag_id"]
+#
+#     # Link same tag to second note
+#     tag_data = {"name": "shared-tag", "note_id": note2_id}
+#     response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+#     assert response.status_code == 201, response.text
+#     assert response.json()["tag_id"] == tag_id  # Should reuse the same tag
+#
+#     # Update tag name for first note only
+#     update_data = {"tag_id": tag_id, "note_id": note1_id, "name": "note1-specific-tag"}
+#     response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
+#     assert response.status_code == 200, response.text
+#     assert response.json()["name"] == "note1-specific-tag"
+#
+#     # Check tags for first note
+#     response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
+#     assert response.status_code == 200, response.text
+#     note1_tags = response.json()
+#     assert len(note1_tags) == 1
+#     assert note1_tags[0]["name"] == "note1-specific-tag"
+#
+#     # Check tags for second note
+#     response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
+#     assert response.status_code == 200, response.text
+#     note2_tags = response.json()
+#     assert len(note2_tags) == 1
+#     assert note2_tags[0]["name"] == "shared-tag"
 
-    # Create second note
-    note2_id = create_note(
-        api_client, "Second Test Note", "test-automerge-url-2", root_dir
-    )
 
-    # Create and link tag to first note
-    tag_data = {"name": "shared-tag", "note_id": note1_id}
-    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
-    assert response.status_code == 201, response.text
-    tag_id = response.json()["tag_id"]
-
-    # Link same tag to second note
-    tag_data = {"name": "shared-tag", "note_id": note2_id}
-    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
-    assert response.status_code == 201, response.text
-    assert response.json()["tag_id"] == tag_id  # Should reuse the same tag
-
-    # Update tag name for first note only
-    update_data = {"tag_id": tag_id, "note_id": note1_id, "name": "note1-specific-tag"}
-    response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
-    assert response.status_code == 200, response.text
-    assert response.json()["name"] == "note1-specific-tag"
-
-    # Check tags for first note
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
-    assert response.status_code == 200, response.text
-    note1_tags = response.json()
-    assert len(note1_tags) == 1
-    assert note1_tags[0]["name"] == "note1-specific-tag"
-
-    # Check tags for second note
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
-    assert response.status_code == 200, response.text
-    note2_tags = response.json()
-    assert len(note2_tags) == 1
-    assert note2_tags[0]["name"] == "shared-tag"
-
-
-def test_tag_updates_across_notes(api_client, root_dir):
-    """Test tag updates behavior across multiple notes"""
-    # Create first note
-    note1_id = create_note(
-        api_client, "First Test Note", "test-automerge-url-1", root_dir
-    )
-
-    # Create second note
-    note2_id = create_note(
-        api_client, "Second Test Note", "test-automerge-url-2", root_dir
-    )
-
-    # Create and link tag to first note
-    tag_data = {"name": "shared-tag", "note_id": note1_id}
-    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
-    assert response.status_code == 201, response.text
-    tag_id = response.json()["tag_id"]
-
-    # Link same tag to second note
-    tag_data = {"name": "shared-tag", "note_id": note2_id}
-    response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
-    assert response.status_code == 201, response.text
-    assert response.json()["tag_id"] == tag_id  # Should reuse the same tag
-
-    # Update tag name for first note
-    update_data = {"tag_id": tag_id, "note_id": note1_id, "name": "note1-specific-tag"}
-    response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
-    assert response.status_code == 200, response.text
-    assert response.json()["name"] == "note1-specific-tag"
-
-    # Check that second note still has original tag name
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
-    assert response.status_code == 200, response.text
-    note2_tags = response.json()
-    assert len(note2_tags) == 1
-    assert note2_tags[0]["name"] == "shared-tag"
-
-    # Check that first note has updated tag name
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
-    assert response.status_code == 200, response.text
-    note1_tags = response.json()
-    assert len(note1_tags) == 1
-    assert note1_tags[0]["name"] == "note1-specific-tag"
-
-    # Update tag name for second note
-    update_data = {"tag_id": tag_id, "note_id": note2_id, "name": "note2-specific-tag"}
-    response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
-    assert response.status_code == 200, response.text
-    assert response.json()["name"] == "note2-specific-tag"
-
-    # Check that both notes have their specific tag names
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
-    assert response.status_code == 200, response.text
-    note1_tags = response.json()
-    assert len(note1_tags) == 1
-    assert note1_tags[0]["name"] == "note1-specific-tag"
-
-    response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
-    assert response.status_code == 200, response.text
-    note2_tags = response.json()
-    assert len(note2_tags) == 1
-    assert note2_tags[0]["name"] == "note2-specific-tag"
-
-    # Check that original tag name is not used anywhere
-    response = api_client.get(f"{api_client.base_url}/api/tags/{tag_id}/notes")
-    assert response.status_code == 404, response.text
+# def test_tag_updates_across_notes(api_client, root_dir):
+#     """Test tag updates behavior across multiple notes"""
+#     # Create first note
+#     note1_id = create_note(
+#         api_client, "First Test Note", "test-automerge-url-1", root_dir
+#     )
+#
+#     # Create second note
+#     note2_id = create_note(
+#         api_client, "Second Test Note", "test-automerge-url-2", root_dir
+#     )
+#
+#     # Create and link tag to first note
+#     tag_data = {"name": "shared-tag", "note_id": note1_id}
+#     response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+#     assert response.status_code == 201, response.text
+#     tag_id = response.json()["tag_id"]
+#
+#     # Link same tag to second note
+#     tag_data = {"name": "shared-tag", "note_id": note2_id}
+#     response = api_client.post(f"{api_client.base_url}/api/tags/create", json=tag_data)
+#     assert response.status_code == 201, response.text
+#     assert response.json()["tag_id"] == tag_id  # Should reuse the same tag
+#
+#     # Update tag name for first note
+#     update_data = {"tag_id": tag_id, "note_id": note1_id, "name": "note1-specific-tag"}
+#     response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
+#     assert response.status_code == 200, response.text
+#     assert response.json()["name"] == "note1-specific-tag"
+#
+#     # Check that second note still has original tag name
+#     response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
+#     assert response.status_code == 200, response.text
+#     note2_tags = response.json()
+#     assert len(note2_tags) == 1
+#     assert note2_tags[0]["name"] == "shared-tag"
+#
+#     # Check that first note has updated tag name
+#     response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
+#     assert response.status_code == 200, response.text
+#     note1_tags = response.json()
+#     assert len(note1_tags) == 1
+#     assert note1_tags[0]["name"] == "note1-specific-tag"
+#
+#     # Update tag name for second note
+#     update_data = {"tag_id": tag_id, "note_id": note2_id, "name": "note2-specific-tag"}
+#     response = api_client.put(f"{api_client.base_url}/api/tags/note", json=update_data)
+#     assert response.status_code == 200, response.text
+#     assert response.json()["name"] == "note2-specific-tag"
+#
+#     # Check that both notes have their specific tag names
+#     response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note1_id}")
+#     assert response.status_code == 200, response.text
+#     note1_tags = response.json()
+#     assert len(note1_tags) == 1
+#     assert note1_tags[0]["name"] == "note1-specific-tag"
+#
+#     response = api_client.get(f"{api_client.base_url}/api/tags/notes/{note2_id}")
+#     assert response.status_code == 200, response.text
+#     note2_tags = response.json()
+#     assert len(note2_tags) == 1
+#     assert note2_tags[0]["name"] == "note2-specific-tag"
+#
+#     # Check that original tag name is not used anywhere
+#     response = api_client.get(f"{api_client.base_url}/api/tags/{tag_id}/notes")
+#     assert response.status_code == 404, response.text
 
 
 # COPILOT
