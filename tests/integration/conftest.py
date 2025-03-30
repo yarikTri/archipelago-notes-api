@@ -4,9 +4,20 @@ import psycopg2
 import pytest
 import requests
 from dotenv import load_dotenv
+from http.cookies import SimpleCookie
 
 # Load environment variables
 load_dotenv()
+
+
+def create_note(api_client, title, automerge_url, root_dir):
+    """Helper function to create a note"""
+    print(f"TEST CREATE NOTE api_client.headers: {api_client.headers}")
+    print(f"TEST CREATE NOTE cookies: {api_client.cookies}")
+    note_data = {"title": title, "dir_id": root_dir, "automerge_url": automerge_url}
+    response = api_client.post(f"{api_client.base_url}/api/notes", json=note_data)
+    assert response.status_code == 201, response.text
+    return response.json()["id"]
 
 
 def print_tables(conn):
@@ -209,3 +220,59 @@ def test_tag(api_client, test_note):
     print(f"TEST TAG response: {response.text}")
     print(f"TEST TAG tag_id: {tag_id}")
     return tag_id
+
+
+@pytest.fixture(scope="function")
+def second_user_client(api_base_url, auth_base_url):
+    """Create a client for a second user"""
+    # Create a new session
+    client = requests.Session()
+    client.base_url = api_base_url
+
+    # Register second user
+    registration_data = {
+        "name": "Second User",
+        "email": "second_user@example.com",
+        "password": "password123"
+    }
+    response = client.post(f"{auth_base_url}/auth-service/registration", json=registration_data)
+    assert response.status_code == 200
+    user_id = response.json()["user_id"]
+
+    # Login second user
+    login_data = {
+        "email": "second_user@example.com",
+        "password": "password123"
+    }
+    response = client.post(f"{auth_base_url}/auth-service/login", json=login_data)
+    assert response.status_code == 200
+    assert response.json()["user_id"] == user_id
+
+    # Set auth token cookie
+    auth_token = response.cookies["auth_token"]
+    client.cookies.set("auth_token", auth_token, domain="localhost.local")
+
+    # Set user ID header
+    client.headers["X-User-Id"] = user_id
+
+    return client
+
+
+@pytest.fixture(scope="function")
+def second_user_note(second_user_client, root_dir):
+    """Create a note for the second user"""
+    note_id = create_note(
+        second_user_client, "Second User Note", "second-user-automerge-url", root_dir
+    )
+    return note_id
+
+
+@pytest.fixture(scope="function")
+def second_user_tag(second_user_client, second_user_note):
+    """Create a tag for the second user"""
+    tag_data = {"name": "second-user-tag", "note_id": second_user_note}
+    response = second_user_client.post(
+        f"{second_user_client.base_url}/api/tags/create", json=tag_data
+    )
+    assert response.status_code == 201
+    return response.json()["tag_id"]
