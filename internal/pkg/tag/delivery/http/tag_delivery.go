@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	valid "github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
@@ -739,11 +740,23 @@ func (h *Handler) SuggestTags(c *gin.Context) {
 		return
 	}
 
+	// Explicitly check for empty text
+	if strings.TrimSpace(req.Text) == "" {
+		h.logger.Infof("Empty text provided for tag suggestion")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Text cannot be empty"})
+		return
+	}
+
 	tags, err := h.tagUsecase.SuggestTags(req.Text, req.TagsNum)
 	if err != nil {
 		h.logger.Errorf("Failed to generate tags: %w", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to generate tags: %v", err)})
 		return
+	}
+
+	// Ensure tags is never nil
+	if tags == nil {
+		tags = []string{}
 	}
 
 	c.JSON(http.StatusOK, suggestTagsResponse{Tags: tags})

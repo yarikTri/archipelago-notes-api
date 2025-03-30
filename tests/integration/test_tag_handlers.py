@@ -686,3 +686,106 @@ def test_tag_same_name_deletion_isolation(api_client, second_user_client, test_n
     response = api_client.post(f"{api_client.base_url}/api/tags/delete", json={"tag_id": second_user_tag_id})
     assert response.status_code == 403, "First user should not be able to delete second user's tag"
 
+
+def test_suggest_tags(api_client):
+    """Test tag suggestion functionality"""
+    # Test text for tag suggestion
+    test_text = "This is a test note about machine learning and artificial intelligence"
+    
+    # Test with default number of tags
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={"text": test_text}
+    )
+    assert response.status_code == 200, response.text
+    response_data = response.json()
+    assert isinstance(response_data, dict), "Response should be a JSON object"
+    assert "tags" in response_data, "Response should contain 'tags' field"
+    tags = response_data["tags"]
+    assert isinstance(tags, list), "Tags should be a list"
+    assert len(tags) > 0, "Should return at least one tag"
+    
+    # Verify each tag is valid
+    for tag in tags:
+        assert isinstance(tag, str), "Each tag should be a string"
+        assert len(tag) > 0, "Tag should not be empty"
+        assert len(tag) <= 50, "Tag should not be too long"
+        assert " " not in tag, "Tag should be a single word"
+        assert tag.isalnum() or all(c.isalnum() or c in "-_" for c in tag), "Tag should contain only alphanumeric characters, hyphens, or underscores"
+    
+    # Test with specific number of tags
+    num_tags = 3
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={"text": test_text, "tags_num": num_tags}
+    )
+    assert response.status_code == 200, response.text
+    response_data = response.json()
+    assert isinstance(response_data, dict), "Response should be a JSON object"
+    assert "tags" in response_data, "Response should contain 'tags' field"
+    tags = response_data["tags"]
+    assert len(tags) == num_tags, f"Should return exactly {num_tags} tags"
+    
+    # Test with empty text
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={"text": ""}
+    )
+    assert response.status_code == 400, "Should reject empty text"
+    
+    # Test with missing text field
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={}
+    )
+    assert response.status_code == 400, "Should reject missing text field"
+    
+    # Test with very long text
+    long_text = "word " * 1000  # 5000 characters
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={"text": long_text}
+    )
+    assert response.status_code == 200, "Should handle long text"
+    response_data = response.json()
+    assert "tags" in response_data, "Response should contain 'tags' field"
+    tags = response_data["tags"]
+    assert len(tags) > 0, "Should return at least one tag for long text"
+    
+    # Test with text containing special characters
+    special_text = "Test note with special chars: !@#$%^&*()_+{}[]|\\:;\"'<>,.?/~`"
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={"text": special_text}
+    )
+    assert response.status_code == 200, "Should handle text with special characters"
+    response_data = response.json()
+    assert "tags" in response_data, "Response should contain 'tags' field"
+    tags = response_data["tags"]
+    assert len(tags) > 0, "Should return at least one tag for text with special characters"
+    
+    # Test with Russian text (since system prompt is in Russian)
+    russian_text = "Это тестовая заметка о машинном обучении и искусственном интеллекте"
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={"text": russian_text}
+    )
+    assert response.status_code == 200, "Should handle Russian text"
+    response_data = response.json()
+    assert "tags" in response_data, "Response should contain 'tags' field"
+    tags = response_data["tags"]
+    assert len(tags) > 0, "Should return at least one tag for Russian text"
+    
+    # Test with very large number of tags
+    large_num_tags = 100
+    response = api_client.post(
+        f"{api_client.base_url}/api/tags/suggest",
+        json={"text": test_text, "tags_num": large_num_tags}
+    )
+    assert response.status_code == 200, "Should handle large number of tags"
+    response_data = response.json()
+    assert "tags" in response_data, "Response should contain 'tags' field"
+    tags = response_data["tags"]
+    assert len(tags) > 0, "Should return at least one tag even with large tags_num"
+    assert len(tags) <= large_num_tags, "Should not return more tags than requested"
+
