@@ -258,7 +258,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "Note created",
                         "schema": {
                             "$ref": "#/definitions/models.NoteTransfer"

@@ -349,7 +349,7 @@ func (h *Handler) GetNotesByTag(c *gin.Context) {
 // @Success		200			{object}	[]models.Tag		"Tags"
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/api/note/{noteID}/tags [get]
+// @Router		/api/notes/{noteID}/tags [get]
 func (h *Handler) GetTagsByNote(c *gin.Context) {
 	userID, err := auth.GetUserId(c)
 	if err != nil {
