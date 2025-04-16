@@ -24,6 +24,12 @@ func NewPostgreSQL(db *sqlx.DB) *PostgreSQL {
 
 // Helper functions to reduce code duplication
 
+type QueryExecutor interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
 // withTransaction executes a function within a transaction and handles commit/rollback
 func (p *PostgreSQL) withTransaction(fn func(*sql.Tx) error) error {
 	tx, err := p.db.Begin()
@@ -42,11 +48,10 @@ func (p *PostgreSQL) withTransaction(fn func(*sql.Tx) error) error {
 	return nil
 }
 
-// getTagByID retrieves a tag by its ID
-func (p *PostgreSQL) getTagByID(tx *sql.Tx, id uuid.UUID) (*models.Tag, error) {
+func (p *PostgreSQL) getTagByID(q QueryExecutor, id uuid.UUID) (*models.Tag, error) {
 	var tag models.Tag
-	err := tx.QueryRow(`
-		SELECT tag_id, name
+	err := q.QueryRow(`
+		SELECT tag_id, name, user_id
 		FROM tag
 		WHERE tag_id = $1`, id).Scan(&tag.ID, &tag.Name)
 
@@ -63,7 +68,7 @@ func (p *PostgreSQL) getTagByID(tx *sql.Tx, id uuid.UUID) (*models.Tag, error) {
 func (p *PostgreSQL) getTagByName(tx *sql.Tx, name string) (*models.Tag, error) {
 	var tag models.Tag
 	err := tx.QueryRow(`
-		SELECT tag_id, name
+		SELECT tag_id, name, user_id
 		FROM tag
 		WHERE name = $1`, name).Scan(&tag.ID, &tag.Name)
 
@@ -92,7 +97,7 @@ func (p *PostgreSQL) getTagRelationsCount(tx *sql.Tx, tagID uuid.UUID) (int, err
 
 // Main repository methods
 
-func (p *PostgreSQL) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error) {
+func (p *PostgreSQL) CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error) {
 	var result *models.Tag
 	err := p.withTransaction(func(tx *sql.Tx) error {
 		// Check if note exists and get its creator ID
@@ -134,9 +139,9 @@ func (p *PostgreSQL) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Ta
 
 		// Create a new tag
 		_, err = tx.Exec(`
-			INSERT INTO tag (tag_id, name)
-			VALUES ($1, $2)`,
-			id, name)
+			INSERT INTO tag (tag_id, user_id, name)
+			VALUES ($1, $2, $3)`,
+			id, userID, name)
 		if err != nil {
 			return fmt.Errorf("(repo) failed to create tag: %w", err)
 		}
@@ -151,8 +156,9 @@ func (p *PostgreSQL) CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Ta
 		}
 
 		result = &models.Tag{
-			ID:   id,
-			Name: name,
+			ID:     id,
+			Name:   name,
+			UserID: userID,
 		}
 		return nil
 	})
@@ -310,99 +316,101 @@ func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
 	return result, nil
 }
 
-func (p *PostgreSQL) UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error) {
-	var result *models.Tag
-	err := p.withTransaction(func(tx *sql.Tx) error {
-		// Check if tag exists and is linked to the note
-		var tag models.Tag
-		err := tx.QueryRow(`
-			SELECT t.tag_id, t.name
-			FROM tag t
-			JOIN tag_to_note ttn ON t.tag_id = ttn.tag_id
-			WHERE t.tag_id = $1 AND ttn.note_id = $2`, tagID, noteID).Scan(&tag.ID, &tag.Name)
-		if err == sql.ErrNoRows {
-			return &errors.TagNotFoundError{ID: tagID}
-		}
-		if err != nil {
-			return fmt.Errorf("(repo) failed to check tag existence: %w", err)
-		}
+// func (p *PostgreSQL) UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error) {
+// 	var result *models.Tag
+// 	err := p.withTransaction(func(tx *sql.Tx) error {
+// 		// Check if tag exists and is linked to the note
+// 		var tag models.Tag
+// 		err := tx.QueryRow(`
+// 			SELECT t.tag_id, t.name
+// 			FROM tag t
+// 			JOIN tag_to_note ttn ON t.tag_id = ttn.tag_id
+// 			WHERE t.tag_id = $1 AND ttn.note_id = $2`, tagID, noteID).Scan(&tag.ID, &tag.Name)
+// 		if err == sql.ErrNoRows {
+// 			return &errors.TagNotFoundError{ID: tagID}
+// 		}
+// 		if err != nil {
+// 			return fmt.Errorf("(repo) failed to check tag existence: %w", err)
+// 		}
 
-		// Check if new name is already used by another tag
-		var exists bool
-		err = tx.QueryRow(`
-			SELECT EXISTS (
-				SELECT 1 FROM tag WHERE name = $1
-			)`, newName).Scan(&exists)
-		if err != nil {
-			return fmt.Errorf("(repo) failed to check tag name existence: %w", err)
-		}
-		if exists {
-			return &errors.TagNameExistsError{}
-		}
+// 		// Check if new name is already used by another tag
+// 		var exists bool
+// 		err = tx.QueryRow(`
+// 			SELECT EXISTS (
+// 				SELECT 1 FROM tag WHERE name = $1
+// 			)`, newName).Scan(&exists)
+// 		if err != nil {
+// 			return fmt.Errorf("(repo) failed to check tag name existence: %w", err)
+// 		}
+// 		if exists {
+// 			return &errors.TagNameExistsError{}
+// 		}
 
-		// Create new tag with the new name
-		newTagID, err := uuid.NewV4()
-		if err != nil {
-			return fmt.Errorf("(repo) failed to generate uuid: %w", err)
-		}
+// 		// Create new tag with the new name
+// 		newTagID, err := uuid.NewV4()
+// 		if err != nil {
+// 			return fmt.Errorf("(repo) failed to generate uuid: %w", err)
+// 		}
 
-		_, err = tx.Exec(`
-			INSERT INTO tag (tag_id, name)
-			VALUES ($1, $2)`, newTagID, newName)
-		if err != nil {
-			return fmt.Errorf("(repo) failed to create new tag: %w", err)
-		}
+// 		_, err = tx.Exec(`
+// 			INSERT INTO tag (tag_id, name)
+// 			VALUES ($1, $2)`, newTagID, newName)
+// 		if err != nil {
+// 			return fmt.Errorf("(repo) failed to create new tag: %w", err)
+// 		}
 
-		// Link new tag to the note
-		_, err = tx.Exec(`
-			INSERT INTO tag_to_note (tag_id, note_id)
-			VALUES ($1, $2)`, newTagID, noteID)
-		if err != nil {
-			return fmt.Errorf("(repo) failed to link new tag to note: %w", err)
-		}
+// 		// Link new tag to the note
+// 		_, err = tx.Exec(`
+// 			INSERT INTO tag_to_note (tag_id, note_id)
+// 			VALUES ($1, $2)`, newTagID, noteID)
+// 		if err != nil {
+// 			return fmt.Errorf("(repo) failed to link new tag to note: %w", err)
+// 		}
 
-		// Remove old tag link from the note
-		_, err = tx.Exec(`
-			DELETE FROM tag_to_note
-			WHERE tag_id = $1 AND note_id = $2`, tagID, noteID)
-		if err != nil {
-			return fmt.Errorf("(repo) failed to unlink old tag from note: %w", err)
-		}
+// 		// Remove old tag link from the note
+// 		_, err = tx.Exec(`
+// 			DELETE FROM tag_to_note
+// 			WHERE tag_id = $1 AND note_id = $2`, tagID, noteID)
+// 		if err != nil {
+// 			return fmt.Errorf("(repo) failed to unlink old tag from note: %w", err)
+// 		}
 
-		// Check if old tag has any remaining relations
-		count, err := p.getTagRelationsCount(tx, tagID)
-		if err != nil {
-			return err
-		}
+// 		// Check if old tag has any remaining relations
+// 		count, err := p.getTagRelationsCount(tx, tagID)
+// 		if err != nil {
+// 			return err
+// 		}
 
-		// If no relations left, delete the old tag
-		if count == 0 {
-			_, err = tx.Exec(`
-				DELETE FROM tag
-				WHERE tag_id = $1`, tagID)
-			if err != nil {
-				return fmt.Errorf("(repo) failed to delete old tag: %w", err)
-			}
-		}
+// 		// If no relations left, delete the old tag
+// 		if count == 0 {
+// 			_, err = tx.Exec(`
+// 				DELETE FROM tag
+// 				WHERE tag_id = $1`, tagID)
+// 			if err != nil {
+// 				return fmt.Errorf("(repo) failed to delete old tag: %w", err)
+// 			}
+// 		}
 
-		result = &models.Tag{
-			ID:   newTagID,
-			Name: newName,
-		}
-		return nil
-	})
+// 		result = &models.Tag{
+// 			ID:   newTagID,
+// 			Name: newName,
+// 		}
+// 		return nil
+// 	})
 
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return result, nil
+// }
 
 func (p *PostgreSQL) GetNotesByTag(tagID uuid.UUID) ([]models.Note, error) {
+	// TODO: maybe check that all returned notes are visible by user.
+
 	// Check if tag exists first
 	var tag models.Tag
 	err := p.db.Get(&tag, `
-		SELECT tag_id, name
+		SELECT tag_id, name, user_id
 		FROM tag
 		WHERE tag_id = $1`, tagID)
 
@@ -428,7 +436,7 @@ func (p *PostgreSQL) GetNotesByTag(tagID uuid.UUID) ([]models.Note, error) {
 	return notes, nil
 }
 
-func (p *PostgreSQL) GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error) {
+func (p *PostgreSQL) GetTagsByNoteForUser(noteID, userID uuid.UUID) ([]models.Tag, error) {
 	// Check if note exists first
 	var noteExists bool
 	err := p.db.Get(&noteExists, `
@@ -445,11 +453,11 @@ func (p *PostgreSQL) GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error) {
 	// Get all tags linked to the note
 	var tags []models.Tag
 	err = p.db.Select(&tags, `
-		SELECT t.tag_id, t.name
+		SELECT t.tag_id, t.name, t.user_id
 		FROM tag t
 		JOIN tag_to_note ttn ON t.tag_id = ttn.tag_id
-		WHERE ttn.note_id = $1
-		ORDER BY t.name`, noteID)
+		WHERE ttn.note_id = $1 and t.user_id = $2
+		ORDER BY t.name`, noteID, userID)
 
 	if err != nil {
 		return nil, fmt.Errorf("(repo) failed to get tags by note: %w", err)
@@ -543,11 +551,11 @@ func (p *PostgreSQL) UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
 	})
 }
 
-func (p *PostgreSQL) GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error) {
+func (p *PostgreSQL) GetLinkedTagsForUser(tagID, userID uuid.UUID) ([]models.Tag, error) {
 	// Check if tag exists first
 	var tag models.Tag
 	err := p.db.Get(&tag, `
-		SELECT tag_id, name
+		SELECT tag_id, name, user_id
 		FROM tag
 		WHERE tag_id = $1`, tagID)
 
@@ -558,13 +566,18 @@ func (p *PostgreSQL) GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error) {
 		return nil, fmt.Errorf("(repo) failed to check tag existence: %w", err)
 	}
 
+	if tag.UserID != userID {
+		return nil, &errors.TagNotFoundError{ID: tagID}
+	}
+
 	var tags []models.Tag
 	err = p.db.Select(&tags, `
-		SELECT t.tag_id, t.name
+		SELECT t.tag_id, t.name, t.user_id
 		FROM tag t
 		JOIN tag_to_tag ttt ON (ttt.tag_1_id = t.tag_id OR ttt.tag_2_id = t.tag_id)
 		WHERE (ttt.tag_1_id = $1 OR ttt.tag_2_id = $1)
-		AND t.tag_id != $1`, tagID)
+		AND t.tag_id != $1
+		AND t.user_id = $2`, tagID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("(repo) failed to get linked tags: %w", err)
 	}
@@ -613,4 +626,8 @@ func (p *PostgreSQL) DeleteTag(tagID uuid.UUID) error {
 		return err
 	}
 	return nil
+}
+
+func (p *PostgreSQL) GetTagByID(tagID uuid.UUID) (*models.Tag, error) {
+	return p.getTagByID(p.db.DB, tagID)
 }

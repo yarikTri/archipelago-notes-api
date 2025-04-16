@@ -6,32 +6,34 @@ import (
 )
 
 type Usecase interface {
-	CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error)
+	CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error)
 	LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
 	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
-	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
+	// UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
-	GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error)
+	GetTagsByNoteForUser(noteID, userID uuid.UUID) ([]models.Tag, error)
 	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
-	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
+	GetLinkedTagsForUser(tagID, userID uuid.UUID) ([]models.Tag, error)
 	DeleteTag(tagID uuid.UUID) error
 	SuggestTags(text string, tagsNum *int) ([]string, error)
+	IsTagUsers(userID uuid.UUID, tagID uuid.UUID) (bool, error)
 }
 
 type TagRepository interface {
-	CreateAndLinkTag(name string, noteID uuid.UUID) (*models.Tag, error)
+	CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error)
 	LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
 	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
-	UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
+	// UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
-	GetTagsByNote(noteID uuid.UUID) ([]models.Tag, error)
+	GetTagsByNoteForUser(noteID, userID uuid.UUID) ([]models.Tag, error)
 	LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
 	UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error
-	GetLinkedTags(tagID uuid.UUID) ([]models.Tag, error)
+	GetLinkedTagsForUser(tagID, userID uuid.UUID) ([]models.Tag, error)
 	DeleteTag(tagID uuid.UUID) error
+	GetTagByID(tagID uuid.UUID) (*models.Tag, error)
 }
 
 type TagSuggesterRepository interface {

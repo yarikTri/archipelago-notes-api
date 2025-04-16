@@ -30,6 +30,24 @@ func NewHandler(tu tag.Usecase, nu notes.Usecase, l logger.Logger) *Handler {
 	}
 }
 
+func (h *Handler) checkTagOwnership(c *gin.Context, tagID uuid.UUID, userID uuid.UUID) error {
+	// Check if the tag belongs to the user
+	isOwner, err := h.tagUsecase.IsTagUsers(userID, tagID)
+	if err != nil {
+		h.logger.Errorf("Failed to check tag ownership: %w", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check tag ownership"})
+		return err
+	}
+
+	if !isOwner {
+		h.logger.Infof("User %s does not own tag %s", userID, tagID)
+		c.JSON(http.StatusForbidden, gin.H{"error": "User does not own this tag"})
+		return fmt.Errorf("user does not own tag")
+	}
+
+	return nil
+}
+
 // CreateAndLinkTag
 // @Summary		Create and link tag to note
 // @Tags		Tags
@@ -74,20 +92,7 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 		return
 	}
 
-	// Check if user has access to the note
-	access, err := h.noteUsecase.GetUserAccess(noteID, userID)
-	if err != nil {
-		h.logger.Errorf("Failed to get user access: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	if access == models.EmptyNoteAccess {
-		h.logger.Infof("User %s does not have access to note %s", userID, noteID)
-		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("User does not have access to note with ID '%s'", noteID)})
-		return
-	}
-
-	tag, err := h.tagUsecase.CreateAndLinkTag(req.Name, noteID)
+	tag, err := h.tagUsecase.CreateAndLinkTag(req.Name, noteID, userID)
 	if err != nil {
 		h.logger.Errorf("Failed to create and link tag: %w", err)
 		switch e := err.(type) {
@@ -116,6 +121,13 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/unlink [post]
 func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
+	userID, err := auth.GetUserId(c)
+	if err != nil {
+		h.logger.Errorf("Failed to get user ID: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	var req UnlinkTagRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -143,6 +155,10 @@ func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
 		return
 	}
 
+	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
+		return
+	}
+
 	if err := h.tagUsecase.UnlinkTagFromNote(tagID, noteID); err != nil {
 		h.logger.Errorf("Failed to unlink tag from note: %w", err)
 		switch e := err.(type) {
@@ -159,7 +175,28 @@ func (h *Handler) UnlinkTagFromNote(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// UpdateTag
+// @Summary		Update tag
+// @Tags		Tags
+// @Description	Update the name of an existing tag
+// @Accept		json
+// @Produce     json
+// @Param		request	body		UpdateTagRequest		true	"Tag update request"
+// @Success		200			{object}	models.Tag		"Updated tag"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		403			{object}	error				"Access denied"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		409			{object}	error				"Tag name conflict"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/update [put]
 func (h *Handler) UpdateTag(c *gin.Context) {
+	userID, err := auth.GetUserId(c)
+	if err != nil {
+		h.logger.Errorf("Failed to get user ID: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	var req UpdateTagRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -177,6 +214,10 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 	if err != nil {
 		h.logger.Errorf("Invalid tag ID format: %w", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag ID format: %v", err)})
+		return
+	}
+
+	if err := h.checkTagOwnership(c, id, userID); err != nil {
 		return
 	}
 
@@ -199,50 +240,50 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedTag)
 }
 
-func (h *Handler) UpdateTagForNote(c *gin.Context) {
-	var req UpdateTagForNoteRequest
-	if err := c.BindJSON(&req); err != nil {
-		h.logger.Errorf("Failed to bind request: %w", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// func (h *Handler) UpdateTagForNote(c *gin.Context) {
+// 	var req UpdateTagForNoteRequest
+// 	if err := c.BindJSON(&req); err != nil {
+// 		h.logger.Errorf("Failed to bind request: %w", err)
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	if err := req.validate(); err != nil {
-		h.logger.Errorf("Invalid update tag request: %w", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// 	if err := req.validate(); err != nil {
+// 		h.logger.Errorf("Invalid update tag request: %w", err)
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	tagID, err := uuid.FromString(req.TagID)
-	if err != nil {
-		h.logger.Errorf("Invalid tag ID format: %w", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag ID format: %v", err)})
-		return
-	}
+// 	tagID, err := uuid.FromString(req.TagID)
+// 	if err != nil {
+// 		h.logger.Errorf("Invalid tag ID format: %w", err)
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag ID format: %v", err)})
+// 		return
+// 	}
 
-	noteID, err := uuid.FromString(req.NoteID)
-	if err != nil {
-		h.logger.Errorf("Invalid note ID format: %w", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid note ID format: %v", err)})
-		return
-	}
+// 	noteID, err := uuid.FromString(req.NoteID)
+// 	if err != nil {
+// 		h.logger.Errorf("Invalid note ID format: %w", err)
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid note ID format: %v", err)})
+// 		return
+// 	}
 
-	updatedTag, err := h.tagUsecase.UpdateTagForNote(tagID, noteID, req.Name)
-	if err != nil {
-		h.logger.Errorf("Failed to update tag for note: %w", err)
-		switch e := err.(type) {
-		case *errors.TagNotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-		case *errors.TagNameEmptyError:
-			c.JSON(http.StatusBadRequest, gin.H{"error": e.Error()})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		return
-	}
+// 	updatedTag, err := h.tagUsecase.UpdateTagForNote(tagID, noteID, req.Name)
+// 	if err != nil {
+// 		h.logger.Errorf("Failed to update tag for note: %w", err)
+// 		switch e := err.(type) {
+// 		case *errors.TagNotFoundError:
+// 			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+// 		case *errors.TagNameEmptyError:
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": e.Error()})
+// 		default:
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		}
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, updatedTag)
-}
+// 	c.JSON(http.StatusOK, updatedTag)
+// }
 
 // GetNotesByTag
 // @Summary		Get notes by tag
@@ -328,20 +369,7 @@ func (h *Handler) GetTagsByNote(c *gin.Context) {
 		return
 	}
 
-	// Check if user has access to the note
-	access, err := h.noteUsecase.GetUserAccess(noteID, userID)
-	if err != nil {
-		h.logger.Errorf("Failed to get user access: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	if access == models.EmptyNoteAccess {
-		h.logger.Infof("User %s does not have access to note %s", userID, noteID)
-		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("User does not have access to note with ID '%s'", noteID)})
-		return
-	}
-
-	tags, err := h.tagUsecase.GetTagsByNote(noteID)
+	tags, err := h.tagUsecase.GetTagsByNoteForUser(noteID, userID)
 	if err != nil {
 		h.logger.Errorf("Failed to get tags by note: %w", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -369,6 +397,13 @@ func (h *Handler) GetTagsByNote(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/link [post]
 func (h *Handler) LinkTags(c *gin.Context) {
+	userID, err := auth.GetUserId(c)
+	if err != nil {
+		h.logger.Errorf("Failed to get user ID: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	var req LinkTagsRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -389,10 +424,18 @@ func (h *Handler) LinkTags(c *gin.Context) {
 		return
 	}
 
+	if err := h.checkTagOwnership(c, tag1ID, userID); err != nil {
+		return
+	}
+
 	tag2ID, err := uuid.FromString(req.Tag2ID)
 	if err != nil {
 		h.logger.Errorf("Invalid tag2 ID format: %w", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag2 ID format: %v", err)})
+		return
+	}
+
+	if err := h.checkTagOwnership(c, tag2ID, userID); err != nil {
 		return
 	}
 
@@ -425,6 +468,13 @@ func (h *Handler) LinkTags(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/unlink-tags [post]
 func (h *Handler) UnlinkTags(c *gin.Context) {
+	userID, err := auth.GetUserId(c)
+	if err != nil {
+		h.logger.Errorf("Failed to get user ID: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	var req LinkTagsRequest
 	if err := c.BindJSON(&req); err != nil {
 		h.logger.Errorf("Failed to bind request: %w", err)
@@ -445,10 +495,18 @@ func (h *Handler) UnlinkTags(c *gin.Context) {
 		return
 	}
 
+	if err := h.checkTagOwnership(c, tag1ID, userID); err != nil {
+		return
+	}
+
 	tag2ID, err := uuid.FromString(req.Tag2ID)
 	if err != nil {
 		h.logger.Errorf("Invalid tag2 ID format: %w", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag2 ID format: %v", err)})
+		return
+	}
+
+	if err := h.checkTagOwnership(c, tag2ID, userID); err != nil {
 		return
 	}
 
@@ -494,43 +552,11 @@ func (h *Handler) GetLinkedTags(c *gin.Context) {
 		return
 	}
 
-	// Get the first note associated with this tag to check access
-	notes, err := h.tagUsecase.GetNotesByTag(tagID)
-	if err != nil {
-		h.logger.Errorf("Error while getting notes for tag: %w", err)
-		switch e := err.(type) {
-		case *errors.TagNotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
 		return
 	}
 
-	if len(notes) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Tag with ID '%s' not found", tagID)})
-		return
-	}
-
-	// Check if user has access to at least one note with this tag
-	hasAccess := false
-	for _, note := range notes {
-		access, err := h.noteUsecase.GetUserAccess(note.ID, userID)
-		if err != nil {
-			continue
-		}
-		if access != models.EmptyNoteAccess {
-			hasAccess = true
-			break
-		}
-	}
-
-	if !hasAccess {
-		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("User does not have access to tag with ID '%s'", tagID)})
-		return
-	}
-
-	tags, err := h.tagUsecase.GetLinkedTags(tagID)
+	tags, err := h.tagUsecase.GetLinkedTagsForUser(tagID, userID)
 	if err != nil {
 		h.logger.Errorf("Error while getting linked tags: %v", err)
 
@@ -591,39 +617,7 @@ func (h *Handler) DeleteTag(c *gin.Context) {
 		return
 	}
 
-	// Get the first note associated with this tag to check access
-	notes, err := h.tagUsecase.GetNotesByTag(tagID)
-	if err != nil {
-		h.logger.Errorf("Error while getting notes for tag: %w", err)
-		switch e := err.(type) {
-		case *errors.TagNotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		return
-	}
-
-	if len(notes) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Tag with ID '%s' not found", tagID)})
-		return
-	}
-
-	// Check if user has access to all note with this tag
-	hasAccess := true
-	for _, note := range notes {
-		access, err := h.noteUsecase.GetUserAccess(note.ID, userID)
-		if err != nil {
-			continue
-		}
-		if access != models.ManageAccessNoteAccess && access != models.WriteNoteAccess && access != models.ModifyNoteAccess {
-			hasAccess = false
-			break
-		}
-	}
-
-	if !hasAccess {
-		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("User does not have sufficient access to delete tag with ID '%s'", tagID)})
+	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
 		return
 	}
 
@@ -680,16 +674,7 @@ func (h *Handler) LinkExistingTag(c *gin.Context) {
 		return
 	}
 
-	// Check if user has access to the note
-	access, err := h.noteUsecase.GetUserAccess(noteID, userID)
-	if err != nil {
-		h.logger.Errorf("Failed to get user access: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	if access == models.EmptyNoteAccess {
-		h.logger.Infof("User %s does not have access to note %s", userID, noteID)
-		c.JSON(http.StatusForbidden, gin.H{"error": fmt.Sprintf("User does not have access to note with ID '%s'", noteID)})
+	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
 		return
 	}
 
