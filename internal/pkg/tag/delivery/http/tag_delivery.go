@@ -297,10 +297,21 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/tags/{tagID}/notes [get]
 func (h *Handler) GetNotesByTag(c *gin.Context) {
+	userID, err := auth.GetUserId(c)
+	if err != nil {
+		h.logger.Errorf("Failed to get user ID: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	tagID, err := uuid.FromString(c.Param("tag_id"))
 	if err != nil {
 		h.logger.Errorf("Invalid tag ID format: %w", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag ID format: %v", err)})
+		return
+	}
+
+	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
 		return
 	}
 
@@ -338,7 +349,7 @@ func (h *Handler) GetNotesByTag(c *gin.Context) {
 // @Success		200			{object}	[]models.Tag		"Tags"
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/api/notes/{noteID}/tags [get]
+// @Router		/api/note/{noteID}/tags [get]
 func (h *Handler) GetTagsByNote(c *gin.Context) {
 	userID, err := auth.GetUserId(c)
 	if err != nil {

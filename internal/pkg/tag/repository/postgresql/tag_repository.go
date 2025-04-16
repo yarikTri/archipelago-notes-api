@@ -53,7 +53,7 @@ func (p *PostgreSQL) getTagByID(q QueryExecutor, id uuid.UUID) (*models.Tag, err
 	err := q.QueryRow(`
 		SELECT tag_id, name, user_id
 		FROM tag
-		WHERE tag_id = $1`, id).Scan(&tag.ID, &tag.Name)
+		WHERE tag_id = $1`, id).Scan(&tag.ID, &tag.Name, &tag.UserID)
 
 	if err == sql.ErrNoRows {
 		return nil, &errors.TagNotFoundError{ID: id}
@@ -70,7 +70,7 @@ func (p *PostgreSQL) getTagByName(tx *sql.Tx, name string) (*models.Tag, error) 
 	err := tx.QueryRow(`
 		SELECT tag_id, name, user_id
 		FROM tag
-		WHERE name = $1`, name).Scan(&tag.ID, &tag.Name)
+		WHERE name = $1`, name).Scan(&tag.ID, &tag.Name, &tag.UserID)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
