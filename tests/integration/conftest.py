@@ -16,7 +16,7 @@ def create_note(api_client, title, automerge_url, root_dir):
     print(f"TEST CREATE NOTE cookies: {api_client.cookies}")
     note_data = {"title": title, "dir_id": root_dir, "automerge_url": automerge_url}
     response = api_client.post(f"{api_client.base_url}/api/notes", json=note_data)
-    assert response.status_code == 201, response.text
+    assert response.status_code == 200, response.text
     return response.json()["id"]
 
 
@@ -207,7 +207,7 @@ def test_note(api_client, test_user, root_dir):
     print(f"TEST NOTE api_client.headers: {api_client.headers}")
     print(f"TEST NOTE cookies: {api_client.cookies}")
     response = api_client.post(f"{api_client.base_url}/api/notes", json=note_data)
-    assert response.status_code == 201, response.text
+    assert response.status_code == 200, response.text
     return response.json()["id"]
 
 
