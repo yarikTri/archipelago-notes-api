@@ -85,6 +85,29 @@ definitions:
       title:
         type: string
     type: object
+  http.UpdateTagRequest:
+    properties:
+      name:
+        type: string
+      tag_id:
+        type: string
+    type: object
+  http.suggestTagsRequest:
+    properties:
+      tags_num:
+        type: integer
+      text:
+        type: string
+    required:
+    - text
+    type: object
+  http.suggestTagsResponse:
+    properties:
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
   models.Dir:
     properties:
       id:
@@ -129,6 +152,8 @@ definitions:
       name:
         type: string
       tag_id:
+        type: string
+      user_id:
         type: string
     type: object
   models.UserTransfer:
@@ -658,6 +683,40 @@ paths:
       summary: Link two tags together
       tags:
       - Tags
+  /api/tags/suggest:
+    post:
+      consumes:
+      - application/json
+      description: Generate tag suggestions using LLM
+      parameters:
+      - description: Text to generate tags for
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.suggestTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.suggestTagsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Suggest tags for given text
+      tags:
+      - tags
   /api/tags/unlink:
     post:
       consumes:
@@ -712,6 +771,43 @@ paths:
           description: Server error
           schema: {}
       summary: Unlink two tags
+      tags:
+      - Tags
+  /api/tags/update:
+    put:
+      consumes:
+      - application/json
+      description: Update the name of an existing tag
+      parameters:
+      - description: Tag update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.UpdateTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated tag
+          schema:
+            $ref: '#/definitions/models.Tag'
+        "400":
+          description: Incorrect input
+          schema: {}
+        "403":
+          description: Access denied
+          schema: {}
+        "404":
+          description: Tag not found
+          schema: {}
+        "409":
+          description: Tag name conflict
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Update tag
       tags:
       - Tags
   /api/users/:

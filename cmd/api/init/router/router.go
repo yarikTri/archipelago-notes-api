@@ -73,7 +73,7 @@ func InitRoutes(
 	tags.GET("/note/:note_id", tagHandler.GetTagsByNote)
 	tags.GET("/:tag_id/notes", tagHandler.GetNotesByTag)
 	tags.GET("/:tag_id/linked", tagHandler.GetLinkedTags)
-	tags.POST("/:tag_id/link/:note_id", tagHandler.LinkExistingTag)
+	tags.POST("/:tag_id/link/:note_id", tagHandler.LinkTagToNote)
 	tags.POST("/suggest", tagHandler.SuggestTags)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))

@@ -672,6 +672,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/tags/suggest": {
+            "post": {
+                "description": "Generate tag suggestions using LLM",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "Suggest tags for given text",
+                "parameters": [
+                    {
+                        "description": "Text to generate tags for",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.suggestTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.suggestTagsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/tags/unlink": {
             "post": {
                 "description": "Remove the link between a tag and a note, delete tag if it has no more links",
@@ -745,6 +797,60 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/update": {
+            "put": {
+                "description": "Update the name of an existing tag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update tag",
+                "parameters": [
+                    {
+                        "description": "Tag update request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated tag",
+                        "schema": {
+                            "$ref": "#/definitions/models.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Access denied",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Tag name conflict",
                         "schema": {}
                     },
                     "500": {
@@ -1160,6 +1266,42 @@ const docTemplate = `{
                 }
             }
         },
+        "http.UpdateTagRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.suggestTagsRequest": {
+            "type": "object",
+            "required": [
+                "text"
+            ],
+            "properties": {
+                "tags_num": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.suggestTagsResponse": {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.Dir": {
             "type": "object",
             "properties": {
@@ -1227,6 +1369,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tag_id": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }

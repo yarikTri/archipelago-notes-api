@@ -637,7 +637,7 @@ func (h *Handler) DeleteTag(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// LinkExistingTag
+// LinkTagToNote
 // @Summary		Link existing tag to note
 // @Tags		Tags
 // @Description	Link an existing tag to a note
@@ -652,7 +652,7 @@ func (h *Handler) DeleteTag(c *gin.Context) {
 // @Failure		409			{object}	error				"Tag already linked"
 // @Failure		500			{object}	error				"Server error"
 // @Router		/api/notes/{note_id}/tags/{tag_id} [post]
-func (h *Handler) LinkExistingTag(c *gin.Context) {
+func (h *Handler) LinkTagToNote(c *gin.Context) {
 	userID, err := auth.GetUserId(c)
 	if err != nil {
 		h.logger.Errorf("Failed to get user ID: %w", err)
@@ -678,7 +678,7 @@ func (h *Handler) LinkExistingTag(c *gin.Context) {
 		return
 	}
 
-	err = h.tagUsecase.LinkExistingTag(tagID, noteID)
+	err = h.tagUsecase.LinkTagToNote(tagID, noteID)
 	if err != nil {
 		h.logger.Errorf("Failed to link existing tag: %w", err)
 		switch e := err.(type) {

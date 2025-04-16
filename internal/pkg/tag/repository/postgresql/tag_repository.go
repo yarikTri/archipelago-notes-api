@@ -169,7 +169,7 @@ func (p *PostgreSQL) CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*m
 	return result, nil
 }
 
-func (p *PostgreSQL) LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error {
+func (p *PostgreSQL) LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error {
 	return p.withTransaction(func(tx *sql.Tx) error {
 		// Check if tag exists
 		_, err := p.getTagByID(tx, tagID)

@@ -24,8 +24,8 @@ func (u *Usecase) CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*mode
 	return u.tagRepo.CreateAndLinkTag(name, noteID, userID)
 }
 
-func (u *Usecase) LinkExistingTag(tagID uuid.UUID, noteID uuid.UUID) error {
-	return u.tagRepo.LinkExistingTag(tagID, noteID)
+func (u *Usecase) LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error {
+	return u.tagRepo.LinkTagToNote(tagID, noteID)
 }
 
 func (u *Usecase) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
