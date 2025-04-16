@@ -221,7 +221,7 @@ func (h *Handler) UpdateTag(c *gin.Context) {
 		return
 	}
 
-	updatedTag, err := h.tagUsecase.UpdateTag(id, req.Name)
+	updatedTag, err := h.tagUsecase.UpdateTag(id, req.Name, userID)
 	if err != nil {
 		h.logger.Errorf("Failed to update tag: %w", err)
 		switch e := err.(type) {

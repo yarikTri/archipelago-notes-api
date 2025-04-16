@@ -66,6 +66,7 @@ func InitRoutes(
 
 	tags := api.Group("/tags")
 	tags.POST("/create", tagHandler.CreateAndLinkTag)
+	tags.PUT("/update", tagHandler.UpdateTag)
 	tags.POST("/unlink", tagHandler.UnlinkTagFromNote)
 	tags.POST("/link", tagHandler.LinkTags)
 	tags.POST("/unlink-tags", tagHandler.UnlinkTags)

@@ -81,6 +81,22 @@ func (p *PostgreSQL) getTagByName(tx *sql.Tx, name string) (*models.Tag, error) 
 	return &tag, nil
 }
 
+func (p *PostgreSQL) getTagByNameAndUserID(tx *sql.Tx, name string, userID uuid.UUID) (*models.Tag, error) {
+	var tag models.Tag
+	err := tx.QueryRow(`
+		SELECT tag_id, name, user_id
+		FROM tag
+		WHERE name = $1 and user_id = $2`, name, userID).Scan(&tag.ID, &tag.Name, &tag.UserID)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("(repo) failed to check existing tag: %w", err)
+	}
+	return &tag, nil
+}
+
 // getTagRelationsCount counts how many notes are linked to a tag
 func (p *PostgreSQL) getTagRelationsCount(tx *sql.Tx, tagID uuid.UUID) (int, error) {
 	var count int
@@ -267,7 +283,7 @@ func (p *PostgreSQL) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error 
 	})
 }
 
-func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
+func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*models.Tag, error) {
 	var result *models.Tag
 	err := p.withTransaction(func(tx *sql.Tx) error {
 		// Check if tag exists
@@ -283,7 +299,7 @@ func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
 		}
 
 		// Check if new name already exists
-		conflictingTag, err := p.getTagByName(tx, name)
+		conflictingTag, err := p.getTagByNameAndUserID(tx, name, userID)
 		if err != nil {
 			return err
 		}
@@ -304,8 +320,9 @@ func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
 		}
 
 		result = &models.Tag{
-			ID:   ID,
-			Name: name,
+			ID:     ID,
+			Name:   name,
+			UserID: existingTag.UserID,
 		}
 		return nil
 	})

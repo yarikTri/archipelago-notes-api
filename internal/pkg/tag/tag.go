@@ -9,7 +9,7 @@ type Usecase interface {
 	CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error)
 	LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
-	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
+	UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*models.Tag, error)
 	// UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
 	GetTagsByNoteForUser(noteID, userID uuid.UUID) ([]models.Tag, error)
@@ -25,7 +25,7 @@ type TagRepository interface {
 	CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error)
 	LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error
 	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
-	UpdateTag(ID uuid.UUID, name string) (*models.Tag, error)
+	UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*models.Tag, error)
 	// UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)
 	GetTagsByNoteForUser(noteID, userID uuid.UUID) ([]models.Tag, error)

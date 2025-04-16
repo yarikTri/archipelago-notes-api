@@ -28,12 +28,12 @@ func (u *Usecase) LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error {
 	return u.tagRepo.LinkTagToNote(tagID, noteID)
 }
 
-func (u *Usecase) UpdateTag(ID uuid.UUID, name string) (*models.Tag, error) {
+func (u *Usecase) UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*models.Tag, error) {
 	if name == "" {
 		return nil, &errors.TagNameEmptyError{}
 	}
 
-	return u.tagRepo.UpdateTag(ID, name)
+	return u.tagRepo.UpdateTag(ID, name, userID)
 }
 
 func (u *Usecase) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {
