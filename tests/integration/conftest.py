@@ -1,10 +1,10 @@
 import os
+from http.cookies import SimpleCookie
 
 import psycopg2
 import pytest
 import requests
 from dotenv import load_dotenv
-from http.cookies import SimpleCookie
 
 # Load environment variables
 load_dotenv()
@@ -87,7 +87,9 @@ def clean_sessions(auth_base_url):
         f"{auth_base_url}/auth-service/clear-sessions",
         headers=header,
     )
-    assert response.status_code == 200, response.text
+    print(response.request.body)
+    print(response.request.url)
+    assert response.status_code == 200, response._content
     # if response.status_code != 200:
     #    print(f"Warning: Failed to clear sessions: {response.text}")
     print("SESSIONS CLEANED")
@@ -233,17 +235,16 @@ def second_user_client(api_base_url, auth_base_url):
     registration_data = {
         "name": "Second User",
         "email": "second_user@example.com",
-        "password": "password123"
+        "password": "password123",
     }
-    response = client.post(f"{auth_base_url}/auth-service/registration", json=registration_data)
+    response = client.post(
+        f"{auth_base_url}/auth-service/registration", json=registration_data
+    )
     assert response.status_code == 200
     user_id = response.json()["user_id"]
 
     # Login second user
-    login_data = {
-        "email": "second_user@example.com",
-        "password": "password123"
-    }
+    login_data = {"email": "second_user@example.com", "password": "password123"}
     response = client.post(f"{auth_base_url}/auth-service/login", json=login_data)
     assert response.status_code == 200
     assert response.json()["user_id"] == user_id
