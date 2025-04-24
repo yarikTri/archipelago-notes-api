@@ -49,7 +49,6 @@ func (i *TritonInferer) Infer(content string) ([]float32, error) {
 	}
 
 	httpResp, err := http.Post(
-		// TODO: change port
 		"http://localhost:1234/v2/models/ensemble_model/infer",
 		"application/json",
 		bytes.NewReader(reqJson),

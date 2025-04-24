@@ -7,5 +7,5 @@ import (
 // TODO: top of mind name variant, rename
 type TagsGraph interface {
 	UpdateOrCreateTag(tag *models.Tag) error
-	ListClosestTags(tagName string, limit uint32) ([]*models.Tag, error)
+	ListClosestTags(tag *models.Tag, limit uint32) ([]*models.Tag, error)
 }

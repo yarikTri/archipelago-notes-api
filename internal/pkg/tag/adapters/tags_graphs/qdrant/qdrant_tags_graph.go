@@ -95,25 +95,47 @@ func (g *QdrantTagsGraph) UpdateOrCreateTag(tag *models.Tag) error {
 }
 
 type listClosestTagsRequest struct {
-	Vector []float32 `json:"query"`
-	Limit  uint32    `json:"limit"`
-	// TODO: filter
+	Vector []float32                    `json:"query"`
+	Limit  uint32                       `json:"limit"`
+	Filter listClosestTagsRequestFilter `json:"filter"`
 }
+
+type listClosestTagsRequestFilter struct {
+	Must []listClosestTagsRequestFilterMust `json:"must"`
+}
+
+type listClosestTagsRequestFilterMust struct {
+	Key   string            `json:"key"`
+	Match map[string]string `json:"match"`
+}
+
+// type listClosestTagsRequestFilterMustMatch struct {
+// 	Value string `json:"value"`
+// }
 
 type listClosestTagsResponse struct {
 	// TODO
 }
 
-func (g *QdrantTagsGraph) ListClosestTags(tagName string, limit uint32) ([]*models.Tag, error) {
-	inferVec, err := g.inferer.Infer(tagName)
+func (g *QdrantTagsGraph) ListClosestTags(tag *models.Tag, limit uint32) ([]*models.Tag, error) {
+	inferVec, err := g.inferer.Infer(tag.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to infer tag %s: %w", tagName, err)
+		return nil, fmt.Errorf("failed to infer tag %s: %w", tag.Name, err)
 	}
 
 	req := listClosestTagsRequest{
 		Vector: inferVec,
 		Limit:  limit,
-		// TOOD: filter
+		Filter: listClosestTagsRequestFilter{
+			Must: []listClosestTagsRequestFilterMust{
+				{
+					Key: tag.ID.String(),
+					Match: map[string]string{
+						"user_id": tag.UserID.String(),
+					},
+				},
+			},
+		},
 	}
 
 	reqJson, err := json.Marshal(req)
