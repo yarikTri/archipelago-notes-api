@@ -21,6 +21,7 @@ type Usecase interface {
 	IsTagUsers(userID uuid.UUID, tagID uuid.UUID) (bool, error)
 }
 
+// No context? :((
 type TagRepository interface {
 	CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error)
 	LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error

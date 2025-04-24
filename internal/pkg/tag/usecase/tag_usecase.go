@@ -1,27 +1,48 @@
 package usecase
 
 import (
+	"fmt"
+
 	"github.com/gofrs/uuid/v5"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/errors"
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/usecase/dependencies"
 )
 
 // Usecase implements tag.Usecase
 type Usecase struct {
 	tagRepo       tag.TagRepository
 	suggesterRepo tag.TagSuggesterRepository
+	tagsGraph     dependencies.TagsGraph
 }
 
-func NewUsecase(tr tag.TagRepository, sr tag.TagSuggesterRepository) *Usecase {
+func NewUsecase(
+	tr tag.TagRepository,
+	sr tag.TagSuggesterRepository,
+	tg dependencies.TagsGraph,
+) *Usecase {
 	return &Usecase{
 		tagRepo:       tr,
 		suggesterRepo: sr,
+		tagsGraph:     tg,
 	}
 }
 
 func (u *Usecase) CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error) {
-	return u.tagRepo.CreateAndLinkTag(name, noteID, userID)
+	tag, err := u.tagRepo.CreateAndLinkTag(name, noteID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Closing eyes on goroutines leakage here.
+	go func() {
+		if err := u.tagsGraph.UpdateOrCreateTag(tag); err != nil {
+			fmt.Printf("Failed to update or create tag: %v\n", err)
+		}
+	}()
+
+	return tag, nil
 }
 
 func (u *Usecase) LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error {

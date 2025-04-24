@@ -18,6 +18,7 @@ import (
 	notesRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/repository/postgresql"
 	notesUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/usecase"
 
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/adapters/tags_graphs/qdrant"
 	tagHandler "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/delivery/http"
 	tagSuggester "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/repository/ollama"
 	tagRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/repository/postgresql"
@@ -48,7 +49,10 @@ func Init(sqlDBClient *sqlx.DB, logger logger.Logger, openAiUrl string, tagSugge
 	dirsUsecase := dirsUsecase.NewUsecase(dirsRepo, notesRepo)
 	usersUsecase := usersUsecase.NewUsecase(usersRepo, emailClient)
 	summaryUsecase := summaryUsecase.NewUsecase(summRepo)
-	tagUsecase := tagUsecase.NewUsecase(tagRepo, tagSuggesterRepo)
+
+	inferer := qdrant.NewTritonInferer()
+	tagsGraph := qdrant.NewQdrantTagsGraph(inferer)
+	tagUsecase := tagUsecase.NewUsecase(tagRepo, tagSuggesterRepo, tagsGraph)
 
 	notesHandler := notesHandler.NewHandler(notesUsecase, logger)
 	dirsHandler := dirsHandler.NewHandler(dirsUsecase, logger)
