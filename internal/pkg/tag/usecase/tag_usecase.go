@@ -99,6 +99,8 @@ func (u *Usecase) GetLinkedTagsForUser(tagID, userID uuid.UUID) ([]models.Tag, e
 }
 
 func (u *Usecase) DeleteTag(tagID uuid.UUID) error {
+	// TODO: add delete from qdrant.
+
 	return u.tagRepo.DeleteTag(tagID)
 }
 
