@@ -53,7 +53,17 @@ func (u *Usecase) UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*model
 		return nil, &errors.TagNameEmptyError{}
 	}
 
-	return u.tagRepo.UpdateTag(ID, name, userID)
+	tag, err := u.tagRepo.UpdateTag(ID, name, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := u.tagsGraph.UpdateOrCreateTag(tag); err != nil {
+		fmt.Printf("Failed to update or create tag: %v\n", err)
+		return nil, err
+	}
+
+	return tag, err
 }
 
 func (u *Usecase) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {
