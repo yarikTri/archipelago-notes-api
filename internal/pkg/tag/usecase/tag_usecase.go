@@ -35,12 +35,11 @@ func (u *Usecase) CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*mode
 		return nil, err
 	}
 
-	// Closing eyes on goroutines leakage here.
-	go func() {
-		if err := u.tagsGraph.UpdateOrCreateTag(tag); err != nil {
-			fmt.Printf("Failed to update or create tag: %v\n", err)
-		}
-	}()
+	// NO GOROUTINES HERE.
+	if err := u.tagsGraph.UpdateOrCreateTag(tag); err != nil {
+		fmt.Printf("Failed to update or create tag: %v\n", err)
+		return nil, err
+	}
 
 	return tag, nil
 }
