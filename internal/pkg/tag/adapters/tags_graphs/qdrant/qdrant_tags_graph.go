@@ -117,6 +117,7 @@ type listClosestTagsResponse struct {
 	// TODO
 }
 
+// TODO: return ids instead of models.Tag
 func (g *QdrantTagsGraph) ListClosestTags(tag *models.Tag, limit uint32) ([]*models.Tag, error) {
 	inferVec, err := g.inferer.Infer(tag.Name)
 	if err != nil {
@@ -144,7 +145,7 @@ func (g *QdrantTagsGraph) ListClosestTags(tag *models.Tag, limit uint32) ([]*mod
 	}
 
 	httpResp, err := http.Post(
-		fmt.Sprintf("%s/query", pointsUrl),
+		fmt.Sprintf("%s/search", pointsUrl),
 		"application/json",
 		bytes.NewReader(reqJson),
 	)
