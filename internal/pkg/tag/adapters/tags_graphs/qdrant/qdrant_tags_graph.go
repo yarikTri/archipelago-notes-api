@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
 	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/usecase/dependencies"
 )
@@ -114,11 +115,40 @@ type listClosestTagsRequestFilterMust struct {
 // }
 
 type listClosestTagsResponse struct {
-	// TODO
+	Result []struct {
+		ID string `json:"id"`
+		// Version   uint64    `json:"version"`
+		// Score     float64   `json:"score"`
+		// Payload   *Payload  `json:"payload,omitempty"`
+		// Vector    []float64 `json:"vector,omitempty"`
+	} `json:"result"`
+	Status string  `json:"status"`
+	Time   float64 `json:"time"`
 }
 
-// TODO: return ids instead of models.Tag
-func (g *QdrantTagsGraph) ListClosestTags(tag *models.Tag, limit uint32) ([]*models.Tag, error) {
+func (r *listClosestTagsResponse) error() error {
+	if r.Status == "ok" {
+		return nil
+	}
+
+	return fmt.Errorf("qdrant returned error: %s", r.Status)
+}
+
+func (r *listClosestTagsResponse) getAllIds() ([]uuid.UUID, error) {
+	ids := make([]uuid.UUID, 0, len(r.Result))
+
+	for _, v := range r.Result {
+		parsedID, err := uuid.FromString(v.ID)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, parsedID)
+	}
+
+	return ids, nil
+}
+
+func (g *QdrantTagsGraph) ListClosestTagsIds(tag *models.Tag, limit uint32) ([]uuid.UUID, error) {
 	inferVec, err := g.inferer.Infer(tag.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to infer tag %s: %w", tag.Name, err)
@@ -168,7 +198,9 @@ func (g *QdrantTagsGraph) ListClosestTags(tag *models.Tag, limit uint32) ([]*mod
 		return nil, err
 	}
 
-	// TODO: map response
+	if err := resp.error(); err != nil {
+		return nil, err
+	}
 
-	return []*models.Tag{}, nil
+	return resp.getAllIds()
 }
