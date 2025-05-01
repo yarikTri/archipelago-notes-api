@@ -9,4 +9,5 @@ import (
 type TagsGraph interface {
 	UpdateOrCreateTag(tag *models.Tag) error
 	ListClosestTagsIds(tag *models.Tag, limit uint32) ([]uuid.UUID, error)
+	DeleteByID(tagID uuid.UUID) error
 }

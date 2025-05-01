@@ -204,3 +204,74 @@ func (g *QdrantTagsGraph) ListClosestTagsIds(tag *models.Tag, limit uint32) ([]u
 
 	return resp.getAllIds()
 }
+
+type deleteByIDRequest struct {
+	Points []string `json:"points"`
+}
+
+func newDeleteByIDRequest(id uuid.UUID) deleteByIDRequest {
+	return deleteByIDRequest{
+		Points: []string{id.String()},
+	}
+}
+
+type deleteByIDResponseOperationResult struct {
+	Status      string `json:"status"`
+	OperationID int64  `json:"operation_id"`
+}
+
+type deleteByIDResponse struct {
+	// Usage  UsageStats      `json:"usage"`
+	Time   float64                           `json:"time"`
+	Status string                            `json:"status"`
+	Result deleteByIDResponseOperationResult `json:"result"`
+}
+
+func (r *deleteByIDResponse) error() error {
+	if r.Status == "ok" {
+		return nil
+	}
+
+	return fmt.Errorf("qdrant returned error: %s", r.Status)
+}
+
+const WAIT_FOR_PROCESS = true
+
+func (g *QdrantTagsGraph) DeleteByID(tagID uuid.UUID) error {
+	req := newDeleteByIDRequest(tagID)
+
+	reqJson, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	httpResp, err := http.Post(
+		fmt.Sprintf("%s/delete?wait=%t", pointsUrl, WAIT_FOR_PROCESS),
+		"application/json",
+		bytes.NewReader(reqJson),
+	)
+	if err != nil {
+		return err
+	}
+	defer httpResp.Body.Close()
+
+	if httpResp.StatusCode != 200 {
+		return fmt.Errorf("got response status code %d", httpResp.StatusCode)
+	}
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return err
+	}
+
+	var resp deleteByIDResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return err
+	}
+
+	if err := resp.error(); err != nil {
+		return err
+	}
+
+	return nil
+}
