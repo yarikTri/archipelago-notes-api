@@ -76,6 +76,7 @@ func InitRoutes(
 	tags.GET("/:tag_id/linked", tagHandler.GetLinkedTags)
 	tags.POST("/:tag_id/link/:note_id", tagHandler.LinkTagToNote)
 	tags.POST("/suggest", tagHandler.SuggestTags)
+	tags.POST("/list_closest/:tag_id", tagHandler.ListClosestTags)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
