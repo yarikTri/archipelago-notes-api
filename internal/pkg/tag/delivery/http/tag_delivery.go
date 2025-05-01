@@ -757,3 +757,54 @@ func (h *Handler) SuggestTags(c *gin.Context) {
 
 	c.JSON(http.StatusOK, suggestTagsResponse{Tags: tags})
 }
+
+var LIMIT uint32 = 3
+
+// ListClosestTags
+// @Summary		List closest tags
+// @Tags		Tags
+// @Description	Get a list of tags closest to the given tag
+// @Produce     json
+// @Param		tagID path string true 						"Tag ID"
+// @Success		200			{object}	[]models.Tag		"Closest tags"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/{tagID}/closest [get]
+func (h *Handler) ListClosestTags(c *gin.Context) {
+	userID, err := auth.GetUserId(c)
+	if err != nil {
+		h.logger.Errorf("Failed to get user ID: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tagID, err := uuid.FromString(c.Param("tag_id"))
+	if err != nil {
+		h.logger.Errorf("Invalid tag ID format: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag ID format: %v", err)})
+		return
+	}
+
+	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
+		return
+	}
+
+	tags, err := h.tagUsecase.ListClosestTags(tagID, LIMIT)
+	if err != nil {
+		h.logger.Errorf("Failed to list closest tags: %w", err)
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	if tags == nil {
+		tags = []models.Tag{} // Return empty array instead of null
+	}
+
+	c.JSON(http.StatusOK, tags)
+}
