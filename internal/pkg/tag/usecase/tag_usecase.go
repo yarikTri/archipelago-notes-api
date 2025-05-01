@@ -115,3 +115,32 @@ func (u *Usecase) IsTagUsers(userID uuid.UUID, tagID uuid.UUID) (bool, error) {
 	}
 	return tag.UserID == userID, nil
 }
+
+func (u *Usecase) ListClosestTags(tagID uuid.UUID, limit uint32) ([]models.Tag, error) {
+	tag, err := u.tagRepo.GetTagByID(tagID)
+	if err != nil {
+		return nil, err
+	}
+
+	tagIds, err := u.tagsGraph.ListClosestTagsIds(tag, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	tags := make([]models.Tag, 0, len(tagIds))
+
+	for _, tagID := range tagIds {
+		tag, err := u.tagRepo.GetTagByID(tagID)
+		if err != nil {
+			return nil, err
+		}
+
+		tags = append(tags, *tag)
+	}
+
+	if tags == nil {
+		tags = []models.Tag{}
+	}
+
+	return tags, nil
+}
