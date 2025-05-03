@@ -9,3 +9,6 @@ docker/rebuild:
 
 test/docker/rebuild:
 	docker compose -f docker-compose-stateless.yml down && docker compose -f docker-compose-stateless.yml build && docker compose -f docker-compose-stateless.yml up -d
+
+migration:
+	sudo docker-compose exec -T db psql -U ${POSTGRESQL_NAME} -d ${POSTGRESQL_NAME} < ${MIGRATION_FILE_PATH}
