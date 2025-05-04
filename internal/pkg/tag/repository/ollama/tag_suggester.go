@@ -44,39 +44,98 @@ func NewTagSuggester(openAiClient *llm.OpenAiClient, defaultGenerateTagNum int, 
 	}
 }
 
+// func isInvalidLLMAnswerEng(s string) bool {
+// 	invalidPrefixes := []string{
+// 		"i'm sorry",
+// 		"i am sorry",
+// 		"i apologize",
+// 		"as an ai",
+// 		"as a language model",
+// 		"i can't",
+// 		"i cannot",
+// 		"unfortunately",
+// 		"my purpose is",
+// 		"i don't",
+// 		"i do not",
+// 		"this content",
+// 		"this request",
+// 		"i am not",
+// 		"i am unable",
+// 		"that's not",
+// 		"that is outside",
+// 	}
+
+// 	for _, prefix := range invalidPrefixes {
+// 		if strings.HasPrefix(s, prefix) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+// func isInvalidLLMAnswerRu(s string) bool {
+// 	invalidPrefixes := []string{
+// 		"я извиняюсь",
+// 		"я сожалею",
+// 		"как ии",
+// 		"как искусственный интеллект",
+// 		"я не могу",
+// 		"к сожалению",
+// 		"моя функция",
+// 		"это выходит",
+// 		"данный запрос",
+// 	}
+
+// 	for _, prefix := range invalidPrefixes {
+// 		if strings.HasPrefix(s, prefix) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+func removeAllEmojis(s string) string {
+	isEmoji := func(r rune) bool {
+		// Check if the rune falls into any emoji range
+		return (r >= 0x1F300 && r <= 0x1F5FF) || // Miscellaneous Symbols and Pictographs
+			(r >= 0x1F600 && r <= 0x1F64F) || // Emoticons
+			(r >= 0x1F680 && r <= 0x1F6FF) || // Transport and Map Symbols
+			(r >= 0x1F700 && r <= 0x1F77F) || // Alchemical Symbols
+			(r >= 0x1F780 && r <= 0x1F7FF) || // Geometric Shapes Extended
+			(r >= 0x1F800 && r <= 0x1F8FF) || // Supplemental Arrows-C
+			(r >= 0x1F900 && r <= 0x1F9FF) || // Supplemental Symbols and Pictographs
+			(r >= 0x2600 && r <= 0x26FF) || // Miscellaneous Symbols
+			(r >= 0x2700 && r <= 0x27BF) || // Dingbats
+			(r >= 0x1F1E6 && r <= 0x1F1FF) // Flags
+	}
+
+	var result []rune
+	for _, r := range s {
+		if !isEmoji(r) {
+			result = append(result, r)
+		}
+	}
+	return string(result)
+}
+
 func isValidTag(tag string) bool {
-	// Check for white spaces.
+	if len(tag) == 0 {
+		return false
+	}
+
+	// if isInvalidLLMAnswerEng(tag) {
+	// 	return false
+	// }
+
+	// if isInvalidLLMAnswerRu(tag) {
+	// 	return false
+	// }
+
 	parts := strings.Fields(tag)
 	if len(parts) != 1 {
 		return false
 	}
 	tag = parts[0]
-
-	// Empty or whitespace-only tags
-	if len(strings.TrimSpace(tag)) == 0 {
-		return false
-	}
-
-	// invalidResponses := []string{
-	// 	// Linking words
-	// 	"это",
-	// 	"вот",
-	// 	"или",
-	// 	"либо",
-	// 	"также",
-	// 	"еще",
-	// 	"затем",
-	// 	"далее",
-	// 	"итак",
-	// 	"значит",
-	// }
-
-	// tagLower := strings.ToLower(tag)
-	// for _, invalid := range invalidResponses {
-	// 	if strings.Contains(tagLower, invalid) {
-	// 		return false
-	// 	}
-	// }
 
 	if len(tag) > 80 || len(tag) < 2 {
 		return false
@@ -88,6 +147,8 @@ func isValidTag(tag string) bool {
 func cleanupTag(response string) string {
 	tag := strings.TrimSpace(response)
 
+	tag = removeAllEmojis(tag)
+
 	// Compile the regular expression
 	// This matches any character that is NOT a letter (a-z, A-Z) or number (0-9)
 	reg := regexp.MustCompile(`[^a-zA-Z0-9]`)
@@ -95,7 +156,7 @@ func cleanupTag(response string) string {
 	// Replace all matched characters with an empty string
 	tag = reg.ReplaceAllString(tag, "")
 
-	return tag
+	return strings.TrimSpace(strings.ToLower(tag))
 }
 
 func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
@@ -115,7 +176,7 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 
 		if isValidTag(tag) {
 			fmt.Printf("Got response from ollama (approved): %s\n", response)
-			return strings.ToLower(tag), nil
+			return tag, nil
 		}
 		fmt.Printf("Got response from ollama (not approved): %s\n", response)
 	}
