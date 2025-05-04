@@ -92,6 +92,11 @@ definitions:
       tag_id:
         type: string
     type: object
+  http.listClosestTagsRequest:
+    properties:
+      limit:
+        type: integer
+    type: object
   http.suggestTagsRequest:
     properties:
       tags_num:
@@ -469,8 +474,6 @@ paths:
       - Notes
   /api/tags/{tag_id}/link/{note_id}:
     post:
-      consumes:
-      - application/json
       description: Link an existing tag to a note
       parameters:
       - description: Note ID
@@ -507,9 +510,17 @@ paths:
       tags:
       - Tags
   /api/tags/{tagID}/closest:
-    get:
+    post:
+      consumes:
+      - application/json
       description: Get a list of tags closest to the given tag
       parameters:
+      - description: Limit
+        in: body
+        name: limit
+        required: true
+        schema:
+          $ref: '#/definitions/http.listClosestTagsRequest'
       - description: Tag ID
         in: path
         name: tagID

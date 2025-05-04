@@ -659,7 +659,6 @@ func (h *Handler) DeleteTag(c *gin.Context) {
 // @Summary		Link existing tag to note
 // @Tags		Tags
 // @Description	Link an existing tag to a note
-// @Accept		json
 // @Produce     json
 // @Param		note_id	path		string		true	"Note ID"
 // @Param		tag_id	path		string		true	"Tag ID"
@@ -765,19 +764,25 @@ func (h *Handler) SuggestTags(c *gin.Context) {
 	c.JSON(http.StatusOK, suggestTagsResponse{Tags: tags})
 }
 
-var LIMIT uint32 = 3
+var DEFAULT_LIMIT_LIST_CLOSEST uint32 = 3
+
+type listClosestTagsRequest struct {
+	Limit *uint32 `json:"limit"`
+}
 
 // ListClosestTags
 // @Summary		List closest tags
 // @Tags		Tags
 // @Description	Get a list of tags closest to the given tag
+// @Accept json
 // @Produce     json
+// @Param		limit	body		listClosestTagsRequest		true	"Limit"
 // @Param		tagID path string true 						"Tag ID"
 // @Success		200			{object}	[]models.Tag		"Closest tags"
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		404			{object}	error				"Tag not found"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/api/tags/{tagID}/closest [get]
+// @Router		/api/tags/{tagID}/closest [post]
 func (h *Handler) ListClosestTags(c *gin.Context) {
 	userID, err := auth.GetUserId(c)
 	if err != nil {
@@ -797,7 +802,22 @@ func (h *Handler) ListClosestTags(c *gin.Context) {
 		return
 	}
 
-	tags, err := h.tagUsecase.ListClosestTags(tagID, LIMIT)
+	limit := DEFAULT_LIMIT_LIST_CLOSEST
+
+	if c.Request.Body != http.NoBody && c.Request.ContentLength != 0 {
+		var req listClosestTagsRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			h.logger.Errorf("Failed to bind request: %w", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Limit != nil {
+			limit = *req.Limit
+		}
+	}
+
+	tags, err := h.tagUsecase.ListClosestTags(tagID, limit)
 	if err != nil {
 		h.logger.Errorf("Failed to list closest tags: %w", err)
 		switch e := err.(type) {

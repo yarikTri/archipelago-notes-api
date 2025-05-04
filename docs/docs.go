@@ -805,8 +805,11 @@ const docTemplate = `{
             }
         },
         "/api/tags/{tagID}/closest": {
-            "get": {
+            "post": {
                 "description": "Get a list of tags closest to the given tag",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -815,6 +818,15 @@ const docTemplate = `{
                 ],
                 "summary": "List closest tags",
                 "parameters": [
+                    {
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.listClosestTagsRequest"
+                        }
+                    },
                     {
                         "type": "string",
                         "description": "Tag ID",
@@ -939,9 +951,6 @@ const docTemplate = `{
         "/api/tags/{tag_id}/link/{note_id}": {
             "post": {
                 "description": "Link an existing tag to a note",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -1318,6 +1327,14 @@ const docTemplate = `{
                 },
                 "tag_id": {
                     "type": "string"
+                }
+            }
+        },
+        "http.listClosestTagsRequest": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
                 }
             }
         },
