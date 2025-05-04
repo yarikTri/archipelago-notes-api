@@ -150,7 +150,7 @@ func cleanupTag(response string) string {
 
 	// Compile the regular expression
 	// This matches any character that is NOT a letter (a-z, A-Z) or number (0-9)
-	reg := regexp.MustCompile(`[^a-zA-Z0-9\s]`)
+	reg := regexp.MustCompile(`[^a-zA-Z0-9а-яА-Я\s]`)
 
 	// Replace all matched characters with an empty string
 	tag = reg.ReplaceAllString(tag, "")
