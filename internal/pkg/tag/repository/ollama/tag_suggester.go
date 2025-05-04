@@ -174,10 +174,28 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 	return "", fmt.Errorf("failed to generate valid tag after %d attempts", MaxAttempts)
 }
 
+func uniqueStrings(input []string) []string {
+	seen := make(map[string]struct{})
+	result := make([]string, 0, len(input))
+
+	for _, str := range input {
+		if _, exists := seen[str]; !exists {
+			seen[str] = struct{}{}
+			result = append(result, str)
+		}
+	}
+
+	return result
+}
+
 func (s *TagSuggester) SuggestTags(text string, tagsNum *int) ([]string, error) {
 	numTags := s.defaultGenerateTagNum
 	if tagsNum != nil {
 		numTags = *tagsNum
+	}
+
+	if numTags == 0 {
+		return nil, fmt.Errorf("tagsNum cant be 0")
 	}
 
 	tags := make([]string, 0, numTags)
@@ -196,5 +214,5 @@ func (s *TagSuggester) SuggestTags(text string, tagsNum *int) ([]string, error) 
 		tags = append(tags, tag)
 	}
 
-	return tags, nil
+	return uniqueStrings(tags), nil
 }
