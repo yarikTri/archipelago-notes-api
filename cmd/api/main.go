@@ -71,6 +71,11 @@ func main() {
 		return
 	}
 
+	qdrantCollectionName, success := handleEnvVar(flogger, config.QdrantCollectionParamName)
+	if !success {
+		return
+	}
+
 	tritonHost, success := handleEnvVar(flogger, config.TritonHostParamName)
 	if !success {
 		return
@@ -81,7 +86,7 @@ func main() {
 		return
 	}
 
-	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum, qdrantHost, qdrantPort, tritonHost, tritonPort)
+	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum, qdrantHost, qdrantPort, qdrantCollectionName, tritonHost, tritonPort)
 	if err != nil {
 		flogger.Errorf("error while launching routes: %v", err)
 		return

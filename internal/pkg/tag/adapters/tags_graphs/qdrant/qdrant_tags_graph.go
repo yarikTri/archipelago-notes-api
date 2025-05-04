@@ -19,8 +19,6 @@ type Inferer interface {
 	Infer(content string) ([]float32, error)
 }
 
-// const pointsUrl = "http://localhost:6333/collections/tags/points"
-
 type QdrantTagsGraph struct {
 	pointsUrl string
 	inferer   Inferer
@@ -30,6 +28,7 @@ func NewQdrantTagsGraph(
 	inferer Inferer,
 	host string,
 	port string,
+	collectionName string,
 ) *QdrantTagsGraph {
 	if host == "" {
 		panic("QdrantTagsGraph: host cant be empty")
@@ -37,10 +36,13 @@ func NewQdrantTagsGraph(
 	if _, err := strconv.Atoi(port); err != nil {
 		panic(fmt.Sprintf("QdrantTagsGraph: invalid port: %v", err))
 	}
+	if collectionName == "" {
+		panic("QdrantTagsGraph: collection name cant be empty")
+	}
 
 	return &QdrantTagsGraph{
 		inferer:   inferer,
-		pointsUrl: fmt.Sprintf("http://%s:%s/collections/tags/points", host, port),
+		pointsUrl: fmt.Sprintf("http://%s:%s/collections/%s/points", host, port, collectionName),
 	}
 }
 
