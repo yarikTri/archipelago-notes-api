@@ -111,7 +111,7 @@ func (g *QdrantTagsGraph) UpdateOrCreateTag(tag *models.Tag) error {
 }
 
 type listClosestTagsRequest struct {
-	Vector []float32                    `json:"query"`
+	Vector []float32                    `json:"vector"`
 	Limit  uint32                       `json:"limit"`
 	Filter listClosestTagsRequestFilter `json:"filter"`
 }
