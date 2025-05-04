@@ -444,62 +444,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/notes/{note_id}/tags/{tag_id}": {
-            "post": {
-                "description": "Link an existing tag to a note",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tags"
-                ],
-                "summary": "Link existing tag to note",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Note ID",
-                        "name": "note_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Tag ID",
-                        "name": "tag_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Tag linked"
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "403": {
-                        "description": "Access denied",
-                        "schema": {}
-                    },
-                    "404": {
-                        "description": "Tag or note not found",
-                        "schema": {}
-                    },
-                    "409": {
-                        "description": "Tag already linked",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
         "/api/tags/create": {
             "post": {
                 "description": "Create a new tag and link it to a note, or link existing tag if it exists",
@@ -983,6 +927,62 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/{tag_id}/link/{note_id}": {
+            "post": {
+                "description": "Link an existing tag to a note",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Link existing tag to note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "note_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tag_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tag linked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Access denied",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag or note not found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Tag already linked",
                         "schema": {}
                     },
                     "500": {

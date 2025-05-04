@@ -669,7 +669,7 @@ func (h *Handler) DeleteTag(c *gin.Context) {
 // @Failure		404			{object}	error				"Tag or note not found"
 // @Failure		409			{object}	error				"Tag already linked"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/api/notes/{note_id}/tags/{tag_id} [post]
+// @Router		/api/tags/{tag_id}/link/{note_id} [post]
 func (h *Handler) LinkTagToNote(c *gin.Context) {
 	userID, err := auth.GetUserId(c)
 	if err != nil {
