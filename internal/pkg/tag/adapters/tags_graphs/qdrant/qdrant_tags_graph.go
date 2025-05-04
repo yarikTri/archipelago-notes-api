@@ -101,7 +101,8 @@ func (g *QdrantTagsGraph) UpdateOrCreateTag(tag *models.Tag) error {
 	defer httpResp.Body.Close()
 
 	if httpResp.StatusCode != 200 {
-		return fmt.Errorf("got response status code %d", httpResp.StatusCode)
+		body := StringFromReaderUnfallible(httpResp.Body)
+		return fmt.Errorf("QdrantTagsGraph: got response status code %d, body=%s", httpResp.StatusCode, body)
 	}
 
 	return nil
@@ -197,7 +198,9 @@ func (g *QdrantTagsGraph) ListClosestTagsIds(tag *models.Tag, limit uint32) ([]u
 	defer httpResp.Body.Close()
 
 	if httpResp.StatusCode != 200 {
-		return nil, fmt.Errorf("got response status code %d", httpResp.StatusCode)
+		body := StringFromReaderUnfallible(httpResp.Body)
+
+		return nil, fmt.Errorf("QdrantTagsGraph: got response status code %d, body=%s", httpResp.StatusCode, body)
 	}
 
 	body, err := io.ReadAll(httpResp.Body)
@@ -268,7 +271,9 @@ func (g *QdrantTagsGraph) DeleteByID(tagID uuid.UUID) error {
 	defer httpResp.Body.Close()
 
 	if httpResp.StatusCode != 200 {
-		return fmt.Errorf("got response status code %d", httpResp.StatusCode)
+		body := StringFromReaderUnfallible(httpResp.Body)
+
+		return fmt.Errorf("QdrantTagsGraph: got response status code %d, body=%s", httpResp.StatusCode, body)
 	}
 
 	body, err := io.ReadAll(httpResp.Body)

@@ -101,7 +101,9 @@ func (i *TritonInferer) Infer(content string) ([]float32, error) {
 	defer httpResp.Body.Close()
 
 	if httpResp.StatusCode != 200 {
-		return nil, fmt.Errorf("got response status code %d", httpResp.StatusCode)
+		body := StringFromReaderUnfallible(httpResp.Body)
+
+		return nil, fmt.Errorf("TritonInferer: got response status code %d, body=%s", httpResp.StatusCode, body)
 	}
 
 	body, err := io.ReadAll(httpResp.Body)
