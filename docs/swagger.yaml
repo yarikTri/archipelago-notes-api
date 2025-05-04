@@ -96,6 +96,8 @@ definitions:
     properties:
       limit:
         type: integer
+      name:
+        type: string
     type: object
   http.suggestTagsRequest:
     properties:
@@ -509,44 +511,6 @@ paths:
       summary: Link existing tag to note
       tags:
       - Tags
-  /api/tags/{tagID}/closest:
-    post:
-      consumes:
-      - application/json
-      description: Get a list of tags closest to the given tag
-      parameters:
-      - description: Limit
-        in: body
-        name: limit
-        required: true
-        schema:
-          $ref: '#/definitions/http.listClosestTagsRequest'
-      - description: Tag ID
-        in: path
-        name: tagID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Closest tags
-          schema:
-            items:
-              $ref: '#/definitions/models.Tag'
-            type: array
-        "400":
-          description: Incorrect input
-          schema: {}
-        "404":
-          description: Tag not found
-          schema: {}
-        "500":
-          description: Server error
-          schema: {}
-      summary: List closest tags
-      tags:
-      - Tags
   /api/tags/{tagID}/linked:
     get:
       description: Get all tags linked to a specific tag
@@ -605,6 +569,36 @@ paths:
           description: Server error
           schema: {}
       summary: Get notes by tag
+      tags:
+      - Tags
+  /api/tags/closest:
+    post:
+      consumes:
+      - application/json
+      description: Get a list of tags closest to the given tag
+      parameters:
+      - description: Limit and name
+        in: body
+        name: limit
+        required: true
+        schema:
+          $ref: '#/definitions/http.listClosestTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Closest tags
+          schema:
+            items:
+              $ref: '#/definitions/models.Tag'
+            type: array
+        "400":
+          description: Incorrect input
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: List closest tags
       tags:
       - Tags
   /api/tags/create:

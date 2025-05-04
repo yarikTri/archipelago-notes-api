@@ -8,6 +8,6 @@ import (
 // TODO: top of mind name variant, rename
 type TagsGraph interface {
 	UpdateOrCreateTag(tag *models.Tag) error
-	ListClosestTagsIds(tag *models.Tag, limit uint32) ([]uuid.UUID, error)
+	ListClosestTagsIds(tagName string, userID uuid.UUID, limit uint32) ([]uuid.UUID, error)
 	DeleteByID(tagID uuid.UUID) error
 }

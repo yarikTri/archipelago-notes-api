@@ -444,6 +444,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/tags/closest": {
+            "post": {
+                "description": "Get a list of tags closest to the given tag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "List closest tags",
+                "parameters": [
+                    {
+                        "description": "Limit and name",
+                        "name": "limit",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.listClosestTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Closest tags",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Tag"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/tags/create": {
             "post": {
                 "description": "Create a new tag and link it to a note, or link existing tag if it exists",
@@ -795,62 +840,6 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Tag name conflict",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
-        "/api/tags/{tagID}/closest": {
-            "post": {
-                "description": "Get a list of tags closest to the given tag",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tags"
-                ],
-                "summary": "List closest tags",
-                "parameters": [
-                    {
-                        "description": "Limit",
-                        "name": "limit",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.listClosestTagsRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Tag ID",
-                        "name": "tagID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Closest tags",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Tag"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Incorrect input",
-                        "schema": {}
-                    },
-                    "404": {
-                        "description": "Tag not found",
                         "schema": {}
                     },
                     "500": {
@@ -1335,6 +1324,9 @@ const docTemplate = `{
             "properties": {
                 "limit": {
                     "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },

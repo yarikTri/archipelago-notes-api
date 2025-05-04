@@ -19,7 +19,7 @@ type Usecase interface {
 	DeleteTag(tagID uuid.UUID) error
 	SuggestTags(text string, tagsNum *int) ([]string, error)
 	IsTagUsers(userID uuid.UUID, tagID uuid.UUID) (bool, error)
-	ListClosestTags(tagID uuid.UUID, limit uint32) ([]models.Tag, error)
+	ListClosestTags(tagName string, userID uuid.UUID, limit uint32) ([]models.Tag, error)
 }
 
 // No context? :((

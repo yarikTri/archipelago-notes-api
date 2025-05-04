@@ -767,7 +767,8 @@ func (h *Handler) SuggestTags(c *gin.Context) {
 var DEFAULT_LIMIT_LIST_CLOSEST uint32 = 3
 
 type listClosestTagsRequest struct {
-	Limit *uint32 `json:"limit"`
+	Limit   *uint32 `json:"limit"`
+	TagName string  `json:"name"`
 }
 
 // ListClosestTags
@@ -776,13 +777,11 @@ type listClosestTagsRequest struct {
 // @Description	Get a list of tags closest to the given tag
 // @Accept json
 // @Produce     json
-// @Param		limit	body		listClosestTagsRequest		true	"Limit"
-// @Param		tagID path string true 						"Tag ID"
+// @Param		limit	body		listClosestTagsRequest		true	"Limit and name"				"Tag ID"
 // @Success		200			{object}	[]models.Tag		"Closest tags"
 // @Failure		400			{object}	error				"Incorrect input"
-// @Failure		404			{object}	error				"Tag not found"
 // @Failure		500			{object}	error				"Server error"
-// @Router		/api/tags/{tagID}/closest [post]
+// @Router		/api/tags/closest [post]
 func (h *Handler) ListClosestTags(c *gin.Context) {
 	userID, err := auth.GetUserId(c)
 	if err != nil {
@@ -791,41 +790,30 @@ func (h *Handler) ListClosestTags(c *gin.Context) {
 		return
 	}
 
-	tagID, err := uuid.FromString(c.Param("tag_id"))
-	if err != nil {
-		h.logger.Errorf("Invalid tag ID format: %w", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag ID format: %v", err)})
-		return
-	}
-
-	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
-		return
-	}
+	// TODO: maybe check that user exists.
 
 	limit := DEFAULT_LIMIT_LIST_CLOSEST
 
-	if c.Request.Body != http.NoBody && c.Request.ContentLength != 0 {
-		var req listClosestTagsRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			h.logger.Errorf("Failed to bind request: %w", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		if req.Limit != nil {
-			limit = *req.Limit
-		}
+	var req listClosestTagsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
-	tags, err := h.tagUsecase.ListClosestTags(tagID, limit)
+	if req.Limit != nil {
+		limit = *req.Limit
+	}
+
+	if req.TagName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name cant be empty"})
+		return
+	}
+
+	tags, err := h.tagUsecase.ListClosestTags(req.TagName, userID, limit)
 	if err != nil {
 		h.logger.Errorf("Failed to list closest tags: %w", err)
-		switch e := err.(type) {
-		case *errors.TagNotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

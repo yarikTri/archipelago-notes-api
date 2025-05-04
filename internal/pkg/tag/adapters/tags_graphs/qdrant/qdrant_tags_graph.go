@@ -163,10 +163,10 @@ func (r *listClosestTagsResponse) getAllIds() ([]uuid.UUID, error) {
 	return ids, nil
 }
 
-func (g *QdrantTagsGraph) ListClosestTagsIds(tag *models.Tag, limit uint32) ([]uuid.UUID, error) {
-	inferVec, err := g.inferer.Infer(tag.Name)
+func (g *QdrantTagsGraph) ListClosestTagsIds(tagName string, userID uuid.UUID, limit uint32) ([]uuid.UUID, error) {
+	inferVec, err := g.inferer.Infer(tagName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to infer tag %s: %w", tag.Name, err)
+		return nil, fmt.Errorf("failed to infer tag %s: %w", tagName, err)
 	}
 
 	req := listClosestTagsRequest{
@@ -175,9 +175,9 @@ func (g *QdrantTagsGraph) ListClosestTagsIds(tag *models.Tag, limit uint32) ([]u
 		Filter: listClosestTagsRequestFilter{
 			Must: []listClosestTagsRequestFilterMust{
 				{
-					Key: tag.ID.String(),
+					Key: "user_id",
 					Match: map[string]string{
-						"user_id": tag.UserID.String(),
+						"value": userID.String(),
 					},
 				},
 			},
