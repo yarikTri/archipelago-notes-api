@@ -148,14 +148,12 @@ func cleanupTag(response string) string {
 
 	tag = removeAllEmojis(tag)
 
-	// Compile the regular expression
-	// This matches any character that is NOT a letter (a-z, A-Z) or number (0-9)
-	reg := regexp.MustCompile(`[^a-zA-Z0-9а-яА-Я\s]`)
+	tag = strings.TrimSpace(strings.ToLower(tag))
 
-	// Replace all matched characters with an empty string
+	reg := regexp.MustCompile(`[^a-z0-9а-я\s]`)
 	tag = reg.ReplaceAllString(tag, "")
 
-	return strings.TrimSpace(strings.ToLower(tag))
+	return tag
 }
 
 func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
