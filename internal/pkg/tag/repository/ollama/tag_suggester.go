@@ -150,7 +150,7 @@ func cleanupTag(response string) string {
 
 	// Compile the regular expression
 	// This matches any character that is NOT a letter (a-z, A-Z) or number (0-9)
-	reg := regexp.MustCompile(`[^a-zA-Z0-9]`)
+	reg := regexp.MustCompile(`[^a-zA-Z0-9\s]`)
 
 	// Replace all matched characters with an empty string
 	tag = reg.ReplaceAllString(tag, "")
@@ -170,7 +170,6 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 			return "", &OpenAIClientError{err: err}
 		}
 
-		fmt.Printf("Tag response before clenup: %s\n", response)
 		tag := cleanupTag(response)
 		fmt.Printf("Tag after cleanup: %s\n", tag)
 
