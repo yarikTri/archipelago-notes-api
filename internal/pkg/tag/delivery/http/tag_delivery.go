@@ -727,7 +727,7 @@ type suggestTagsResponse struct {
 // SuggestTags godoc
 // @Summary Suggest tags for given text
 // @Description Generate tag suggestions using LLM
-// @Tags tags
+// @Tags Tags
 // @Accept json
 // @Produce json
 // @Param request body suggestTagsRequest true "Text to generate tags for"

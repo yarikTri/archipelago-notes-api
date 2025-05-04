@@ -626,7 +626,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "tags"
+                    "Tags"
                 ],
                 "summary": "Suggest tags for given text",
                 "parameters": [

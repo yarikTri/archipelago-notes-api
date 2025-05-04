@@ -746,7 +746,7 @@ paths:
             type: object
       summary: Suggest tags for given text
       tags:
-      - tags
+      - Tags
   /api/tags/unlink:
     post:
       consumes:
