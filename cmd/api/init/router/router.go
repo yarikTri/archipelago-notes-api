@@ -40,7 +40,6 @@ func InitRoutes(
 	notes.POST("/:id/attach_summ/:summID", notesHandler.AttachNoteToSummary)
 	notes.POST("/:id/detach_summ/:summID", notesHandler.DetachNoteFromSummary)
 	notes.GET("/:id/summary_list", notesHandler.GetSummaryListByNote)
-	notes.GET("/:id/tags", tagHandler.GetTagsByNote)
 
 	dirs := api.Group("/dirs")
 	dirs.GET("/:id", dirsHandler.Get)
