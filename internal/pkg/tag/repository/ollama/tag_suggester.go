@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/enescakir/emoji"
+
 	"github.com/yarikTri/archipelago-notes-api/internal/clients/llm"
 )
 
@@ -96,26 +98,23 @@ func NewTagSuggester(openAiClient *llm.OpenAiClient, defaultGenerateTagNum int, 
 
 func removeAllEmojis(s string) string {
 	isEmoji := func(r rune) bool {
-		// Check if the rune falls into any emoji range
-		return (r >= 0x1F300 && r <= 0x1F5FF) || // Miscellaneous Symbols and Pictographs
-			(r >= 0x1F600 && r <= 0x1F64F) || // Emoticons
-			(r >= 0x1F680 && r <= 0x1F6FF) || // Transport and Map Symbols
-			(r >= 0x1F700 && r <= 0x1F77F) || // Alchemical Symbols
-			(r >= 0x1F780 && r <= 0x1F7FF) || // Geometric Shapes Extended
-			(r >= 0x1F800 && r <= 0x1F8FF) || // Supplemental Arrows-C
-			(r >= 0x1F900 && r <= 0x1F9FF) || // Supplemental Symbols and Pictographs
-			(r >= 0x2600 && r <= 0x26FF) || // Miscellaneous Symbols
-			(r >= 0x2700 && r <= 0x27BF) || // Dingbats
-			(r >= 0x1F1E6 && r <= 0x1F1FF) // Flags
+		_, exists := emoji.Map()[string(r)]
+		return exists
 	}
 
-	var result []rune
+	var builder strings.Builder
+	builder.Grow(len(s))
+
 	for _, r := range s {
 		if !isEmoji(r) {
-			result = append(result, r)
+			_, err := builder.WriteRune(r)
+			if err != nil {
+				panic("got invalid rune")
+			}
 		}
 	}
-	return string(result)
+
+	return builder.String()
 }
 
 func isValidTag(tag string) bool {
