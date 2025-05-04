@@ -8,4 +8,7 @@ const (
 
 	QdrantHostParamName = "QDRANT_HOST"
 	QdrantPortParamName = "QDRANT_PORT"
+
+	TritonHostParamName = "INFERER_HOST"
+	TritonPortParamName = "INFERER_PORT"
 )

@@ -45,15 +45,13 @@ func main() {
 		return
 	}
 
-	openAiUrl := os.Getenv(config.OpenAIUrlParamName)
-	if openAiUrl == "" {
-		flogger.Errorf("OPENAI_URL is not set")
+	openAiUrl, success := handleEnvVar(flogger, config.OpenAIUrlParamName)
+	if !success {
 		return
 	}
 
-	tagSuggesterModel := os.Getenv(config.TagSuggesterModelParamName)
-	if tagSuggesterModel == "" {
-		flogger.Errorf("TAG_SUGGESTER_MODEL is not set")
+	tagSuggesterModel, success := handleEnvVar(flogger, config.TagSuggesterModelParamName)
+	if !success {
 		return
 	}
 
@@ -63,19 +61,27 @@ func main() {
 		return
 	}
 
-	qdrantHost := os.Getenv(config.QdrantHostParamName)
-	if qdrantHost == "" {
-		flogger.Errorf("%s is not set", config.QdrantHostParamName)
+	qdrantHost, success := handleEnvVar(flogger, config.QdrantHostParamName)
+	if !success {
 		return
 	}
 
-	qdrantPort := os.Getenv(config.QdrantPortParamName)
-	if qdrantPort == "" {
-		flogger.Errorf("%s is not set", config.QdrantPortParamName)
+	qdrantPort, success := handleEnvVar(flogger, config.QdrantPortParamName)
+	if !success {
 		return
 	}
 
-	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum, qdrantHost, qdrantPort)
+	tritonHost, success := handleEnvVar(flogger, config.TritonHostParamName)
+	if !success {
+		return
+	}
+
+	tritonPort, success := handleEnvVar(flogger, config.TritonPortParamName)
+	if !success {
+		return
+	}
+
+	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum, qdrantHost, qdrantPort, tritonHost, tritonPort)
 	if err != nil {
 		flogger.Errorf("error while launching routes: %v", err)
 		return
@@ -108,6 +114,16 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		flogger.Errorf("error while shutting down server: %v", err)
 	}
+}
+
+func handleEnvVar(flogger *flog.FLogger, envParamName string) (string, bool) {
+	v := os.Getenv(envParamName)
+	if v == "" {
+		flogger.Errorf("%s is not set", envParamName)
+		return "", false
+	}
+
+	return v, true
 }
 
 func init() {

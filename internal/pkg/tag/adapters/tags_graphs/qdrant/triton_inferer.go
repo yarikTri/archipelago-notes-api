@@ -7,14 +7,25 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 var _ Inferer = &TritonInferer{}
 
-type TritonInferer struct{}
+type TritonInferer struct {
+	inferUrl string
+}
 
-func NewTritonInferer() *TritonInferer {
-	return &TritonInferer{}
+func NewTritonInferer(host, port string) *TritonInferer {
+	if host == "" {
+		panic("TritonInferer: host cant be empty")
+	}
+	if _, err := strconv.Atoi(port); err != nil {
+		panic(fmt.Sprintf("TritonInferer: invalid port: %v", err))
+	}
+	return &TritonInferer{
+		inferUrl: fmt.Sprintf("http://%s:%s/v2/models/ensemble_model/infer", host, port),
+	}
 }
 
 type inferRequest struct {
@@ -35,12 +46,12 @@ type inferenceResponse struct {
 	Outputs      []inferenceResponseOutput `json:"outputs"`
 }
 
-var VectorInResponseNotFound = errors.New("response contains zero outputs")
+var ErrVectorInResponseNotFound = errors.New("response contains zero outputs")
 
 func (r *inferenceResponse) getFirstVector() ([]float32, error) {
 
 	if len(r.Outputs) == 0 {
-		return nil, VectorInResponseNotFound
+		return nil, ErrVectorInResponseNotFound
 	}
 
 	return r.Outputs[0].Data, nil
@@ -80,7 +91,7 @@ func (i *TritonInferer) Infer(content string) ([]float32, error) {
 
 	// TODO: make port and host custom.
 	httpResp, err := http.Post(
-		"http://localhost:1234/v2/models/ensemble_model/infer",
+		i.inferUrl,
 		"application/json",
 		bytes.NewReader(reqJson),
 	)
