@@ -33,9 +33,16 @@ func NewHandler(tu tag.Usecase, nu notes.Usecase, l logger.Logger) *Handler {
 func (h *Handler) checkTagOwnership(c *gin.Context, tagID uuid.UUID, userID uuid.UUID) error {
 	// Check if the tag belongs to the user
 	isOwner, err := h.tagUsecase.IsTagUsers(userID, tagID)
+
 	if err != nil {
 		h.logger.Errorf("Failed to check tag ownership: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to check tag ownership: %v", err)})
+
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return err
 	}
 
