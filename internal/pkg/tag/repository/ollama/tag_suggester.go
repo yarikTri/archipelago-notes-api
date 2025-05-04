@@ -111,6 +111,7 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 		}
 
 		tag := cleanupTag(response)
+		fmt.Printf("Tag after cleanup: %s", tag)
 
 		if isValidTag(tag) {
 			fmt.Printf("Got response from ollama (approved): %s\n", response)
