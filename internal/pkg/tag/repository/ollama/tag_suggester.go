@@ -6,8 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/enescakir/emoji"
-
 	"github.com/yarikTri/archipelago-notes-api/internal/clients/llm"
 )
 
@@ -96,26 +94,26 @@ func NewTagSuggester(openAiClient *llm.OpenAiClient, defaultGenerateTagNum int, 
 // 	return false
 // }
 
-func removeAllEmojis(s string) string {
-	isEmoji := func(r rune) bool {
-		_, exists := emoji.Map()[string(r)]
-		return exists
-	}
+// func removeAllEmojis(s string) string {
+// 	isEmoji := func(r rune) bool {
+// 		_, exists := emoji.Map()[string(r)]
+// 		return exists
+// 	}
 
-	var builder strings.Builder
-	builder.Grow(len(s))
+// 	var builder strings.Builder
+// 	builder.Grow(len(s))
 
-	for _, r := range s {
-		if !isEmoji(r) {
-			_, err := builder.WriteRune(r)
-			if err != nil {
-				panic("got invalid rune")
-			}
-		}
-	}
+// 	for _, r := range s {
+// 		if !isEmoji(r) {
+// 			_, err := builder.WriteRune(r)
+// 			if err != nil {
+// 				panic("got invalid rune")
+// 			}
+// 		}
+// 	}
 
-	return builder.String()
-}
+// 	return builder.String()
+// }
 
 func isValidTag(tag string) bool {
 	if len(tag) == 0 {
@@ -144,16 +142,12 @@ func isValidTag(tag string) bool {
 }
 
 func cleanupTag(response string) string {
-	tag := strings.TrimSpace(response)
-
-	tag = removeAllEmojis(tag)
-
-	tag = strings.TrimSpace(strings.ToLower(tag))
+	tag := strings.TrimSpace(strings.ToLower(response))
 
 	reg := regexp.MustCompile(`[^a-z0-9а-я\s]`)
 	tag = reg.ReplaceAllString(tag, "")
 
-	return tag
+	return strings.TrimSpace(tag)
 }
 
 func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
