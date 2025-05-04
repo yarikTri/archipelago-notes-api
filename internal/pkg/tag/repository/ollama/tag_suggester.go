@@ -170,6 +170,7 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 			return "", &OpenAIClientError{err: err}
 		}
 
+		fmt.Printf("Tag response before clenup: %s\n", response)
 		tag := cleanupTag(response)
 		fmt.Printf("Tag after cleanup: %s\n", tag)
 
