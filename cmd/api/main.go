@@ -63,7 +63,19 @@ func main() {
 		return
 	}
 
-	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum)
+	qdrantHost := os.Getenv(config.QdrantHostParamName)
+	if qdrantHost == "" {
+		flogger.Errorf("%s is not set", config.QdrantHostParamName)
+		return
+	}
+
+	qdrantPort := os.Getenv(config.QdrantPortParamName)
+	if qdrantPort == "" {
+		flogger.Errorf("%s is not set", config.QdrantPortParamName)
+		return
+	}
+
+	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum, qdrantHost, qdrantPort)
 	if err != nil {
 		flogger.Errorf("error while launching routes: %v", err)
 		return

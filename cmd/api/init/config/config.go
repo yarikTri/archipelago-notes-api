@@ -5,4 +5,7 @@ const (
 	OpenAIUrlParamName             = "OPENAI_URL"
 	TagSuggesterModelParamName     = "TAG_SUGGESTER_MODEL"
 	DefaultGenerateTagNumParamName = "DEFAULT_GENERATE_TAG_NUM"
+
+	QdrantHostParamName = "QDRANT_HOST"
+	QdrantPortParamName = "QDRANT_PORT"
 )

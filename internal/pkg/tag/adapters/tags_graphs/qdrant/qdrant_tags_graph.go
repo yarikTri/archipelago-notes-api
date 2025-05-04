@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/yarikTri/archipelago-notes-api/internal/models"
@@ -18,17 +19,28 @@ type Inferer interface {
 	Infer(content string) ([]float32, error)
 }
 
-const pointsUrl = "http://localhost:6333/collections/tags/points"
+// const pointsUrl = "http://localhost:6333/collections/tags/points"
 
 type QdrantTagsGraph struct {
-	inferer Inferer
+	pointsUrl string
+	inferer   Inferer
 }
 
 func NewQdrantTagsGraph(
 	inferer Inferer,
+	host string,
+	port string,
 ) *QdrantTagsGraph {
+	if host == "" {
+		panic("QdrantTagsGraph: host cant be empty")
+	}
+	if _, err := strconv.Atoi(port); err != nil {
+		panic(fmt.Sprintf("QdrantTagsGraph: invalid port: %v", err))
+	}
+
 	return &QdrantTagsGraph{
-		inferer: inferer,
+		inferer:   inferer,
+		pointsUrl: fmt.Sprintf("http://%s:%s/collections/tags/points", host, port),
 	}
 }
 
@@ -73,7 +85,7 @@ func (g *QdrantTagsGraph) UpdateOrCreateTag(tag *models.Tag) error {
 
 	httpReq, err := http.NewRequest(
 		http.MethodPut,
-		pointsUrl,
+		g.pointsUrl,
 		bytes.NewReader(reqJson),
 	)
 	if err != nil {
@@ -175,7 +187,7 @@ func (g *QdrantTagsGraph) ListClosestTagsIds(tag *models.Tag, limit uint32) ([]u
 	}
 
 	httpResp, err := http.Post(
-		fmt.Sprintf("%s/search", pointsUrl),
+		fmt.Sprintf("%s/search", g.pointsUrl),
 		"application/json",
 		bytes.NewReader(reqJson),
 	)
@@ -246,7 +258,7 @@ func (g *QdrantTagsGraph) DeleteByID(tagID uuid.UUID) error {
 	}
 
 	httpResp, err := http.Post(
-		fmt.Sprintf("%s/delete?wait=%t", pointsUrl, WAIT_FOR_PROCESS),
+		fmt.Sprintf("%s/delete?wait=%t", g.pointsUrl, WAIT_FOR_PROCESS),
 		"application/json",
 		bytes.NewReader(reqJson),
 	)

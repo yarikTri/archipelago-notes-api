@@ -33,7 +33,7 @@ import (
 	summaryUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/summary/usecase"
 )
 
-func Init(sqlDBClient *sqlx.DB, logger logger.Logger, openAiUrl string, tagSuggesterModel string, defaultGenerateTagNum int) (http.Handler, error) {
+func Init(sqlDBClient *sqlx.DB, logger logger.Logger, openAiUrl string, tagSuggesterModel string, defaultGenerateTagNum int, qdrantHost string, qdrantPort string) (http.Handler, error) {
 	emailClient := email.NewEmailClient()
 	openAiClient := llm.NewOpenAiClient(openAiUrl)
 
@@ -51,7 +51,7 @@ func Init(sqlDBClient *sqlx.DB, logger logger.Logger, openAiUrl string, tagSugge
 	summaryUsecase := summaryUsecase.NewUsecase(summRepo)
 
 	inferer := qdrant.NewTritonInferer()
-	tagsGraph := qdrant.NewQdrantTagsGraph(inferer)
+	tagsGraph := qdrant.NewQdrantTagsGraph(inferer, qdrantHost, qdrantPort)
 	tagUsecase := tagUsecase.NewUsecase(tagRepo, tagSuggesterRepo, tagsGraph)
 
 	notesHandler := notesHandler.NewHandler(notesUsecase, logger)
