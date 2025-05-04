@@ -188,8 +188,10 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 		}
 
 		if tag, valid := cleanupTag(response); valid {
+			fmt.Printf("Got response from ollama (approved): %s\n", response)
 			return tag, nil
 		}
+		fmt.Printf("Got response from ollama (not approved): %s\n", response)
 	}
 	return "", fmt.Errorf("failed to generate valid tag after %d attempts", MaxAttempts)
 }
