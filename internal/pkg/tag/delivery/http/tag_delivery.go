@@ -35,7 +35,7 @@ func (h *Handler) checkTagOwnership(c *gin.Context, tagID uuid.UUID, userID uuid
 	isOwner, err := h.tagUsecase.IsTagUsers(userID, tagID)
 	if err != nil {
 		h.logger.Errorf("Failed to check tag ownership: %w", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check tag ownership"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to check tag ownership: %v", err)})
 		return err
 	}
 
