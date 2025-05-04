@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	TagSytemPrompt = "Придумай тег, который наиболее точно описывает текст этой заметки - одно слово"
+	TagSytemPrompt = "Придумай тег, который наиболее точно описывает текст этой заметки - одно слово. Отвечай на том же языке, на котором сделан запрос."
 	MaxAttempts    = 2
 )
 
@@ -111,7 +111,7 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 		}
 
 		tag := cleanupTag(response)
-		fmt.Printf("Tag after cleanup: %s", tag)
+		fmt.Printf("Tag after cleanup: %s\n", tag)
 
 		if isValidTag(tag) {
 			fmt.Printf("Got response from ollama (approved): %s\n", response)
