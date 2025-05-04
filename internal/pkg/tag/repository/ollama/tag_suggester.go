@@ -3,7 +3,7 @@ package ollama
 import (
 	"errors"
 	"fmt"
-	"strconv"
+	"regexp"
 	"strings"
 
 	"github.com/yarikTri/archipelago-notes-api/internal/clients/llm"
@@ -44,135 +44,58 @@ func NewTagSuggester(openAiClient *llm.OpenAiClient, defaultGenerateTagNum int, 
 	}
 }
 
-// Common validation rules for LLM-generated tags
 func isValidTag(tag string) bool {
+	// Check for white spaces.
+	parts := strings.Fields(tag)
+	if len(parts) != 1 {
+		return false
+	}
+	tag = parts[0]
+
 	// Empty or whitespace-only tags
 	if len(strings.TrimSpace(tag)) == 0 {
 		return false
 	}
 
-	// Single words that cannot be valid tags (common LLM responses and meta-words)
-	invalidResponses := []string{
-		// LLM self-references and apologies
-		"извините",
-		"простите",
-		"прошу",
-		"понимаю",
-		"помогу",
-		"попробую",
-		"постараюсь",
-		"проанализирую",
-		"рассмотрим",
+	// invalidResponses := []string{
+	// 	// Linking words
+	// 	"это",
+	// 	"вот",
+	// 	"или",
+	// 	"либо",
+	// 	"также",
+	// 	"еще",
+	// 	"затем",
+	// 	"далее",
+	// 	"итак",
+	// 	"значит",
+	// }
 
-		// Common meta-responses
-		"тег",
-		"тэг",
-		"метка",
-		"категория",
-		"раздел",
-		"тема",
-		"описание",
-		"ключевое",
-		"основное",
-		"главное",
+	// tagLower := strings.ToLower(tag)
+	// for _, invalid := range invalidResponses {
+	// 	if strings.Contains(tagLower, invalid) {
+	// 		return false
+	// 	}
+	// }
 
-		// Linking words
-		"это",
-		"вот",
-		"или",
-		"либо",
-		"также",
-		"еще",
-		"затем",
-		"далее",
-		"итак",
-		"значит",
-
-		// Common LLM fillers
-		"пожалуйста",
-		"конечно",
-		"возможно",
-		"вероятно",
-		"например",
-		"допустим",
-		"предположим",
-		"следовательно",
-		"соответственно",
-
-		// Analysis words
-		"анализ",
-		"обзор",
-		"рассмотрение",
-		"изучение",
-		"исследование",
-
-		// Task-related
-		"задача",
-		"цель",
-		"задание",
-		"требование",
-		"результат",
-
-		// Common non-tag responses
-		"текст",
-		"документ",
-		"содержание",
-		"информация",
-		"данные",
-		"материал",
-		"контент",
-		"заметка",
-		"статья",
-		"запись",
-
-		// Confirmation words
-		"хорошо",
-		"ладно",
-		"понятно",
-		"согласен",
-		"подтверждаю",
-	}
-
-	tagLower := strings.ToLower(tag)
-	for _, invalid := range invalidResponses {
-		if strings.Contains(tagLower, invalid) {
-			return false
-		}
-	}
-
-	// Check for reasonable tag length (adjust as needed)
-	if len(tag) > 50 || len(tag) < 2 {
+	if len(tag) > 80 || len(tag) < 2 {
 		return false
 	}
 
 	return true
 }
 
-func cleanupTag(response string) (string, bool) {
-	// Basic cleanup
+func cleanupTag(response string) string {
 	tag := strings.TrimSpace(response)
-	tag = strings.Trim(tag, "\"'`.,;:") // Remove common punctuation
 
-	// Remove numbering prefixes like "1. " or "1) "
-	if idx := strings.IndexAny(tag, ".)"); idx > 0 {
-		if num := strings.TrimSpace(tag[:idx]); len(num) <= 2 {
-			if _, err := strconv.Atoi(num); err == nil {
-				tag = strings.TrimSpace(tag[idx+1:])
-			}
-		}
-	}
+	// Compile the regular expression
+	// This matches any character that is NOT a letter (a-z, A-Z) or number (0-9)
+	reg := regexp.MustCompile(`[^a-zA-Z0-9]`)
 
-	parts := strings.Fields(tag)
-	if len(parts) > 0 {
-		return "", false
-	}
+	// Replace all matched characters with an empty string
+	tag = reg.ReplaceAllString(tag, "")
 
-	tag = parts[0]
-
-	if isValidTag(tag) {
-		return tag, true
-	}
-	return "", false
+	return tag
 }
 
 func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
@@ -187,9 +110,11 @@ func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 			return "", &OpenAIClientError{err: err}
 		}
 
-		if tag, valid := cleanupTag(response); valid {
+		tag := cleanupTag(response)
+
+		if isValidTag(tag) {
 			fmt.Printf("Got response from ollama (approved): %s\n", response)
-			return tag, nil
+			return strings.ToLower(tag), nil
 		}
 		fmt.Printf("Got response from ollama (not approved): %s\n", response)
 	}
