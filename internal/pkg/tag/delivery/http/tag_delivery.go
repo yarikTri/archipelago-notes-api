@@ -550,7 +550,7 @@ func (h *Handler) UnlinkTags(c *gin.Context) {
 // @Description	Get all tags linked to a specific tag
 // @Produce     json
 // @Param		tagID path string true 						"Tag ID"
-// @Success		200			{object}	[]models.Tag		"Linked tags"
+// @Success		200			{object}	[]models.LinkedTag	"Linked tags"
 // @Failure		400			{object}	error				"Incorrect input"
 // @Failure		404			{object}	error				"Tag not found"
 // @Failure		500			{object}	error				"Server error"
@@ -589,10 +589,82 @@ func (h *Handler) GetLinkedTags(c *gin.Context) {
 	}
 
 	if tags == nil {
-		tags = []models.Tag{} // Return empty array instead of null
+		tags = []models.LinkedTag{} // Return empty array instead of null
 	}
 
 	c.JSON(http.StatusOK, tags)
+}
+
+// UpdateTagsLinkName
+// @Summary		Update linked tags link name
+// @Tags		Tags
+// @Description	Update linked tags link name to the specified
+// @Produce     json
+// @Param		tagInfo	body			UpdateTagsLinkNameRequest		true	"Tag IDs and link name"
+// @Success		200						"Tags link name updated"
+// @Failure		400			{object}	error				"Incorrect input"
+// @Failure		404			{object}	error				"Tag not found"
+// @Failure		500			{object}	error				"Server error"
+// @Router		/api/tags/update-tags-link-name [post]
+func (h *Handler) UpdateTagsLinkName(c *gin.Context) {
+	userID, err := auth.GetUserId(c)
+	if err != nil {
+		h.logger.Errorf("Failed to get user ID: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var req UpdateTagsLinkNameRequest
+	if err := c.BindJSON(&req); err != nil {
+		h.logger.Errorf("Failed to bind request: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if _, err := valid.ValidateStruct(req); err != nil {
+		h.logger.Errorf("Invalid unlink tags request: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tag1ID, err := uuid.FromString(req.Tag1ID)
+	if err != nil {
+		h.logger.Errorf("Invalid tag1 ID format: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag1 ID format: %v", err)})
+		return
+	}
+
+	if err := h.checkTagOwnership(c, tag1ID, userID); err != nil {
+		return
+	}
+
+	tag2ID, err := uuid.FromString(req.Tag2ID)
+	if err != nil {
+		h.logger.Errorf("Invalid tag2 ID format: %w", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid tag2 ID format: %v", err)})
+		return
+	}
+
+	if err := h.checkTagOwnership(c, tag2ID, userID); err != nil {
+		return
+	}
+
+	if err := h.tagUsecase.UpdateTagsLinkName(tag1ID, tag2ID, userID, req.LinkName); err != nil {
+		h.logger.Errorf("Error while getting linked tags: %v", err)
+
+		// Handle specific error cases
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		case *errors.TagLinkNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 // DeleteTag

@@ -28,6 +28,13 @@ type UnlinkTagsRequest struct {
 	Tag2ID string `json:"tag2_id" valid:"required"`
 }
 
+// UpdateTagsLinkNameRequest represents the request body for updating two tags link name
+type UpdateTagsLinkNameRequest struct {
+	Tag1ID   string `json:"tag1_id" valid:"required"`
+	Tag2ID   string `json:"tag2_id" valid:"required"`
+	LinkName string `json:"link_name" valid:"required"`
+}
+
 type UpdateTagRequest struct {
 	TagID string `json:"tag_id" valid:"required"`
 	Name  string `json:"name" valid:"required"`

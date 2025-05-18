@@ -73,6 +73,7 @@ func InitRoutes(
 	tags.GET("/note/:note_id", tagHandler.GetTagsByNote)
 	tags.GET("/:tag_id/notes", tagHandler.GetNotesByTag)
 	tags.GET("/:tag_id/linked", tagHandler.GetLinkedTags)
+	tags.POST("/update-tags-link-name", tagHandler.UpdateTagsLinkName)
 	tags.POST("/:tag_id/link/:note_id", tagHandler.LinkTagToNote)
 	tags.POST("/suggest", tagHandler.SuggestTags)
 	tags.POST("/closest", tagHandler.ListClosestTags)

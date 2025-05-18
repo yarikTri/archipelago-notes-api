@@ -849,6 +849,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/tags/update-tags-link-name": {
+            "post": {
+                "description": "Update linked tags link name to the specified",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update linked tags link name",
+                "parameters": [
+                    {
+                        "description": "Tag IDs and link name",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateTagsLinkNameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags link name updated"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/tags/{tagID}/linked": {
             "get": {
                 "description": "Get all tags linked to a specific tag",
@@ -874,7 +914,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Tag"
+                                "$ref": "#/definitions/models.LinkedTag"
                             }
                         }
                     },
@@ -1319,6 +1359,20 @@ const docTemplate = `{
                 }
             }
         },
+        "http.UpdateTagsLinkNameRequest": {
+            "type": "object",
+            "properties": {
+                "link_name": {
+                    "type": "string"
+                },
+                "tag1_id": {
+                    "type": "string"
+                },
+                "tag2_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.listClosestTagsRequest": {
             "type": "object",
             "properties": {
@@ -1382,6 +1436,23 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.LinkedTag": {
+            "type": "object",
+            "properties": {
+                "link_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }

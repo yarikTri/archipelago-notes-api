@@ -92,6 +92,15 @@ definitions:
       tag_id:
         type: string
     type: object
+  http.UpdateTagsLinkNameRequest:
+    properties:
+      link_name:
+        type: string
+      tag1_id:
+        type: string
+      tag2_id:
+        type: string
+    type: object
   http.listClosestTagsRequest:
     properties:
       limit:
@@ -133,6 +142,17 @@ definitions:
       id:
         type: integer
       name:
+        type: string
+    type: object
+  models.LinkedTag:
+    properties:
+      link_name:
+        type: string
+      name:
+        type: string
+      tag_id:
+        type: string
+      user_id:
         type: string
     type: object
   models.NoteTransfer:
@@ -527,7 +547,7 @@ paths:
           description: Linked tags
           schema:
             items:
-              $ref: '#/definitions/models.Tag'
+              $ref: '#/definitions/models.LinkedTag'
             type: array
         "400":
           description: Incorrect input
@@ -843,6 +863,33 @@ paths:
           description: Server error
           schema: {}
       summary: Update tag
+      tags:
+      - Tags
+  /api/tags/update-tags-link-name:
+    post:
+      description: Update linked tags link name to the specified
+      parameters:
+      - description: Tag IDs and link name
+        in: body
+        name: tagInfo
+        required: true
+        schema:
+          $ref: '#/definitions/http.UpdateTagsLinkNameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tags link name updated
+        "400":
+          description: Incorrect input
+          schema: {}
+        "404":
+          description: Tag not found
+          schema: {}
+        "500":
+          description: Server error
+          schema: {}
+      summary: Update linked tags link name
       tags:
       - Tags
   /api/users/:
