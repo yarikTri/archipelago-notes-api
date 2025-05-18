@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/yarikTri/archipelago-notes-api/internal/clients/llm"
 )
 
@@ -34,13 +36,15 @@ type TagSuggester struct {
 	openAiClient          *llm.OpenAiClient
 	defaultGenerateTagNum int
 	model                 string
+	logger                logger.Logger
 }
 
-func NewTagSuggester(openAiClient *llm.OpenAiClient, defaultGenerateTagNum int, model string) *TagSuggester {
+func NewTagSuggester(openAiClient *llm.OpenAiClient, defaultGenerateTagNum int, model string, logger logger.Logger) *TagSuggester {
 	return &TagSuggester{
 		openAiClient:          openAiClient,
 		defaultGenerateTagNum: defaultGenerateTagNum,
 		model:                 model,
+		logger:                logger,
 	}
 }
 
@@ -152,12 +156,17 @@ func cleanupTag(response string) string {
 
 func (s *TagSuggester) generateOneTagWithRetry(text string) (string, error) {
 	for attempt := 0; attempt < MaxAttempts; attempt++ {
+
+		start := time.Now()
 		response, err := s.openAiClient.Generate(
 			s.model,
 			text,
 			false, // stream
 			TagSytemPrompt,
 		)
+		elapsed := time.Now().Sub(start)
+		s.logger.Infof("time elapsed for open client generate %s", elapsed.String())
+
 		if err != nil {
 			return "", &OpenAIClientError{err: err}
 		}
