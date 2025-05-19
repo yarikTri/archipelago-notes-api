@@ -94,8 +94,12 @@ func (u *Usecase) UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
 	return u.tagRepo.UnlinkTags(tag1ID, tag2ID)
 }
 
-func (u *Usecase) GetLinkedTagsForUser(tagID, userID uuid.UUID) ([]models.Tag, error) {
+func (u *Usecase) GetLinkedTagsForUser(tagID, userID uuid.UUID) ([]models.LinkedTag, error) {
 	return u.tagRepo.GetLinkedTagsForUser(tagID, userID)
+}
+
+func (u *Usecase) UpdateTagsLinkName(tag1ID, tag2ID, userID uuid.UUID, linkName string) error {
+	return u.tagRepo.UpdateTagsLinkName(tag1ID, tag2ID, userID, linkName)
 }
 
 func (u *Usecase) DeleteTag(tagID uuid.UUID) error {
