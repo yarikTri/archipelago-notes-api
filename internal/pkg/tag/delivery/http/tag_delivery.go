@@ -462,7 +462,7 @@ func (h *Handler) LinkTags(c *gin.Context) {
 		switch e := err.(type) {
 		case *errors.TagNotFoundError:
 			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-		case *errors.TagLinkExistsError:
+		case *errors.TagToTagLinkExistsError:
 			c.JSON(http.StatusConflict, gin.H{"error": e.Error()})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -533,7 +533,7 @@ func (h *Handler) UnlinkTags(c *gin.Context) {
 		switch e := err.(type) {
 		case *errors.TagNotFoundError:
 			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-		case *errors.TagLinkNotFoundError:
+		case *errors.TagToTagLinkNotFoundError:
 			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

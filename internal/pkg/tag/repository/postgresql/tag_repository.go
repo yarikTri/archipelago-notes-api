@@ -217,7 +217,10 @@ func (p *PostgreSQL) LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error {
 			return fmt.Errorf("(repo) failed to check tag link existence: %w", err)
 		}
 		if exists {
-			return &errors.TagLinkExistsError{}
+			return &errors.TagLinkExistsError{
+				TagID:  tagID,
+				NoteID: noteID,
+			}
 		}
 
 		// Link tag to note
@@ -512,7 +515,10 @@ func (p *PostgreSQL) LinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
 			return fmt.Errorf("(repo) failed to check tag link existence: %w", err)
 		}
 		if exists {
-			return &errors.TagLinkExistsError{}
+			return &errors.TagToTagLinkExistsError{
+				Tag1ID: tag1ID,
+				Tag2ID: tag2ID,
+			}
 		}
 
 		// Create the link
@@ -552,7 +558,10 @@ func (p *PostgreSQL) UnlinkTags(tag1ID uuid.UUID, tag2ID uuid.UUID) error {
 			return fmt.Errorf("(repo) failed to check tag link existence: %w", err)
 		}
 		if !exists {
-			return &errors.TagLinkNotFoundError{}
+			return &errors.TagToTagLinkNotFoundError{
+				Tag1ID: tag1ID,
+				Tag2ID: tag2ID,
+			}
 		}
 
 		// Remove the link
