@@ -26,7 +26,7 @@ type Usecase interface {
 type TagRepository interface {
 	CreateAndLinkTag(name string, noteID, userID uuid.UUID) (*models.Tag, error)
 	LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error
-	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error
+	UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) (bool, error)
 	UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*models.Tag, error)
 	// UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error)
 	GetNotesByTag(tagID uuid.UUID) ([]models.Note, error)

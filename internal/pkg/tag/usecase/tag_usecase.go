@@ -67,7 +67,16 @@ func (u *Usecase) UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*model
 }
 
 func (u *Usecase) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {
-	return u.tagRepo.UnlinkTagFromNote(tagID, noteID)
+	wasDeleted, err := u.tagRepo.UnlinkTagFromNote(tagID, noteID)
+	if err != nil {
+		return err
+	}
+
+	if wasDeleted {
+		return u.tagsGraph.DeleteByID(tagID)
+	}
+
+	return nil
 }
 
 // func (u *Usecase) UpdateTagForNote(tagID uuid.UUID, noteID uuid.UUID, newName string) (*models.Tag, error) {
@@ -103,8 +112,6 @@ func (u *Usecase) UpdateTagsLinkName(tag1ID, tag2ID, userID uuid.UUID, linkName 
 }
 
 func (u *Usecase) DeleteTag(tagID uuid.UUID) error {
-	// TODO: add delete from qdrant.
-
 	err := u.tagRepo.DeleteTag(tagID)
 	if err != nil {
 		return err

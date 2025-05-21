@@ -236,8 +236,10 @@ func (p *PostgreSQL) LinkTagToNote(tagID uuid.UUID, noteID uuid.UUID) error {
 	})
 }
 
-func (p *PostgreSQL) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error {
-	return p.withTransaction(func(tx *sql.Tx) error {
+func (p *PostgreSQL) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) (bool, error) {
+	wasDeleted := false
+
+	err := p.withTransaction(func(tx *sql.Tx) error {
 		// Check if tag exists first
 		_, err := p.getTagByID(tx, tagID)
 		if err != nil {
@@ -280,10 +282,13 @@ func (p *PostgreSQL) UnlinkTagFromNote(tagID uuid.UUID, noteID uuid.UUID) error 
 			if err != nil {
 				return fmt.Errorf("(repo) failed to delete tag: %w", err)
 			}
+			wasDeleted = true
 		}
 
 		return nil
 	})
+
+	return wasDeleted, err
 }
 
 func (p *PostgreSQL) UpdateTag(ID uuid.UUID, name string, userID uuid.UUID) (*models.Tag, error) {
