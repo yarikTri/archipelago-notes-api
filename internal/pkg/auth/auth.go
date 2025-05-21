@@ -11,12 +11,14 @@ type Usecase interface {
 	SignUp(email, name, password string) (string, uuid.UUID, time.Duration, error)
 	Login(email, password string) (string, uuid.UUID, time.Duration, error)
 	Logout(sessionID string) error
+	ClearAllSessions() error
 }
 
 type SessionsRepository interface {
 	GetUserIDBySessionID(sessionID string) (uuid.UUID, error)
 	CreateSession(sessionID string, userID uuid.UUID, expiration time.Duration) error
 	DeleteSession(sessionID string) error
+	ClearAllSessions() error
 }
 
 type UsersRepository interface {

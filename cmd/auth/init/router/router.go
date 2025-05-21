@@ -19,6 +19,7 @@ func InitRoutes(
 	auth.POST("/login", authHandler.Login)
 	auth.POST("/logout", authHandler.Logout)
 	auth.POST("/registration", authHandler.SignUp)
+	auth.POST("/clear-sessions", authHandler.ClearAllSessions)
 
 	return r
 }

@@ -87,3 +87,7 @@ func (u *Usecase) Login(email, password string) (string, uuid.UUID, time.Duratio
 func (u *Usecase) Logout(sessionID string) error {
 	return u.sessionsRepo.DeleteSession(sessionID)
 }
+
+func (u *Usecase) ClearAllSessions() error {
+	return u.sessionsRepo.ClearAllSessions()
+}

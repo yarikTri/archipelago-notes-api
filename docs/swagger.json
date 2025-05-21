@@ -442,6 +442,592 @@
                 }
             }
         },
+        "/api/tags/closest": {
+            "post": {
+                "description": "Get a list of tags closest to the given tag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "List closest tags",
+                "parameters": [
+                    {
+                        "description": "Limit and name",
+                        "name": "limit",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.listClosestTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Closest tags",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Tag"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/create": {
+            "post": {
+                "description": "Create a new tag and link it to a note, or link existing tag if it exists",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Create and link tag to note",
+                "parameters": [
+                    {
+                        "description": "Tag info",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.CreateAndLinkTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tag created and linked",
+                        "schema": {
+                            "$ref": "#/definitions/models.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/delete": {
+            "post": {
+                "description": "Delete a tag and all its relations (notes and linked tags)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Delete tag",
+                "parameters": [
+                    {
+                        "description": "Tag ID",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.DeleteTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag deleted"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/link": {
+            "post": {
+                "description": "Create a link between two tags",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Link two tags together",
+                "parameters": [
+                    {
+                        "description": "Tag IDs",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.LinkTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags linked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Tags already linked",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/note/{noteID}": {
+            "get": {
+                "description": "Get all tags linked to a specific note",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get tags by note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "noteID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Tag"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/suggest": {
+            "post": {
+                "description": "Generate tag suggestions using LLM",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Suggest tags for given text",
+                "parameters": [
+                    {
+                        "description": "Text to generate tags for",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.suggestTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.suggestTagsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/tags/unlink": {
+            "post": {
+                "description": "Remove the link between a tag and a note, delete tag if it has no more links",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Unlink tag from note",
+                "parameters": [
+                    {
+                        "description": "Tag and note IDs",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UnlinkTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag unlinked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/unlink-tags": {
+            "post": {
+                "description": "Remove the link between two tags",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Unlink two tags",
+                "parameters": [
+                    {
+                        "description": "Tag IDs",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.LinkTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags unlinked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/update": {
+            "put": {
+                "description": "Update the name of an existing tag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update tag",
+                "parameters": [
+                    {
+                        "description": "Tag update request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateTagRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated tag",
+                        "schema": {
+                            "$ref": "#/definitions/models.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Access denied",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Tag name conflict",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/update-tags-link-name": {
+            "post": {
+                "description": "Update linked tags link name to the specified",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Update linked tags link name",
+                "parameters": [
+                    {
+                        "description": "Tag IDs and link name",
+                        "name": "tagInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.UpdateTagsLinkNameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tags link name updated"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/{tagID}/linked": {
+            "get": {
+                "description": "Get all tags linked to a specific tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get linked tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Linked tags",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.LinkedTag"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/{tagID}/notes": {
+            "get": {
+                "description": "Get all notes linked to a specific tag",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Get notes by tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tagID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notes",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NoteTransfer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag not found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/api/tags/{tag_id}/link/{note_id}": {
+            "post": {
+                "description": "Link an existing tag to a note",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tags"
+                ],
+                "summary": "Link existing tag to note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note ID",
+                        "name": "note_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tag ID",
+                        "name": "tag_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tag linked"
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Access denied",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Tag or note not found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Tag already linked",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/users/": {
             "get": {
                 "description": "Search users by query",
@@ -516,6 +1102,40 @@
                 }
             }
         },
+        "/api/users/{userID}/confirm_email": {
+            "post": {
+                "description": "Confirm user's email",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Confirm email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email confirmed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/api/users/{userID}/root_dir/{rootDirID}": {
             "post": {
                 "description": "Set root dir id by user id",
@@ -556,9 +1176,54 @@
                     }
                 }
             }
+        },
+        "/api/users/{userID}/send_email_confirmation": {
+            "post": {
+                "description": "Send user's email confirmation",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Send email confirmation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mail sent",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect input",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {}
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "http.CreateAndLinkTagRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "note_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.CreateDirRequest": {
             "type": "object",
             "properties": {
@@ -580,6 +1245,25 @@
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.DeleteTagRequest": {
+            "type": "object",
+            "properties": {
+                "tag_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.LinkTagsRequest": {
+            "type": "object",
+            "properties": {
+                "tag1_id": {
+                    "type": "string"
+                },
+                "tag2_id": {
                     "type": "string"
                 }
             }
@@ -617,6 +1301,17 @@
                 }
             }
         },
+        "http.UnlinkTagRequest": {
+            "type": "object",
+            "properties": {
+                "note_id": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.UpdateDirRequest": {
             "type": "object",
             "properties": {
@@ -651,6 +1346,67 @@
                 }
             }
         },
+        "http.UpdateTagRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.UpdateTagsLinkNameRequest": {
+            "type": "object",
+            "properties": {
+                "link_name": {
+                    "type": "string"
+                },
+                "tag1_id": {
+                    "type": "string"
+                },
+                "tag2_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.listClosestTagsRequest": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.suggestTagsRequest": {
+            "type": "object",
+            "required": [
+                "text"
+            ],
+            "properties": {
+                "tags_num": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.suggestTagsResponse": {
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.Dir": {
             "type": "object",
             "properties": {
@@ -678,6 +1434,23 @@
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.LinkedTag": {
+            "type": "object",
+            "properties": {
+                "link_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }
@@ -711,11 +1484,28 @@
                 }
             }
         },
+        "models.Tag": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "tag_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UserTransfer": {
             "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
+                },
+                "email_confirmed": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "string"
@@ -725,9 +1515,6 @@
                 },
                 "root_dir_id": {
                     "type": "integer"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         }

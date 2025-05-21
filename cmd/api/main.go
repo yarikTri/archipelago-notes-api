@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -44,7 +45,48 @@ func main() {
 		return
 	}
 
-	router, err := app.Init(db, flogger)
+	openAiUrl, success := handleEnvVar(flogger, config.OpenAIUrlParamName)
+	if !success {
+		return
+	}
+
+	tagSuggesterModel, success := handleEnvVar(flogger, config.TagSuggesterModelParamName)
+	if !success {
+		return
+	}
+
+	defaultGenerateTagNum, err := strconv.Atoi(os.Getenv(config.DefaultGenerateTagNumParamName))
+	if err != nil {
+		flogger.Errorf("error while converting %s to int: %v", config.DefaultGenerateTagNumParamName, err)
+		return
+	}
+
+	qdrantHost, success := handleEnvVar(flogger, config.QdrantHostParamName)
+	if !success {
+		return
+	}
+
+	qdrantPort, success := handleEnvVar(flogger, config.QdrantPortParamName)
+	if !success {
+		return
+	}
+
+	qdrantCollectionName, success := handleEnvVar(flogger, config.QdrantCollectionParamName)
+	if !success {
+		return
+	}
+
+	tritonHost, success := handleEnvVar(flogger, config.TritonHostParamName)
+	if !success {
+		return
+	}
+
+	tritonPort, success := handleEnvVar(flogger, config.TritonPortParamName)
+	if !success {
+		return
+	}
+
+	router, err := app.Init(db, flogger, openAiUrl, tagSuggesterModel, defaultGenerateTagNum, qdrantHost, qdrantPort, qdrantCollectionName, tritonHost, tritonPort)
 	if err != nil {
 		flogger.Errorf("error while launching routes: %v", err)
 		return
@@ -77,6 +119,16 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		flogger.Errorf("error while shutting down server: %v", err)
 	}
+}
+
+func handleEnvVar(flogger *flog.FLogger, envParamName string) (string, bool) {
+	v := os.Getenv(envParamName)
+	if v == "" {
+		flogger.Errorf("%s is not set", envParamName)
+		return "", false
+	}
+
+	return v, true
 }
 
 func init() {

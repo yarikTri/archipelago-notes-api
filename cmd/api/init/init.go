@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/yarikTri/archipelago-notes-api/internal/clients/invitations/email"
+	"github.com/yarikTri/archipelago-notes-api/internal/clients/llm"
 
 	"github.com/go-park-mail-ru/2023_1_Technokaif/pkg/logger"
 	"github.com/yarikTri/archipelago-notes-api/cmd/api/init/router"
@@ -17,6 +18,12 @@ import (
 	notesRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/repository/postgresql"
 	notesUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/usecase"
 
+	"github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/adapters/tags_graphs/qdrant"
+	tagHandler "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/delivery/http"
+	tagSuggester "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/repository/ollama"
+	tagRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/repository/postgresql"
+	tagUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/usecase"
+
 	usersHandler "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/delivery/http"
 	usersRepository "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/repository/postgresql"
 	usersUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/usecase"
@@ -26,28 +33,38 @@ import (
 	summaryUsecase "github.com/yarikTri/archipelago-notes-api/internal/pkg/summary/usecase"
 )
 
-func Init(sqlDBClient *sqlx.DB, logger logger.Logger) (http.Handler, error) {
+func Init(sqlDBClient *sqlx.DB, logger logger.Logger, openAiUrl string, tagSuggesterModel string, defaultGenerateTagNum int, qdrantHost, qdrantPort, qdrantCollectionName string, tritonHost, tritonPort string) (http.Handler, error) {
 	emailClient := email.NewEmailClient()
+	openAiClient := llm.NewOpenAiClient(openAiUrl)
+
+	tagSuggesterRepo := tagSuggester.NewTagSuggester(openAiClient, defaultGenerateTagNum, tagSuggesterModel, logger)
 
 	notesRepo := notesRepository.NewPostgreSQL(sqlDBClient)
 	dirsRepo := dirsRepository.NewPostgreSQL(sqlDBClient)
 	usersRepo := usersRepository.NewPostgreSQL(sqlDBClient)
 	summRepo := summaryRepository.NewPostgreSQL(sqlDBClient)
+	tagRepo := tagRepository.NewPostgreSQL(sqlDBClient)
 
 	notesUsecase := notesUsecase.NewUsecase(notesRepo, usersRepo, emailClient)
 	dirsUsecase := dirsUsecase.NewUsecase(dirsRepo, notesRepo)
 	usersUsecase := usersUsecase.NewUsecase(usersRepo, emailClient)
 	summaryUsecase := summaryUsecase.NewUsecase(summRepo)
 
+	inferer := qdrant.NewTritonInferer(tritonHost, tritonPort)
+	tagsGraph := qdrant.NewQdrantTagsGraph(inferer, qdrantHost, qdrantPort, qdrantCollectionName)
+	tagUsecase := tagUsecase.NewUsecase(tagRepo, tagSuggesterRepo, tagsGraph)
+
 	notesHandler := notesHandler.NewHandler(notesUsecase, logger)
 	dirsHandler := dirsHandler.NewHandler(dirsUsecase, logger)
 	usersHandler := usersHandler.NewHandler(usersUsecase, logger)
 	summaryHandler := summaryHandler.NewHandler(summaryUsecase, logger)
+	tagHandler := tagHandler.NewHandler(tagUsecase, notesUsecase, logger)
 
 	return router.InitRoutes(
 		notesHandler,
 		dirsHandler,
 		usersHandler,
 		summaryHandler,
+		tagHandler,
 	), nil
 }

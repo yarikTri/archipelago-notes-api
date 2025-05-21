@@ -11,6 +11,7 @@ import (
 	dirsDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/dirs/delivery/http"
 	notesDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/notes/delivery/http"
 	summaryDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/summary/delivery/http"
+	tagDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/tag/delivery/http"
 	usersDelivery "github.com/yarikTri/archipelago-notes-api/internal/pkg/users/delivery/http"
 )
 
@@ -19,6 +20,7 @@ func InitRoutes(
 	dirsHandler *dirsDelivery.Handler,
 	usersHandler *usersDelivery.Handler,
 	summaryHandler *summaryDelivery.Handler,
+	tagHandler *tagDelivery.Handler,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -60,6 +62,21 @@ func InitRoutes(
 	summary.POST("/update_text_role", summaryHandler.UpdateSummaryTextRole)
 	summary.GET("/active", summaryHandler.GetActiveSummaries)
 	summary.POST("/update_name", summaryHandler.UpdateName)
+
+	tags := api.Group("/tags")
+	tags.POST("/create", tagHandler.CreateAndLinkTag)
+	tags.PUT("/update", tagHandler.UpdateTag)
+	tags.POST("/unlink", tagHandler.UnlinkTagFromNote)
+	tags.POST("/link", tagHandler.LinkTags)
+	tags.POST("/unlink-tags", tagHandler.UnlinkTags)
+	tags.POST("/delete", tagHandler.DeleteTag)
+	tags.GET("/note/:note_id", tagHandler.GetTagsByNote)
+	tags.GET("/:tag_id/notes", tagHandler.GetNotesByTag)
+	tags.GET("/:tag_id/linked", tagHandler.GetLinkedTags)
+	tags.POST("/update-tags-link-name", tagHandler.UpdateTagsLinkName)
+	tags.POST("/:tag_id/link/:note_id", tagHandler.LinkTagToNote)
+	tags.POST("/suggest", tagHandler.SuggestTags)
+	tags.POST("/closest", tagHandler.ListClosestTags)
 
 	r.GET("/swagger/*any", swagger.WrapHandler(swaggerFiles.Handler))
 
