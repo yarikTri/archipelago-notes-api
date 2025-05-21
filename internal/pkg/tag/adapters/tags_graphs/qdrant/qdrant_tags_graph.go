@@ -252,7 +252,7 @@ func (r *deleteByIDResponse) error() error {
 	return fmt.Errorf("qdrant returned error: %s", r.Status)
 }
 
-const WAIT_FOR_PROCESS = true
+const WAIT_FOR_PROCESS = false
 
 func (g *QdrantTagsGraph) DeleteByID(tagID uuid.UUID) error {
 	req := newDeleteByIDRequest(tagID)

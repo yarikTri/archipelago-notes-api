@@ -37,7 +37,7 @@ func Init(sqlDBClient *sqlx.DB, logger logger.Logger, openAiUrl string, tagSugge
 	emailClient := email.NewEmailClient()
 	openAiClient := llm.NewOpenAiClient(openAiUrl)
 
-	tagSuggesterRepo := tagSuggester.NewTagSuggester(openAiClient, defaultGenerateTagNum, tagSuggesterModel)
+	tagSuggesterRepo := tagSuggester.NewTagSuggester(openAiClient, defaultGenerateTagNum, tagSuggesterModel, logger)
 
 	notesRepo := notesRepository.NewPostgreSQL(sqlDBClient)
 	dirsRepo := dirsRepository.NewPostgreSQL(sqlDBClient)
