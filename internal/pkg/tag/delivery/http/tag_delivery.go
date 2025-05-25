@@ -108,6 +108,7 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 	tag, err := h.tagUsecase.GetTagByNameAndUserID(req.Name, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	// Create tag and then link.
@@ -123,8 +124,8 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 			default:
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}
-			return
 		}
+		return
 	}
 
 	if err := h.linkTagToNote(c, tag.ID, userID, noteID); err != nil {
