@@ -124,11 +124,9 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 			default:
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			}
+			return
 		}
-		return
-	}
-
-	if err := h.linkTagToNote(c, tag.ID, userID, noteID); err != nil {
+	} else if err := h.linkTagToNote(c, tag.ID, userID, noteID); err != nil {
 		return
 	}
 
