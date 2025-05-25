@@ -21,6 +21,7 @@ type Usecase interface {
 	SuggestTags(text string, tagsNum *int) ([]string, error)
 	IsTagUsers(userID uuid.UUID, tagID uuid.UUID) (bool, error)
 	ListClosestTags(tagName string, userID uuid.UUID, limit uint32) ([]models.Tag, error)
+	GetTagByNameAndUserID(name string, userID uuid.UUID) (*models.Tag, error)
 }
 
 type TagRepository interface {
@@ -37,6 +38,7 @@ type TagRepository interface {
 	UpdateTagsLinkName(tag1ID, tag2ID, userID uuid.UUID, linkName string) error
 	DeleteTag(tagID uuid.UUID) error
 	GetTagByID(tagID uuid.UUID) (*models.Tag, error)
+	GetTagByNameAndUserID(name string, userID uuid.UUID) (*models.Tag, error)
 }
 
 type TagSuggesterRepository interface {

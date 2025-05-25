@@ -65,7 +65,7 @@ func (p *PostgreSQL) getTagByID(q QueryExecutor, id uuid.UUID) (*models.Tag, err
 }
 
 // getTagByName retrieves a tag by its name
-func (p *PostgreSQL) getTagByName(tx *sql.Tx, name string) (*models.Tag, error) {
+func (p *PostgreSQL) getTagByName(tx QueryExecutor, name string) (*models.Tag, error) {
 	var tag models.Tag
 	err := tx.QueryRow(`
 		SELECT tag_id, name, user_id
@@ -81,7 +81,7 @@ func (p *PostgreSQL) getTagByName(tx *sql.Tx, name string) (*models.Tag, error) 
 	return &tag, nil
 }
 
-func (p *PostgreSQL) getTagByNameAndUserID(tx *sql.Tx, name string, userID uuid.UUID) (*models.Tag, error) {
+func (p *PostgreSQL) getTagByNameAndUserID(tx QueryExecutor, name string, userID uuid.UUID) (*models.Tag, error) {
 	var tag models.Tag
 	err := tx.QueryRow(`
 		SELECT tag_id, name, user_id
@@ -687,4 +687,8 @@ func (p *PostgreSQL) DeleteTag(tagID uuid.UUID) error {
 
 func (p *PostgreSQL) GetTagByID(tagID uuid.UUID) (*models.Tag, error) {
 	return p.getTagByID(p.db.DB, tagID)
+}
+
+func (p *PostgreSQL) GetTagByNameAndUserID(name string, userID uuid.UUID) (*models.Tag, error) {
+	return p.getTagByNameAndUserID(p.db, name, userID)
 }

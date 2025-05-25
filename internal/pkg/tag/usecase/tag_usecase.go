@@ -155,3 +155,7 @@ func (u *Usecase) ListClosestTags(tagName string, userID uuid.UUID, limit uint32
 
 	return tags, nil
 }
+
+func (u *Usecase) GetTagByNameAndUserID(name string, userID uuid.UUID) (*models.Tag, error) {
+	return u.GetTagByNameAndUserID(name, userID)
+}

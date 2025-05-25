@@ -91,6 +91,11 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 		return
 	}
 
+	if strings.TrimSpace(req.Name) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "tag name cant be empty"})
+		return
+	}
+
 	// Check if note exists
 	_, err = h.noteUsecase.GetByID(noteID)
 	if err != nil {
@@ -99,17 +104,30 @@ func (h *Handler) CreateAndLinkTag(c *gin.Context) {
 		return
 	}
 
-	tag, err := h.tagUsecase.CreateAndLinkTag(req.Name, noteID, userID)
+	// Check if tag with this name for user already exists.
+	tag, err := h.tagUsecase.GetTagByNameAndUserID(req.Name, userID)
 	if err != nil {
-		h.logger.Errorf("Failed to create and link tag: %w", err)
-		switch e := err.(type) {
-		case *errors.TagNameExistsError:
-			c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("Tag with name '%s' already exists for this note", e.Name)})
-		case *errors.NoteNotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Note with ID '%s' not found", e.ID)})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	// Create tag and then link.
+	if tag == nil {
+		tag, err = h.tagUsecase.CreateAndLinkTag(req.Name, noteID, userID)
+		if err != nil {
+			h.logger.Errorf("Failed to create and link tag: %w", err)
+			switch e := err.(type) {
+			case *errors.TagNameExistsError:
+				c.JSON(http.StatusConflict, gin.H{"error": fmt.Sprintf("Tag with name '%s' already exists for this note", e.Name)})
+			case *errors.NoteNotFoundError:
+				c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Note with ID '%s' not found", e.ID)})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			}
+			return
 		}
+	}
+
+	if err := h.linkTagToNote(c, tag.ID, userID, noteID); err != nil {
 		return
 	}
 
@@ -727,6 +745,29 @@ func (h *Handler) DeleteTag(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func (h *Handler) linkTagToNote(c *gin.Context, tagID, userID, noteID uuid.UUID) error {
+	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
+		return err
+	}
+
+	err := h.tagUsecase.LinkTagToNote(tagID, noteID)
+	if err != nil {
+		h.logger.Errorf("Failed to link existing tag: %w", err)
+		switch e := err.(type) {
+		case *errors.TagNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Tag with ID '%s' not found", e.ID)})
+		case *errors.NoteNotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Note with ID '%s' not found", e.ID)})
+		case *errors.TagLinkExistsError:
+			c.JSON(http.StatusConflict, gin.H{"error": "Tag is already linked to this note"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+	}
+
+	return err
+}
+
 // LinkTagToNote
 // @Summary		Link existing tag to note
 // @Tags		Tags
@@ -763,27 +804,9 @@ func (h *Handler) LinkTagToNote(c *gin.Context) {
 		return
 	}
 
-	if err := h.checkTagOwnership(c, tagID, userID); err != nil {
-		return
+	if err := h.linkTagToNote(c, tagID, userID, noteID); err == nil {
+		c.Status(http.StatusCreated)
 	}
-
-	err = h.tagUsecase.LinkTagToNote(tagID, noteID)
-	if err != nil {
-		h.logger.Errorf("Failed to link existing tag: %w", err)
-		switch e := err.(type) {
-		case *errors.TagNotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Tag with ID '%s' not found", e.ID)})
-		case *errors.NoteNotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Note with ID '%s' not found", e.ID)})
-		case *errors.TagLinkExistsError:
-			c.JSON(http.StatusConflict, gin.H{"error": "Tag is already linked to this note"})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		return
-	}
-
-	c.Status(http.StatusCreated)
 }
 
 type suggestTagsRequest struct {
